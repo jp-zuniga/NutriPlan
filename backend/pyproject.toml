@@ -1,0 +1,27 @@
+[project]
+    dependencies = [
+        "django>=5.2.5",
+        "python-dotenv>=1.1.1",
+]
+    name            = "nutriplan-backend"
+    requires-python = ">=3.13"
+    version         = "0.1.0"
+
+[tool.ruff.lint]
+    ignore = [
+        "COM812",
+        "D200",
+        "D202",
+        "D203",
+        "D212",
+        "D401",
+    ]
+    select = ["ALL"]
+
+    [tool.ruff.lint.isort]
+        case-sensitive             = true
+        combine-as-imports         = true
+        force-sort-within-sections = true
+        order-by-type              = true
+        relative-imports-order     = "closest-to-furthest"
+        split-on-trailing-comma    = false
