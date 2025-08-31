@@ -5,7 +5,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<link rel="stylesheet" href="/styles/main.css" />
+	<link rel="stylesheet" href="/styles/global.css" />
 	<link rel="stylesheet" href="/styles/home.css" />
 </svelte:head>
 

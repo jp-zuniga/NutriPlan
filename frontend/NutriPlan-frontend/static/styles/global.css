@@ -3,6 +3,10 @@
 /* Import Questrial */
 @import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
 
+:root {
+  --main-color: #F55A00;
+}
+
 * {
   font-family: Questrial;
 }
