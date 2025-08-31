@@ -1,4 +1,6 @@
 :root {
+  --searchbar-height: 75px;
+
   --sidebar-length: 200px;
 
   --border-radius-1: 20px;
@@ -8,7 +10,7 @@
   --recipe-card-width: 250px;
   --recipe-card-height: 300px;
 
-  --recipe-card-image-height: 100px;
+  --recipe-card-image-height: 200px;
 }
 
 * {
@@ -20,6 +22,7 @@ body { margin: 0px; }
 #body {
   display: grid;
   grid-template-columns: var(--sidebar-length) 1fr;
+  grid-template-rows: var(--searchbar-height) 1fr;
 
   margin: 0px;
 
@@ -27,7 +30,71 @@ body { margin: 0px; }
   height: 100vh;
 }
 
+#search-bar {
+  grid-row: 1;
+  grid-column: 1 / 3;
+
+  background-color: rgb(19, 19, 19);
+  border-bottom: 2px solid gray;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#search-box {
+  border-radius: 20px;
+  width: 600px;
+  background-color: rgb(235, 235, 235);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  transition: 0.1s linear;
+}
+
+#search-box:hover {
+  background-color: rgb(211, 211, 211);
+}
+
+#search-box input {
+  font-size: 14px;
+  background-color: #ffffff00;
+  color: #292929;
+  outline: none;
+  border: none;
+  padding: 5px;
+  margin: 5px;
+  width: 100%;
+  height: 100%;
+}
+
+#search-box button {
+  width: 30px;
+  height: 30px;
+  margin-right: 3px;
+
+  border: none;
+  border-radius: 100%;
+
+  background-color: orange;
+  background-image: url("../assets/icons/magnifying-glass-solid-full.svg");
+  background-size: 50%;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transition: 0.1s linear;
+  cursor: pointer;
+}
+
+#bar-left {
+  color: white;
+}
+
 #sidebar {
+  grid-row: 2;
+
   background-color: var(--white-background);
   box-shadow: 0px 0px 5px black;
 }
@@ -39,6 +106,15 @@ body { margin: 0px; }
   list-style: none;
 }
 
+#main-content {
+  grid-row: 2;
+}
+
+/*
+ALL RECIPE CARD STYLES
+ALL RECIPE CARD STYLES
+ALL RECIPE CARD STYLES
+*/
 .recipe-card {
   width: var(--recipe-card-width);
   height: var(--recipe-card-height);
@@ -57,6 +133,7 @@ body { margin: 0px; }
 
 .recipe-card:hover {
   transform: scale(105%) rotate(1deg);
+  cursor:pointer;
 }
 
 .recipe-image-container {
@@ -88,4 +165,20 @@ body { margin: 0px; }
   overflow: hidden;
   border-radius: inherit;
   object-fit: cover;
+}
+
+.recipe-info {
+  padding: 20px;
+}
+
+.recipe-title {
+  font-weight: bolder;
+  font-size: 14px;
+}
+
+.recipe-time {
+  background-color: rgba(172, 255, 47, 0.486);
+  border: 2px solid greenyellow;
+  border-radius: 5px;
+  width: fit-content;
 }
