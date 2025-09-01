@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ NO IGNORAR, SVELTE NECESITA ESTO
 lib64/
 parts/
 sdist/
