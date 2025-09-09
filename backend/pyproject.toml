@@ -2,10 +2,15 @@
     dependencies = [
         "django>=5.2.5",
         "python-dotenv>=1.1.1",
-]
-    name            = "nutriplan-backend"
+    ]
+    name = "nutriplan-backend"
     requires-python = ">=3.13"
-    version         = "0.1.0"
+    version = "0.1.0"
+
+[dependency-groups]
+    dev = [
+        "ruff>=0.12.12",
+    ]
 
 [tool.ruff.lint]
     ignore = [
