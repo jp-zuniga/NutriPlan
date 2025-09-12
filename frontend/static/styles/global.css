@@ -8,5 +8,6 @@
 }
 
 * {
-  font-family: Questrial;
+  font-family: Overpass;
+  box-sizing: border-box;
 }
