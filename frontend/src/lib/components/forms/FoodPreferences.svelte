@@ -29,6 +29,6 @@
 	}
 
 	.questionaire {
-		background-color: plum;
+		background-color: #F9F5FF;
 	}
 </style>
