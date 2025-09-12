@@ -1,9 +1,9 @@
 <script>
 	import { goto } from '$app/navigation';
-	let { form_title, step, stepcount } = $props();
+	let { form_title, step, stepcount, callback } = $props();
 
 	function go_back() {
-		goto('/welcome');
+		callback();
 	}
 </script>
 

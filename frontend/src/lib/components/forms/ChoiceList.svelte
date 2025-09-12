@@ -1,43 +1,27 @@
 <script>
-	import { onMount } from 'svelte';
+	let { title, description, options, rows = 1, group } = $props();
 
-	let { title, options } = $props();
+	let selectedIndex = $state(null);
 
-	let option_selected = null;
-	let buttons = [];
-
-	onMount(() => {
-		buttons = document.getElementsByClassName('form-option');
-		for (let button of buttons) console.log(button);
-	});
-
-	function optionClick(option) {
-		if (option == option_selected) option_selected = null;
-		else option_selected = option;
-
-		console.log(`Handled option click event, option selected ${option}`);
-		updateButtons();
-	}
-
-	function updateButtons() {
-		console.log(`Updating button list: ${buttons}`);
-		for (let button of buttons) {
-			console.log(`Button text: ${button.textContent}`);
-			if (button.classList.contains('selected')) {
-				if (button.textContent == option_selected || option_selected == null)
-					button.classList.remove('selected');
-			} else {
-				if (button.textContent == option_selected) button.classList.add('selected');
-			}
-		}
+	function optionClick(index) {
+		selectedIndex = selectedIndex === index ? null : index;
 	}
 </script>
 
 <div class="form-choice">
 	<h3>{title}</h3>
-	<div class="choices">
-		{#each options as option}
-			<button class="form-option" onclick={() => optionClick(option)}>{option}</button>
+	<div class="choices" style="grid-template-columns: repeat({rows}, 1fr);">
+		{#each options as option, index}
+			<button
+				class="form-option {selectedIndex === index ? 'selected' : ''}"
+				onclick={() => optionClick(index)}
+				type="button"
+			>
+				{option.text}
+				{#if option.description}
+					<span>{option.description}</span>
+				{/if}
+			</button>
 		{/each}
 	</div>
 </div>
@@ -47,17 +31,17 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: left;
-		width: 100%;
 		margin: 20px;
 	}
 
 	.choices {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
 		gap: 20px;
 	}
 
 	.form-option {
+		text-align: left;
+		font-size: 18px;
 		width: 100%;
 		border: 2px solid white;
 		background-color: white;
@@ -65,6 +49,9 @@
 		padding: 15px;
 		border-radius: 10px;
 		transition: 0.1s ease;
+
+		display: flex;
+		flex-direction: column;
 	}
 
 	.form-option:hover {
@@ -72,14 +59,20 @@
 		transform: translateY(-5px);
 	}
 
-	:global(.form-option.selected:hover) {
+	.form-option.selected {
+		background-color: #6c40fb;
+		border: 2px solid #6c40fb;
+		color: white;
+	}
+
+	.form-option.selected:hover {
 		background-color: #5a35d0;
 		border: 2px solid #5a35d0;
 	}
 
-	:global(.form-option.selected) {
-		background-color: #6c40fb;
-		border: 2px solid #6c40fb;
-		color: white;
+	.form-option span {
+		color: inherit;
+		opacity: 60%;
+		font-size: 15px;
 	}
 </style>
