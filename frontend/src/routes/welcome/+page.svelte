@@ -1,4 +1,5 @@
 <script>
+	import { goto } from '$app/navigation';
 	import '$lib/components/welcome/WelcomeTip.svelte';
 	import WelcomeTip from '$lib/components/welcome/WelcomeTip.svelte';
 
@@ -22,6 +23,10 @@
 			icon: '/assets/icons/bullseye-solid.svg'
 		}
 	];
+
+	function goto_startingform() {
+		goto('/forms/starting-form');
+	}
 </script>
 
 <div id="welcome-screen">
@@ -44,7 +49,9 @@
 			{/each}
 		</div>
 
-		<button id="submit-button"> <span>Crear mi plan nutricional IA</span> </button>
+		<button id="submit-button" onclick={goto_startingform}>
+			<span>Crear mi plan nutricional IA</span>
+		</button>
 	</div>
 </div>
 
@@ -100,15 +107,15 @@
 		cursor: pointer;
 
 		box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.1);
-		transition:
-			1s linear background,
-			color;
+		transition: 0.1s;
 	}
 
 	#submit-button:hover {
 		background: white;
 		color: rgba(141, 194, 111, 1);
 		outline: 2px solid rgba(141, 194, 111, 1);
+		transform: translateY(-2px);
+		box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.2);
 	}
 
 	/* #submit-button span::after {

@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 /* Import Questrial */
 @import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
+/* Import Overpass */
+@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
   --main-color: #F55A00;
