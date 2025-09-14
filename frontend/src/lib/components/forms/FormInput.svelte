@@ -1,30 +1,27 @@
 <script>
-	let { title, description, options, rows = 1, group, answer_callback } = $props();
+	let { title, type, placeholder, group, validate_function, answer_callback } = $props();
 
-	let selectedIndex = $state(null);
+	let input = $state('');
+	let valid_value = $state(null);
 
 	function optionClick(index) {
-		selectedIndex = selectedIndex === index ? null : index;
-		if (selectedIndex != null) answer_callback(group, options[selectedIndex]);
+		valid_value = validate_function(input);
+
+		if (valid_value) answer_callback(group, input);
 		else answer_callback(group, null);
 	}
 </script>
 
 <div class="form-choice">
 	<h3>{title}</h3>
-	<div class="choices" style="grid-template-columns: repeat({rows}, 1fr);">
-		{#each options as option, index}
-			<button
-				class="form-option {selectedIndex === index ? 'selected' : ''}"
-				onclick={() => optionClick(index)}
-				type="button"
-			>
-				{option.text}
-				{#if option.description}
-					<span>{option.description}</span>
-				{/if}
-			</button>
-		{/each}
+	<div class="form-input">
+		<input
+			class={valid_value === false ? 'invalid' : ''}
+			bind:value={input}
+			{type}
+			{placeholder}
+			onkeyup={optionClick}
+		/>
 	</div>
 </div>
 
@@ -42,7 +39,7 @@
 		gap: 20px;
 	}
 
-	.form-option {
+	.form-input input {
 		text-align: left;
 		font-size: 18px;
 		width: 100%;
@@ -53,13 +50,18 @@
 		border-radius: 10px;
 		transition: 0.1s ease;
 
+		outline-color: #6c40fb;
+
 		display: flex;
 		flex-direction: column;
-		cursor: pointer;
 	}
 
-	.form-option:hover {
-		border-color: #6c40fb;
+	.form-choice input.invalid {
+		background-color: pink;
+	}
+
+	.form-input input:focus {
+		outline: 2px solid #6c40fb;
 		transform: translateY(-5px);
 	}
 

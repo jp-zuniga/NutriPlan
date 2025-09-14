@@ -2,38 +2,51 @@
 	import { goto } from '$app/navigation';
 	import ChoiceList from './ChoiceList.svelte';
 	import FormBanner from './FormBanner.svelte';
+	import FormInput from './FormInput.svelte';
 
 	let { continue_callback } = $props();
 
 	const questions = [
 		{
-			title: 'Tipo de alimentación',
-			options: [
-				{ text: 'Omnívora' },
-				{ text: 'Vegana' },
-				{ text: 'Vegetariana' },
-				{ text: 'Pesceteriana' }
-			],
-			rows: 2
+			type: 'Input',
+			title: 'Edad',
+			input_type: 'number',
+			placeholder: '28',
+			validate_function: (value) => {
+				if (value <= 0 || value >= 100) return false;
+				else return true;
+			}
 		},
 		{
-			title: 'Objetivos de Salud',
-			options: [
-				{ text: 'Perder peso gradualmente' },
-				{ text: 'Mantener peso actual' },
-				{ text: 'Ganar masa muscular' },
-				{ text: 'Más energía diaria' },
-				{ text: 'Mejor digestión' },
-				{ text: 'Control de azucar' }
-			]
+			type: 'Input',
+			title: 'Peso (kg)',
+			input_type: 'number',
+			placeholder: '65',
+			validate_function: (value) => {
+				if (value <= 0 || value >= 200) return false;
+				else return true;
+			}
 		},
 		{
-			title: 'Nivel de Actividad',
+			type: 'Input',
+			title: 'Altura (cm)',
+			input_type: 'number',
+			placeholder: '165',
+			validate_function: (value) => {
+				if (value <= 0 || value >= 260) return false;
+				else return true;
+			}
+		},
+		{
+			type: 'Choice',
+			title: 'Alergias Alimentarias',
 			options: [
-				{ text: 'Sedentaria', description: 'Oficina, poco ejercicio' },
-				{ text: 'Ligera', description: 'Ejercicio 1-3 días/semana' },
-				{ text: 'Moderada', description: 'Ejercicio 3-5 días/semana' },
-				{ text: 'Activa', description: 'Ejercicio 6-7 días/semana' }
+				{ text: 'Gluten' },
+				{ text: 'Lácteos' },
+				{ text: 'Nueces' },
+				{ text: 'Mariscos' },
+				{ text: 'Huevos' },
+				{ text: 'Soya' }
 			]
 		}
 	];
@@ -60,19 +73,29 @@
 	<div class="questionaire">
 		<div class="title">
 			<div class="icon-container">
-				<img src="/assets/icons/utensils-solid.svg" alt="utensils" />
+				<img src="/assets/icons/file-medical-alt-solid.svg" alt="medical file" />
 			</div>
-			<h2>¿Cómo te gusta comer?</h2>
-			<p>Selecciona tus preferencias para que tu IA nutricional te conozca mejor</p>
+			<h2>Información Básica</h2>
+			<p>Datos necesarios para crear tu plan nutricional perfecto.</p>
 		</div>
 		{#each questions as question, index}
-			<ChoiceList
-				title={question.title}
-				options={question.options}
-				rows={question.rows}
-				group={index}
-				answer_callback={updateQuestion}
-			/>
+			{#if question.type == 'Choice'}
+				<ChoiceList
+					title={question.title}
+					options={question.options}
+					rows={question.rows}
+					group={index}
+					answer_callback={updateQuestion}
+				/>
+			{:else if question.type == 'Input'}
+				<FormInput
+					title={question.title}
+					placeholder={question.placeholder}
+					type={question.input_type}
+					group={index}
+					validate_function={question.validate_function}
+				/>
+			{/if}
 		{/each}
 		<button disabled={answers < answered.length} id="submit-button" onclick={continue_callback}
 			>Continuar</button
@@ -101,7 +124,7 @@
 	}
 
 	.questionaire .title .icon-container {
-		background: linear-gradient(-45deg, rgba(131, 77, 155, 1) 0%, rgba(208, 78, 214, 1) 100%);
+		background: linear-gradient(-45deg, rgba(33, 131, 250, 1) 0%, rgba(0, 194, 116, 1) 100%);
 
 		width: 75px;
 		height: 75px;
