@@ -2,19 +2,30 @@
 	import { onMount } from 'svelte';
 	import { formAnswers } from '$lib/stores/formAnswers.js';
 	import { writable } from 'svelte/store';
+	import { AI_API_ENDPOINT } from '$lib/endpoints';
 
 	// Chat state
-	let messages = [
+	let messages = $state([
 		{
 			sender: 'ai',
 			text: '¡Hola! Estoy aquí para recomendarte recetas personalizadas. ¿En qué te gustaría enfocarte hoy?'
 		}
-	];
-	let userInput = '';
-	let loading = false;
+	]);
+	let userInput = $state('');
+	let loading = $state(false);
+	let messagesContainer;
 
-	// Placeholder for AI endpoint
-	const AI_ENDPOINT = '/api/ai-recommendations'; // Replace with actual endpoint later
+	$effect(() => {
+		messages;
+		loading;
+
+		if (messagesContainer) {
+			messagesContainer.scrollTo({
+				top: messagesContainer.scrollHeight,
+				behavior: 'smooth'
+			});
+		}
+	});
 
 	// Generate prompt from formAnswers
 	function buildPrompt(answers) {
@@ -43,16 +54,42 @@
 		const messageToAI = userInput;
 		userInput = '';
 		// Placeholder fetch
-		setTimeout(() => {
-			messages = [
-				...messages,
-				{
-					sender: 'ai',
-					text: 'Esta es una respuesta simulada basada en tu mensaje: ' + messageToAI
-				}
-			];
-			loading = false;
-		}, 1200);
+		fetch(AI_API_ENDPOINT, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				message: messageToAI
+			})
+		})
+			.then((response) => {
+				return response.json();
+			})
+			.then((data) => {
+				let display_text = data.answer
+					? data.answer
+					: 'Hubo un error al comunicarse con el servidor';
+
+				messages = [
+					...messages,
+					{
+						sender: 'ai',
+						text: display_text
+					}
+				];
+				loading = false;
+			});
+		// setTimeout(() => {
+		// 	messages = [
+		// 		...messages,
+		// 		{
+		// 			sender: 'ai',
+		// 			text: 'Esta es una respuesta simulada basada en tu mensaje: ' + messageToAI
+		// 		}
+		// 	];
+		// 	loading = false;
+		// }, 1200);
 	}
 </script>
 
@@ -62,7 +99,7 @@
 		<p>Recibe sugerencias personalizadas de recetas según tus preferencias y perfil de salud.</p>
 	</div>
 	<div class="chatbox">
-		<div class="messages">
+		<div class="messages" bind:this={messagesContainer}>
 			{#each messages as msg}
 				<div class="message {msg.sender}">
 					<span>{msg.text}</span>
@@ -134,7 +171,7 @@
 	}
 	.messages {
 		flex: 1;
-		overflow-y: auto;
+		overflow-y: scroll;
 		max-height: 340px;
 		margin-bottom: 12px;
 		display: flex;
