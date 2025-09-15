@@ -5,7 +5,7 @@
 <i class="las la-battery-three-quarters"></i>
 
 <style>
-	.las {
-		fill: blue;
+	.la-battery-three-quarters {
+		color: blue;
 	}
 </style>

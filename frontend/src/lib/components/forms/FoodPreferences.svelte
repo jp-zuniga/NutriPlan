@@ -65,7 +65,7 @@
 	<div class="questionaire">
 		<div class="title">
 			<div class="icon-container">
-				<img src="/assets/icons/utensils-solid.svg" alt="utensils" />
+				<i class="las la-utensils"></i>
 			</div>
 			<h2>¿Cómo te gusta comer?</h2>
 			<p>Selecciona tus preferencias para que tu IA nutricional te conozca mejor</p>
@@ -120,9 +120,9 @@
 		margin-right: 15px;
 	}
 
-	.questionaire .title .icon-container img {
-		width: 50px;
-		height: 50px;
+	.questionaire .title .icon-container i {
+		color: white;
+		font-size: 50px;
 	}
 
 	.questionaire .title h2,

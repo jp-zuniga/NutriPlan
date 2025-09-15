@@ -4,7 +4,7 @@
 
 <div class="recipe-tip">
 	<div class="image-container" style="background: {color};">
-		<img src={icon} alt="Icon" />
+		<i class={icon}></i>
 	</div>
 	<div class="text-container">
 		<h3>{title}</h3>
@@ -37,9 +37,9 @@
 		margin-right: 15px;
 	}
 
-	.image-container img {
-		width: 30px;
-		height: 30px;
+	.image-container i {
+		color: white;
+		font-size: 30px;
 	}
 
 	h3 {

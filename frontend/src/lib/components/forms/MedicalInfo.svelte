@@ -78,7 +78,7 @@
 	<div class="questionaire">
 		<div class="title">
 			<div class="icon-container">
-				<img src="/assets/icons/file-medical-alt-solid.svg" alt="medical file" />
+				<i class="las la-file-medical-alt"></i>
 			</div>
 			<h2>Información Básica</h2>
 			<p>Datos necesarios para crear tu plan nutricional perfecto.</p>
@@ -145,9 +145,9 @@
 		margin-right: 15px;
 	}
 
-	.questionaire .title .icon-container img {
-		width: 50px;
-		height: 50px;
+	.questionaire .title .icon-container i {
+		color: white;
+		font-size: 50px;
 	}
 
 	.questionaire .title h2,

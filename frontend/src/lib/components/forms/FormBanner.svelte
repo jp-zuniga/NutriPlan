@@ -9,7 +9,7 @@
 
 <div class="form-banner">
 	<button class="back-button" aria-label="Back" onclick={go_back}>
-		<img src="/assets/icons/angle-left-solid.svg" alt="left-arrow" />
+		<i class="las la-angle-left"></i>
 	</button>
 	<div class="content">
 		<h2 class="banner-title">{form_title}</h2>
@@ -62,8 +62,7 @@
 		cursor: pointer;
 	}
 
-	.back-button img {
-		width: 20px;
-		height: 20px;
+	.back-button i {
+		font-size: 20px;
 	}
 </style>

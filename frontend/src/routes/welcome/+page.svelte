@@ -8,19 +8,19 @@
 			title: 'Recetas tradicionales nicas',
 			description: 'Gallo pinto, quesillo y más con análisis nutricional',
 			color: 'linear-gradient(-45deg,rgba(86, 171, 47, 1) 0%, rgba(168, 224, 99, 1) 100%)',
-			icon: '/assets/icons/utensils-solid.svg'
+			icon: 'las la-utensils'
 		},
 		{
 			title: 'IA nutricional personalizada',
 			description: 'Planes basados en tu salud y preferencias',
 			color: 'linear-gradient(-45deg,rgba(131, 77, 155, 1) 0%, rgba(208, 78, 214, 1) 100%)',
-			icon: '/assets/icons/brain-solid.svg'
+			icon: 'las la-brain'
 		},
 		{
 			title: 'Objetivos de salud claros',
 			description: 'Seguimiento inteligente de tu progreso',
 			color: 'linear-gradient(-45deg,rgba(237, 143, 3, 1) 0%, rgba(255, 183, 94, 1) 100%)',
-			icon: '/assets/icons/bullseye-solid.svg'
+			icon: 'las la-bullseye'
 		}
 	];
 
