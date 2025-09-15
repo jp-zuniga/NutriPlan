@@ -7,6 +7,10 @@
 	<link rel="icon" href={favicon} />
 	<link rel="stylesheet" href="/styles/global.css" />
 	<link rel="stylesheet" href="/styles/home.css" />
+	<link
+		rel="stylesheet"
+		href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css"
+	/>
 </svelte:head>
 
 {@render children?.()}
