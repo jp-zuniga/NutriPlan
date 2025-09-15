@@ -67,6 +67,11 @@
 
 		console.log(`Total number of answers: ${answers}, question count: ${answered.length}`);
 	}
+
+	function passAnswers() {
+		console.log(`Medical answers passed: ${answered}`);
+		continue_callback(answered);
+	}
 </script>
 
 <div class="form-body">
@@ -94,10 +99,11 @@
 					type={question.input_type}
 					group={index}
 					validate_function={question.validate_function}
+					answer_callback={updateQuestion}
 				/>
 			{/if}
 		{/each}
-		<button disabled={answers < answered.length} id="submit-button" onclick={continue_callback}
+		<button disabled={answers < answered.length} id="submit-button" onclick={passAnswers}
 			>Continuar</button
 		>
 	</div>

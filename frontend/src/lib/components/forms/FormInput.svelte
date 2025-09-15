@@ -34,11 +34,6 @@
 		width: 80%;
 	}
 
-	.choices {
-		display: grid;
-		gap: 20px;
-	}
-
 	.form-input input {
 		text-align: left;
 		font-size: 18px;
@@ -63,22 +58,5 @@
 	.form-input input:focus {
 		outline: 2px solid #6c40fb;
 		transform: translateY(-5px);
-	}
-
-	.form-option.selected {
-		background-color: #6c40fb;
-		border: 2px solid #6c40fb;
-		color: white;
-	}
-
-	.form-option.selected:hover {
-		background-color: #5a35d0;
-		border: 2px solid #5a35d0;
-	}
-
-	.form-option span {
-		color: inherit;
-		opacity: 60%;
-		font-size: 15px;
 	}
 </style>

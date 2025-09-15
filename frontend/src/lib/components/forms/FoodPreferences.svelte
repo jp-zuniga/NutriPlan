@@ -54,6 +54,11 @@
 
 		console.log(`Total number of answers: ${answers}, question count: ${answered.length}`);
 	}
+
+	function passAnswers() {
+		console.log(`Answers passed: ${answered}`);
+		continue_callback(answered);
+	}
 </script>
 
 <div class="form-body">
@@ -74,7 +79,7 @@
 				answer_callback={updateQuestion}
 			/>
 		{/each}
-		<button disabled={answers < answered.length} id="submit-button" onclick={continue_callback}
+		<button disabled={answers < answered.length} id="submit-button" onclick={passAnswers}
 			>Continuar</button
 		>
 	</div>
@@ -83,7 +88,6 @@
 <style>
 	.questionaire {
 		background-color: #f9f5ff;
-		overflow-y: scroll;
 
 		display: flex;
 		flex-direction: column;
