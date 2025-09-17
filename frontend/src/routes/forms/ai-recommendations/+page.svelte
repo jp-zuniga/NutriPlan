@@ -38,7 +38,7 @@
 		return prompt;
 	}
 
-	// Send message to AI (placeholder)
+	// Send message to AI
 	async function sendMessage() {
 		if (!userInput.trim()) return;
 
@@ -61,23 +61,27 @@
 			},
 			body: JSON.stringify({
 				message: messageToAI
-			})
+			}),
+			signal: AbortSignal.timeout(10000)
 		})
 			.then((response) => {
 				return response.json();
 			})
 			.then((data) => {
-				let display_text = data.answer
-					? data.answer
-					: 'Hubo un error al comunicarse con el servidor';
+				if (!data.answer) throw 'No se encontro una respuesta';
 
 				messages = [
 					...messages,
 					{
 						sender: 'ai',
-						text: display_text
+						text: data.answer
 					}
 				];
+				loading = false;
+			})
+			.catch((error) => {
+				const displayText = 'Hubo un error comunicandose con el servidor: ' + error;
+
 				loading = false;
 			});
 		// setTimeout(() => {
