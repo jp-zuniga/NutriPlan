@@ -5,6 +5,8 @@ import express from "express"
 const app = express();
 const port = 3000;
 
+let conversations = {};
+
 // API_KEY Environment Variable must be set
 const API_KEY = process.env.API_KEY;
 
@@ -14,12 +16,34 @@ const API_KEY = process.env.API_KEY;
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({apiKey: API_KEY});
 
-async function callAI(message) {
+async function callAI(message, user_id) {
   console.log(`Request to speak to AI with message: ${message}`)
+
+  if(!conversations[user_id]) {
+    console.log(`Opening conversation with user ${user_id}`)
+    conversations[user_id] = [];
+  }
+  else {
+    console.log(`Conversation length with the user ${user_id}: ${conversations[user_id].length}`)
+  }
+
+  conversations[user_id].push({
+    role: 'user',
+    message: message
+  })
+
+  console.log(`Contents sent to gemini: ${JSON.stringify(conversations[user_id])}`)
+
   const response = await ai.models.generateContent({
     model: "gemini-2.5-pro",
-    contents: message,
+    contents: JSON.stringify(conversations[user_id]),
   });
+
+  conversations[user_id].push({
+    role: 'ai',
+    message: response.text
+  })
+
   return response.text;
 }
 
@@ -29,21 +53,9 @@ app.use(cors());
 app.post('/ai-endpoint', async (req, res) => {
     console.log(`Incoming request!`);
 
-    let received_message;
-    try {
-        const { message } = req.body; // Get message
-        console.log(`Received message: ${message}`)
-        received_message = message;
-    } catch {
-        console.log(`Message could not be obtained`)
-        res.json({
-            error: "There was an error obtaining the message",
-            answer: null
-        });
-        return;
-    }
+    const { user_id, message } = req.body; // Get message
 
-    if(!received_message || received_message == "") {
+    if(!message || message == "") {
         res.json({
             error: "The messsage field is null",
             answer: null
@@ -51,7 +63,7 @@ app.post('/ai-endpoint', async (req, res) => {
         return;
     }
 
-    const answer = await callAI(received_message);
+    const answer = await callAI(message, user_id);
     console.log(`Server answered with: ${answer}`);
     res.json({
         error: null,
