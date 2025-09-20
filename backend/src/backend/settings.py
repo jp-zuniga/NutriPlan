@@ -32,6 +32,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY") or get_random_secret_key()
 DEBUG = os.environ.get("DEBUG") or True
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = "nutriplan.CustomUser"
 
 INSTALLED_APPS = [
     "nutriplan.apps.NutriplanConfig",

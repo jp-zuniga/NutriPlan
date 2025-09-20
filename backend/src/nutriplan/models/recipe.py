@@ -1,27 +1,7 @@
 from django.db import models
 
-
-class Ingredient(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self) -> str:
-        return self.name
-
-
-class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    friendly_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-
-    class Meta:
-        verbose_name_plural = "Categories"
-        ordering = ["friendly_name"]
-
-    def __str__(self) -> str:
-        return self.friendly_name or self.name
+from .category import Category
+from .ingredient import Ingredient
 
 
 class Recipe(models.Model):
