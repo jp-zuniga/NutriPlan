@@ -15,7 +15,7 @@ CATEGORIES = [
 ]
 
 
-def add_categories(apps, schema_editor):
+def add_categories(apps, schema_editor) -> None:
     Category = apps.get_model("nutriplan", "Category")
     for cat_data in CATEGORIES:
         Category.objects.get_or_create(
@@ -23,7 +23,7 @@ def add_categories(apps, schema_editor):
         )
 
 
-def remove_categories(apps, schema_editor):
+def remove_categories(apps, schema_editor) -> None:
     Category = apps.get_model("nutriplan", "Category")
     for cat_data in CATEGORIES:
         Category.objects.filter(name=cat_data["name"]).delete()
