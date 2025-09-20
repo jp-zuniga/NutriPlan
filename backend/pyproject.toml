@@ -1,8 +1,11 @@
 [project]
     dependencies = [
         "django>=5.2.5",
+        "django-cors-headers>=4.9.0",
+        "djangorestframework>=3.16.1",
+        "djangorestframework-simplejwt>=5.5.1",
         "python-dotenv>=1.1.1",
-    ]
+]
     name = "nutriplan-backend"
     requires-python = ">=3.13"
     version = "0.1.0"
