@@ -5,3 +5,6 @@ class NutriplanConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "nutriplan"
     label = "nutriplan"
+
+    def ready(self) -> None:
+        import nutriplan.models  # noqa
