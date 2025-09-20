@@ -1,4 +1,4 @@
-from django.db.models import BaseManager
+from django.db.models.manager import BaseManager
 
 from nutriplan.models import Recipe
 

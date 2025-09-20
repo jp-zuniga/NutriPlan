@@ -17,10 +17,6 @@ class CategoryAdmin(admin.ModelAdmin):
     readonly_fields = ("name",)
 
 
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Recipe)
-
-
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ["username", "email", "first_name", "last_name"]
@@ -44,9 +40,9 @@ class CustomUserAdmin(UserAdmin):
     )
 
 
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Category)
-admin.site.register(Recipe)
-admin.site.register(Ingredient)
-admin.site.register(RecipeIngredient)
 admin.site.register(DietaryRestriction)
+admin.site.register(Ingredient)
+admin.site.register(Recipe)
+admin.site.register(RecipeIngredient)
