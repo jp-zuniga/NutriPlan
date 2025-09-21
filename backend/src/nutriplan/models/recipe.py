@@ -19,6 +19,7 @@ from django.db.models import (
     URLField,
     UniqueConstraint,
 )
+from django.utils import timezone
 
 from .category import Category
 from .ingredient import Ingredient
@@ -55,7 +56,6 @@ class Recipe(Model):
     )
 
     main_image_url = URLField(blank=True, help_text="Primary image URL")
-
     prep_time = PositiveIntegerField(
         verbose_name="Prep Time",
         help_text="Preparation time (in minutes)",
@@ -103,8 +103,8 @@ class Recipe(Model):
         help_text="grams sugar per serving",
     )
 
-    created_at = DateTimeField(auto_now_add=True)
-    updated_at = DateTimeField(auto_now=True)
+    created_at = DateTimeField(default=timezone.now)
+    updated_at = DateTimeField(default=timezone.now)
 
     class Meta:
         """
