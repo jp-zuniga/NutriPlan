@@ -1,3 +1,7 @@
+"""
+Serializers for NutriPlan app models.
+"""
+
 from .category import CategorySerializer
 from .ingredient import IngredientSerializer
 from .recipe import RecipeSerializer
