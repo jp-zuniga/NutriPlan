@@ -1,23 +1,19 @@
-from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
+"""
+URL and routing configuration.
+"""
 
-from nutriplan.views import (
-    CategoryList,
-    RecipeDetail,
-    RecipeList,
-    create_recipe,
-    get_user_profile,
-    login_user,
-    register_user,
-)
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from nutriplan.views.categories import CategoryViewSet
+from nutriplan.views.ingredients import IngredientViewSet
+from nutriplan.views.recipes import RecipeViewSet
+
+router = DefaultRouter()
+router.register("categories", CategoryViewSet, basename="category")
+router.register("ingredients", IngredientViewSet, basename="ingredient")
+router.register("recipes", RecipeViewSet, basename="recipe")
 
 urlpatterns = [
-    path("auth/register/", register_user, name="register"),
-    path("auth/login/", login_user, name="login"),
-    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("auth/profile/", get_user_profile, name="profile"),
-    path("recipes/", RecipeList.as_view(), name="recipe-list"),
-    path("recipes/create/", create_recipe, name="recipe-create"),
-    path("recipes/<str:pk>/", RecipeDetail.as_view(), name="recipe-detail"),
-    path("categories/", CategoryList.as_view(), name="category-list"),
+    path("api/", include(router.urls)),
 ]
