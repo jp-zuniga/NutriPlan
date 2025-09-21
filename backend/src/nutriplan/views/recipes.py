@@ -4,7 +4,8 @@ Read-only viewset for recipes, including search and filter capabilities.
 
 from typing import ClassVar
 
-from django.db.models import BaseManager, Count, F, Prefetch, Q
+from django.db.models import Count, F, Prefetch, Q
+from django.db.models.manager import BaseManager
 from rest_framework import viewsets
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, BasePermission
