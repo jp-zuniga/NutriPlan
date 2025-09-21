@@ -38,6 +38,8 @@ class RecipeSerializer(ModelSerializer):
             "name",
             "description",
             "category",
+            "ingredients",
+            "images",
             "prep_time",
             "cook_time",
             "total_time",
@@ -48,8 +50,7 @@ class RecipeSerializer(ModelSerializer):
             "fat_per_serving",
             "sugar_per_serving",
             "primary_image",
-            "images",
-            "ingredients",
+            "main_image_url",
             "created_at",
             "updated_at",
         )

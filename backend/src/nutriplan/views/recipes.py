@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, BasePermission
 
 from nutriplan.models.ingredient import Ingredient
 from nutriplan.models.recipe import Recipe, RecipeImage, RecipeIngredient
+from nutriplan.serializers import RecipeSerializer
 
 
 def _parse_int_list(value: str | None) -> list[int]:
@@ -59,6 +60,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes: ClassVar[BasePermission] = [AllowAny]  # type: ignore[reportAssignmentType]
     search_fields: ClassVar[list[str]] = ["name", "description"]
+    serializer_class = RecipeSerializer
 
     def get_queryset(self) -> BaseManager[Recipe]:  # type: ignore[reportIncomatibleMethodOverride]
         """
