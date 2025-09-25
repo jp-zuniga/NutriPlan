@@ -7,7 +7,7 @@
 # -------------------------------------------------------
 
 # Clonar repo
-git clone https://github.com/jp#zuniga/NutriPlan
+git clone https://github.com/jp-zuniga/NutriPlan
 
 # Navegar al backend
 cd NutriPlan
