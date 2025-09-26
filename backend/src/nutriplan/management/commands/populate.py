@@ -18,7 +18,7 @@ from nutriplan.services.llm.seeders import (
 )
 
 
-class Populate(BaseCommand):
+class Command(BaseCommand):
     """
     Command to generate and persist AI-seeded ingredients and recipes using Gemini.
     """
