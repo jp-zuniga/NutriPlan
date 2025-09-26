@@ -5,6 +5,7 @@
         "djangorestframework-simplejwt>=5.5.1",
         "djangorestframework>=3.16.1",
         "google-genai>=1.38.0",
+        "pydantic>=2.11.9",
         "python-dotenv>=1.1.1",
 ]
     name = "nutriplan-backend"
