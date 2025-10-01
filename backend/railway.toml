@@ -5,5 +5,5 @@
 [deploy]
     runtime                 = "V2"
     sleepApplication        = false
-    startCommand            = "uv run manage.py runserver 0.0.0.0:$PORT"
+    startCommand            = "uv run src/manage.py runserver 0.0.0.0:$PORT"
     useLegacyStacker        = false
