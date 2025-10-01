@@ -5,19 +5,17 @@
         "djangorestframework-simplejwt>=5.5.1",
         "djangorestframework>=3.16.1",
         "google-genai>=1.38.0",
+        "gunicorn>=23.0.0",
+        "psycopg[binary]>=3.2.10",
         "pydantic>=2.11.9",
         "python-dotenv>=1.1.1",
-]
+    ]
     name = "nutriplan-backend"
     requires-python = ">=3.13"
     version = "0.2.0"
 
 [dependency-groups]
     dev = [
-        "factory-boy>=3.3.3",
-        "pytest-cov>=7.0.0",
-        "pytest-django>=4.11.1",
-        "pytest>=8.4.2",
         "ruff>=0.12.12",
     ]
 
@@ -39,9 +37,3 @@
         order-by-type              = true
         relative-imports-order     = "closest-to-furthest"
         split-on-trailing-comma    = false
-
-[tool.pytest.ini_options]
-    DJANGO_SETTINGS_MODULE = "backend.settings"
-    addopts                = ["--disable-warnings", "--strict-markers", "-q", "-ra"]
-    python_files           = ["*_tests.py", "test_*.py", "tests.py"]
-    testpaths              = ["src/nutriplan/tests"]
