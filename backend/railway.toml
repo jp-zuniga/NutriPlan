@@ -1,0 +1,9 @@
+[build]
+    buildCommand = "uv sync --frozen && uv run python src/manage.py collectstatic --noinput"
+    builder      = "RAILPACK"
+
+[deploy]
+    runtime                 = "V2"
+    sleepApplication        = false
+    startCommand            = "uv run src/manage.py runserver 0.0.0.0:$PORT"
+    useLegacyStacker        = false

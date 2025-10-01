@@ -1,5 +1,6 @@
 [project]
     dependencies = [
+        "dj-database-url>=3.0.1",
         "django-cors-headers>=4.9.0",
         "django>=5.2.5",
         "djangorestframework-simplejwt>=5.5.1",
@@ -9,6 +10,7 @@
         "psycopg[binary]>=3.2.10",
         "pydantic>=2.11.9",
         "python-dotenv>=1.1.1",
+        "whitenoise>=6.11.0",
     ]
     name = "nutriplan-backend"
     requires-python = ">=3.13"
@@ -37,3 +39,6 @@
         order-by-type              = true
         relative-imports-order     = "closest-to-furthest"
         split-on-trailing-comma    = false
+
+    [tool.ruff.lint.per-file-ignores]
+        "src/**/migrations/**.py" = ["D100", "D101", "D104", "RUF012"]
