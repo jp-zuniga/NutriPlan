@@ -394,6 +394,7 @@
 		margin: 0;
 		background: var(--color-cream);
 		color: var(--color-ink);
+		overflow-x: hidden;
 	}
 
 	.home {
