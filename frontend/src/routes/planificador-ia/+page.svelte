@@ -1,141 +1,375 @@
 <script>
+	import { onDestroy } from 'svelte';
 	import Banner from '$lib/components/Banner.svelte';
 
-	const steps = [
-		{ number: 1, title: 'Perfil', description: 'Edad, objetivo y nivel de actividad física.' },
-		{ number: 2, title: 'Preferencias', description: 'Ingredientes favoritos, restricciones y cultura alimentaria.' },
-		{ number: 3, title: 'Resultados', description: 'Plan semanal editable y métricas en tiempo real.' }
-	];
+	import ImagenVigoron from '$lib/assets/vigoron.jpg';
+	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
 
-	const activities = ['Sedentario', 'Ligero', 'Moderado', 'Intenso'];
-	const goals = ['Perder peso', 'Mantener', 'Ganar masa muscular', 'Mejorar energía'];
+	const activityOptions = ['Sedentario', 'Ligero', 'Moderado', 'Intenso'];
+	const goalOptions = ['Bajar de peso', 'Mantener peso', 'Aumentar masa muscular', 'Mejorar salud general'];
+	const conditionOptions = ['Diabetes', 'Hipertensión', 'Colesterol alto', 'Problemas renales'];
+	const dietOptions = ['Omnívora', 'Vegetariana', 'Vegana', 'Pescetariana', 'Keto / baja en carbohidratos', 'Mediterránea'];
+	const budgetOptions = ['Bajo', 'Medio', 'Alto'];
+	const cookingTimeOptions = ['Rápido (< 20 min)', 'Intermedio (30 – 45 min)', 'Sin límite'];
+	const mealsPerDayOptions = ['3 comidas', '4 comidas', '5 comidas', 'Flexible'];
+	const kitchenAccessOptions = ['Cocina completa', 'Solo estufa', 'Solo microondas', 'Espacio compartido'];
 
-	const preview = [
-		{ day: 'Lunes', meals: ['Gallo pinto integral', 'Vigorón saludable', 'Sopa de queso liviana'] },
-		{ day: 'Miércoles', meals: ['Smoothie verde tropical', 'Filete de pescado criollo', 'Ensalada de chayote'] },
-		{ day: 'Viernes', meals: ['Avena con cacao', 'Indio viejo balanceado', 'Tacos de frijol'] }
-	];
-
-	const insights = [
-		{
-			title: 'Balance diario',
-			detail: 'Tu plan mantiene 40% carbohidratos, 30% proteínas y 30% grasas saludables.'
+	const generatedPlan = {
+		summary: [
+			'Plan adaptado a tu objetivo de bajar 3 kg en 8 semanas con énfasis en fibra y proteínas magras.',
+			'Se priorizan ingredientes locales como yuca, frijoles rojos, maíz y queso ahumado ligero.',
+			'Las cenas se mantienen ligeras para favorecer descanso y control de glucosa.'
+		],
+		macros: {
+			calories: '2,050 kcal',
+			protein: '130 g',
+			carbs: '230 g',
+			fats: '58 g'
 		},
-		{
-			title: 'Temporada actual',
-			detail: 'Se priorizan ingredientes frescos como chayote, mango verde y queso ahumado.'
-		},
-		{
-			title: 'Recomendación de expertos',
-			detail: 'Añade 2 litros de agua diarios y 2 snacks ricos en fibra para potenciar saciedad.'
-		}
-	];
+		week: [
+			{
+				day: 'Lunes',
+				meals: [
+					'Gallo pinto integral con huevo pochado',
+					'Ensalada de chayote verde con pollo a la plancha',
+					'Sopa de queso liviana con tortillas integrales'
+				],
+				snack: 'Batido verde de espinaca, piña y hierbabuena'
+			},
+			{
+				day: 'Miércoles',
+				meals: [
+					'Avena con cacao, banano y semillas de jícaro',
+					'Vigorón saludable con curtido cítrico',
+					'Filete de pescado criollo + ensalada de mango verde'
+				],
+				snack: 'Tostadas de maíz con frijoles molidos y pico de gallo'
+			},
+			{
+				day: 'Viernes',
+				meals: [
+					'Smoothie de papaya y avena con semillas de chía',
+					'Indio viejo ligero acompañado de ensalada verde',
+					'Tacos de frijol rojo y chiltoma con queso fresco light'
+				],
+				snack: 'Brochetas de fruta tropical con limón y menta'
+			}
+		],
+		shopping: ['Frijoles rojos', 'Yuca fresca', 'Queso ahumado light', 'Chayote', 'Hierbas frescas', 'Quinoa', 'Filete de pescado blanco'],
+		adaptations: [
+			'Reemplaza el queso en cenas por tofu marinado si quieres una versión vegana.',
+			'Agrega 10 minutos de caminata después de la cena al menos 4 veces por semana.',
+			'Programa recordatorios de hidratación cada 3 horas.'
+		]
+	};
+
+	let stage = 'form';
+	let timeoutId;
+
+	const handleSubmit = (event) => {
+		event.preventDefault();
+		stage = 'loading';
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => {
+			stage = 'result';
+		}, 2000);
+	};
+
+	const resetPlanner = () => {
+		clearTimeout(timeoutId);
+		stage = 'form';
+	};
+
+	onDestroy(() => {
+		clearTimeout(timeoutId);
+	});
 </script>
 
 <Banner />
 
 <main class="planner">
-	<section class="hero">
-		<div class="container hero-grid">
+	<section class="intro">
+		<div class="container intro-inner">
 			<div class="copy">
-				<h1>Genera tu plan nutricional con IA en minutos</h1>
+				<h1>Chef Nutri IA</h1>
 				<p>
-					Nuestra IA combina recetas tradicionales nicaragüenses con tus necesidades nutricionales.
-					Completa los pasos y obtén un plan listo para editar y compartir.
+					Completa el formulario y deja que nuestra IA combine nutrición, sabor nica y tus objetivos
+					personales. En segundos tendrás un plan ajustado a tu realidad.
 				</p>
-				<div class="steps">
-					{#each steps as step}
-						<div class="step">
-							<span>{step.number}</span>
-							<h3>{step.title}</h3>
-							<p>{step.description}</p>
-						</div>
-					{/each}
+			</div>
+			<div class="visual card">
+				<img src={ImagenVigoron} alt="Plan nutrido" />
+				<div class="overlay">
+					<strong>Plan inteligente</strong>
+					<span>Se actualiza con tus avances cada semana</span>
 				</div>
 			</div>
-			<form class="card form">
-				<h2>Configura tu plan</h2>
-				<label for="age">Edad</label>
-				<input id="age" type="number" min="12" max="90" placeholder="32" />
-				<label for="goal">Meta principal</label>
-				<select id="goal">
-					{#each goals as goal}
-						<option>{goal}</option>
-					{/each}
-				</select>
-				<label for="activity">Actividad física</label>
-				<select id="activity">
-					{#each activities as activity}
-						<option>{activity}</option>
-					{/each}
-				</select>
-				<label for="restrictions">Restricciones o condiciones médicas</label>
-				<textarea id="restrictions" rows="3" placeholder="Hipertensión, alergia a mariscos, etc."></textarea>
-				<div class="form-actions">
-					<button type="button" class="primary">Generar plan</button>
-					<button type="button" class="ghost">Guardar borrador</button>
-				</div>
-			</form>
 		</div>
 	</section>
 
-	<section class="preview">
-		<div class="container preview-grid">
-			<article class="card weekly">
-				<h2>Vista previa semanal</h2>
-				<div class="table">
-					{#each preview as day}
-						<div class="row">
-							<strong>{day.day}</strong>
-							<ul>
-								{#each day.meals as meal}
-									<li>{meal}</li>
+	{#if stage === 'form'}
+		<section class="form-section">
+			<div class="container">
+				<form class="card planner-form" on:submit={handleSubmit}>
+					<h2>Completa tu evaluación personalizada</h2>
+					<p class="hint">Tu información permanecerá privada y solo se usará para sugerencias nutricionales.</p>
+
+					<div class="form-grid">
+						<fieldset>
+							<legend>🧑‍⚕️ Datos personales y de salud</legend>
+							<div class="field-row">
+								<div>
+									<label for="age">Edad</label>
+									<input id="age" type="number" min="12" max="99" placeholder="32" required />
+								</div>
+								<div>
+									<label for="sex">Sexo</label>
+									<select id="sex" required>
+										<option value="">Selecciona</option>
+										<option>Mujer</option>
+										<option>Hombre</option>
+										<option>No especificar</option>
+									</select>
+								</div>
+							</div>
+							<div class="field-row">
+								<div>
+									<label for="weight">Peso actual (kg)</label>
+									<input id="weight" type="number" step="0.1" placeholder="62" />
+								</div>
+								<div>
+									<label for="height">Estatura (cm)</label>
+									<input id="height" type="number" placeholder="168" />
+								</div>
+							</div>
+							<label for="activity">Nivel de actividad</label>
+							<select id="activity" required>
+								<option value="">Selecciona una opción</option>
+								{#each activityOptions as option}
+									<option>{option}</option>
 								{/each}
-							</ul>
-							<button type="button">Reemplazar</button>
-						</div>
-					{/each}
-				</div>
-			</article>
-			<article class="card metrics">
-				<h2>Resumen nutricional</h2>
-				<ul>
-					<li><span>Calorías diarias:</span> 2,050 kcal</li>
-					<li><span>Proteínas:</span> 130 g</li>
-					<li><span>Carbohidratos:</span> 210 g</li>
-					<li><span>Grasas saludables:</span> 68 g</li>
-				</ul>
-				<div class="insights">
-					{#each insights as insight}
-						<div>
-							<h3>{insight.title}</h3>
-							<p>{insight.detail}</p>
-						</div>
-					{/each}
-				</div>
-			</article>
-		</div>
-	</section>
+							</select>
+							<div class="goal-grid">
+								<p>Objetivo principal</p>
+								{#each goalOptions as goal}
+									<label class="selectable">
+										<input type="radio" name="goal" value={goal} required />
+										<span>{goal}</span>
+									</label>
+								{/each}
+							</div>
+							<div class="checkbox-group">
+								<p>Condiciones médicas relevantes</p>
+								{#each conditionOptions as condition}
+									<label class="selectable">
+										<input type="checkbox" value={condition} />
+										<span>{condition}</span>
+									</label>
+								{/each}
+							</div>
+							<label for="other-condition">Otras condiciones</label>
+							<textarea id="other-condition" rows="2" placeholder="Describe cualquier otra condición"></textarea>
+							<label for="allergies">Alergias alimentarias</label>
+							<textarea id="allergies" rows="2" placeholder="Ej. maní, mariscos, lactosa"></textarea>
+						</fieldset>
 
-	<section class="cta">
-		<div class="container cta-card">
-			<div>
-				<h2>¿Listo para recibir un plan ajustado a tu vida?</h2>
-				<p>Compártelo con tu nutricionista, imprime tu lista de compras o sincroniza con tu calendario.</p>
+						<fieldset>
+							<legend>🍴 Preferencias alimentarias</legend>
+							<p>Tipo de dieta preferida</p>
+							<div class="checkbox-group">
+								{#each dietOptions as diet}
+									<label class="selectable">
+										<input type="radio" name="diet" value={diet} />
+										<span>{diet}</span>
+									</label>
+								{/each}
+								<label class="selectable">
+									<input type="radio" name="diet" value="Otra" />
+									<span>Otra (especificar)</span>
+								</label>
+							</div>
+							<textarea rows="2" placeholder="Detalla otra dieta si aplica"></textarea>
+							<label for="likes">Alimentos que disfrutas</label>
+							<textarea id="likes" rows="2" placeholder="Ej. chiltoma, aguacate, quinua"></textarea>
+							<label for="dislikes">Alimentos que deseas evitar</label>
+							<textarea id="dislikes" rows="2" placeholder="Lista o razones"></textarea>
+							<label for="availability">Disponibilidad de ingredientes locales</label>
+							<textarea
+								id="availability"
+								rows="2"
+								placeholder="Ej. frijoles rojos, maíz blanco, plátano, queso ahumado"
+							></textarea>
+						</fieldset>
+
+						<fieldset>
+							<legend>🎯 Expectativas y contexto</legend>
+							<label for="expectations">Expectativa de resultados</label>
+							<textarea id="expectations" rows="2" placeholder="Ej. perder 3 kg en 2 meses"></textarea>
+							<div class="field-row">
+								<div>
+									<label for="budget">Presupuesto para alimentación</label>
+									<select id="budget">
+										<option value="">Selecciona</option>
+										{#each budgetOptions as option}
+											<option>{option}</option>
+										{/each}
+									</select>
+								</div>
+								<div>
+									<label for="time">Tiempo disponible para cocinar</label>
+									<select id="time">
+										<option value="">Selecciona</option>
+										{#each cookingTimeOptions as option}
+											<option>{option}</option>
+										{/each}
+									</select>
+								</div>
+							</div>
+							<label for="meals">Cantidad de comidas al día</label>
+							<select id="meals">
+								<option value="">Selecciona</option>
+								{#each mealsPerDayOptions as option}
+									<option>{option}</option>
+								{/each}
+							</select>
+							<label for="kitchen">Acceso a cocina</label>
+							<select id="kitchen">
+								<option value="">Selecciona</option>
+								{#each kitchenAccessOptions as option}
+									<option>{option}</option>
+								{/each}
+							</select>
+						</fieldset>
+
+						<fieldset>
+							<legend>👥 Funciones sociales y hábitos</legend>
+							<div class="field-row">
+								<div class="question">
+									<p>¿Compartes tus comidas con la familia?</p>
+									<label class="selectable">
+										<input type="radio" name="family" value="Si" />
+										<span>Sí</span>
+									</label>
+									<label class="selectable">
+										<input type="radio" name="family" value="No" />
+										<span>No</span>
+									</label>
+								</div>
+								<div class="question">
+									<p>¿Abierto a recetas nuevas tradicionales o fusión?</p>
+									<label class="selectable">
+										<input type="radio" name="new-recipes" value="Si" />
+										<span>Sí</span>
+									</label>
+									<label class="selectable">
+										<input type="radio" name="new-recipes" value="No" />
+										<span>No</span>
+									</label>
+								</div>
+							</div>
+							<label for="history">Historial alimenticio (opcional)</label>
+							<textarea id="history" rows="3" placeholder="Describe lo que sueles comer en un día"></textarea>
+						</fieldset>
+					</div>
+
+					<div class="actions">
+						<button class="btn primary" type="submit">Generar plan nutricional</button>
+						<p class="disclaimer">Recibirás tu plan en menos de 10 segundos.</p>
+					</div>
+				</form>
 			</div>
-			<div class="cta-actions">
-				<a class="btn primary" href="/planes">Ver mis planes</a>
-				<a class="btn ghost" href="/recetas">Añadir recetas favoritas</a>
+		</section>
+	{:else if stage === 'loading'}
+		<section class="loading">
+			<div class="container">
+				<div class="card loading-card">
+					<div class="spinner"></div>
+					<h2>Generando tu plan…</h2>
+					<p>Chef Nutri IA está equilibrando macros, cultura nica y tus preferencias.</p>
+				</div>
 			</div>
-		</div>
-	</section>
+		</section>
+	{:else}
+		<section class="result">
+			<div class="container result-grid">
+				<article class="card summary">
+					<h2>Tu plan personalizado está listo</h2>
+					<ul>
+						{#each generatedPlan.summary as item}
+							<li>{item}</li>
+						{/each}
+					</ul>
+					<div class="macros">
+						<div>
+							<span>Calorías</span>
+							<strong>{generatedPlan.macros.calories}</strong>
+						</div>
+						<div>
+							<span>Proteínas</span>
+							<strong>{generatedPlan.macros.protein}</strong>
+						</div>
+						<div>
+							<span>Carbohidratos</span>
+							<strong>{generatedPlan.macros.carbs}</strong>
+						</div>
+						<div>
+							<span>Grasas</span>
+							<strong>{generatedPlan.macros.fats}</strong>
+						</div>
+					</div>
+					<div class="result-actions">
+						<button class="btn ghost" type="button" on:click={resetPlanner}>Editar respuestas</button>
+						<a class="btn primary" href="/planes">Añadir al panel de planes</a>
+					</div>
+				</article>
+				<section class="card week">
+					<h2>Vista semanal destacada</h2>
+					<div class="week-grid">
+						{#each generatedPlan.week as day}
+							<article>
+								<header>
+									<h3>{day.day}</h3>
+									<img src={PlatosTipicos} alt={day.day} />
+								</header>
+								<ul>
+									{#each day.meals as meal}
+										<li>{meal}</li>
+									{/each}
+								</ul>
+								<p class="snack"><strong>Snack sugerido:</strong> {day.snack}</p>
+							</article>
+						{/each}
+					</div>
+				</section>
+				<section class="card extras">
+					<h2>Checklist y ajustes</h2>
+					<div class="list-block">
+						<h3>Lista de compras clave</h3>
+						<ul>
+							{#each generatedPlan.shopping as item}
+								<li>{item}</li>
+							{/each}
+						</ul>
+					</div>
+					<div class="list-block">
+						<h3>Recomendaciones IA</h3>
+						<ul>
+							{#each generatedPlan.adaptations as item}
+								<li>{item}</li>
+							{/each}
+						</ul>
+					</div>
+				</section>
+			</div>
+		</section>
+	{/if}
 </main>
 
 <style>
 	.planner {
 		display: flex;
 		flex-direction: column;
-		gap: 5rem;
+		gap: 4.5rem;
 		padding-bottom: 5rem;
 	}
 
@@ -145,242 +379,311 @@
 		padding: 0 1.5rem;
 	}
 
-	.hero {
-		padding-top: 2rem;
-	}
-
-	.hero-grid {
+	.intro-inner {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 		gap: 2.5rem;
-		align-items: start;
-	}
-
-	.copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
+		align-items: center;
+		margin-top: 2rem;
 	}
 
 	.copy h1 {
 		margin: 0;
-		font-size: clamp(2.1rem, 3vw, 3.2rem);
+		font-size: clamp(2.2rem, 3vw, 3.4rem);
 	}
 
 	.copy p {
-		margin: 0;
+		margin: 1rem 0 0;
 		color: var(--color-soft);
 		line-height: 1.7;
 	}
 
-	.steps {
+	.visual {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.visual img {
+		width: 100%;
+		height: 280px;
+		object-fit: cover;
+		border-radius: var(--radius-lg);
+	}
+
+	.visual .overlay {
+		position: absolute;
+		bottom: 1.2rem;
+		left: 1.2rem;
+		right: 1.2rem;
+		background: rgba(255, 255, 255, 0.92);
+		border-radius: var(--radius-md);
+		padding: 0.9rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		box-shadow: 0 18px 32px rgba(8, 44, 36, 0.18);
+	}
+
+	.visual strong {
+		font-size: 1.1rem;
+	}
+
+	.visual span {
+		color: var(--color-soft);
+		font-size: 0.9rem;
+	}
+
+	.form-section .planner-form {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		padding: 2.5rem;
+	}
+
+	.planner-form h2 {
+		margin: 0;
+	}
+
+	.hint {
+		margin: 0;
+		color: var(--color-soft);
+		font-size: 0.95rem;
+	}
+
+	.form-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1.8rem;
+	}
+
+	fieldset {
+		border: 1px solid rgba(8, 44, 36, 0.08);
+		border-radius: var(--radius-md);
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		background: rgba(255, 255, 255, 0.9);
+	}
+
+	legend {
+		padding: 0 0.5rem;
+		font-weight: 700;
+		color: var(--color-forest);
+	}
+
+	.field-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 		gap: 1rem;
 	}
 
-	.step {
+	.goal-grid,
+	.checkbox-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.selectable {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid rgba(8, 44, 36, 0.12);
+		cursor: pointer;
 		background: rgba(255, 255, 255, 0.85);
-		border-radius: var(--radius-md);
-		padding: 1.5rem;
-		box-shadow: var(--shadow-soft);
+		transition: background 0.2s ease, border-color 0.2s ease;
+	}
+
+	.selectable input {
+		accent-color: var(--color-leaf);
+	}
+
+	.selectable:hover {
+		border-color: rgba(15, 184, 114, 0.4);
+		background: rgba(15, 184, 114, 0.1);
+	}
+
+	.question {
 		display: flex;
 		flex-direction: column;
 		gap: 0.6rem;
 	}
 
-	.step span {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		background: var(--gradient-leaf);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: 700;
-	}
-
-	.step h3 {
+	.question p {
 		margin: 0;
-		font-size: 1.1rem;
+		font-weight: 600;
 	}
 
-	.step p {
+	.actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		align-items: flex-start;
+	}
+
+	.disclaimer {
 		margin: 0;
 		color: var(--color-soft);
-		font-size: 0.95rem;
+		font-size: 0.9rem;
 	}
 
-	.form {
+	.loading {
+		padding: 2rem 0 4rem;
+	}
+
+	.loading-card {
+		max-width: 420px;
+		margin: 0 auto;
 		padding: 2.5rem;
-		gap: 1.2rem;
 		display: flex;
 		flex-direction: column;
-	}
-
-	.form h2 {
-		margin: 0;
-	}
-
-	.form textarea {
-		resize: vertical;
-	}
-
-	.form-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.form-actions .primary {
-		background: var(--gradient-leaf);
-		color: white;
-		border: none;
-		border-radius: 999px;
-		padding: 0.75rem 1.6rem;
-		font-weight: 600;
-		cursor: pointer;
-		box-shadow: 0 16px 26px rgba(15, 184, 114, 0.28);
-	}
-
-	.form-actions .ghost {
-		border: none;
-		background: rgba(8, 44, 36, 0.08);
-		color: var(--color-forest);
-		border-radius: 999px;
-		padding: 0.75rem 1.6rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.preview-grid {
-		display: grid;
-		grid-template-columns: 2fr 1fr;
-		gap: 2rem;
-	}
-
-	.weekly {
-		padding: 2.2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.table {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.row {
-		background: rgba(255, 255, 255, 0.8);
-		border-radius: var(--radius-md);
-		padding: 1.2rem 1.4rem;
-		display: grid;
-		grid-template-columns: 100px 1fr auto;
-		gap: 1rem;
 		align-items: center;
+		gap: 1.2rem;
 	}
 
-	.row ul {
+	.spinner {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		border: 4px solid rgba(15, 184, 114, 0.2);
+		border-top-color: var(--color-leaf);
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.result-grid {
+		display: grid;
+		grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+		gap: 2rem;
+		align-items: start;
+	}
+
+	.summary ul {
 		margin: 0;
-		padding-left: 1rem;
+		padding-left: 1.1rem;
 		color: var(--color-soft);
 		line-height: 1.6;
 	}
 
-	.row button {
-		border: none;
-		background: rgba(104, 211, 255, 0.2);
-		color: var(--color-forest);
-		padding: 0.55rem 1rem;
-		border-radius: 999px;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.metrics {
-		padding: 2.2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.metrics ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.8rem;
-		color: var(--color-soft);
-	}
-
-	.metrics li span {
-		font-weight: 600;
-		color: var(--color-forest);
-	}
-
-	.insights {
-		display: flex;
-		flex-direction: column;
+	.macros {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(100px, 1fr));
 		gap: 1rem;
+		margin-top: 1.5rem;
 	}
 
-	.insights h3 {
-		margin: 0;
-		font-size: 1rem;
-	}
-
-	.insights p {
-		margin: 0;
+	.macros span {
 		color: var(--color-soft);
-		font-size: 0.95rem;
+		font-size: 0.9rem;
 	}
 
-	.cta-card {
-		background: var(--gradient-leaf);
-		color: white;
-		border-radius: var(--radius-lg);
-		padding: clamp(2.5rem, 4vw, 3.5rem);
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-		box-shadow: var(--shadow-soft);
+	.macros strong {
+		font-size: 1.3rem;
 	}
 
-	.cta-card h2 {
-		margin: 0;
-	}
-
-	.cta-card p {
-		margin: 0;
-		font-size: 1.05rem;
-	}
-
-	.cta-actions {
+	.result-actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem;
+		margin-top: 2rem;
 	}
 
-	@media (max-width: 900px) {
-		.preview-grid {
+	.week {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.week-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1.2rem;
+	}
+
+	.week-grid article {
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: var(--radius-md);
+		padding: 1.2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+	}
+
+	.week-grid header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.8rem;
+	}
+
+	.week-grid img {
+		width: 56px;
+		height: 56px;
+		object-fit: cover;
+		border-radius: 50%;
+	}
+
+	.week-grid ul {
+		margin: 0;
+		padding-left: 1.1rem;
+		color: var(--color-soft);
+		line-height: 1.5;
+	}
+
+	.snack {
+		margin: 0;
+		color: var(--color-forest);
+		font-size: 0.9rem;
+	}
+
+	.extras {
+		display: flex;
+		flex-direction: column;
+		gap: 1.2rem;
+	}
+
+	.list-block h3 {
+		margin: 0 0 0.6rem;
+		font-size: 1rem;
+	}
+
+	.list-block ul {
+		margin: 0;
+		padding-left: 1.1rem;
+		color: var(--color-soft);
+		line-height: 1.6;
+	}
+
+	@media (max-width: 960px) {
+		.result-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.form-grid {
 			grid-template-columns: 1fr;
 		}
 
-		.row {
+		.field-row {
 			grid-template-columns: 1fr;
 		}
 	}
 
 	@media (max-width: 640px) {
-		.form-actions {
-			flex-direction: column;
+		.form-section .planner-form {
+			padding: 2rem;
 		}
 
-		.cta-actions {
+		.result-actions {
 			flex-direction: column;
 		}
 	}

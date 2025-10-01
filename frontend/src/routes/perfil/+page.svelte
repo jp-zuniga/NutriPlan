@@ -1,5 +1,6 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
+	import { authUser } from '$lib/stores/auth';
 
 	import ImagenVigoron from '$lib/assets/vigoron.jpg';
 	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
@@ -43,6 +44,26 @@
 			comment: 'Sella el queso en sartén antiadherente para intensificar sabor.'
 		}
 	];
+
+	const account = {
+		email: 'maria.fernanda@nutriplan.com',
+		phone: '+505 8888 9900',
+		memberSince: 'Abril 2023',
+		plan: 'NutriPlan Pro',
+		timezone: 'GMT-6 Managua'
+	};
+
+	const notifications = [
+		{ label: 'Recordatorios de comidas y agua', key: 'meals', enabled: true },
+		{ label: 'Nuevas recetas sugeridas', key: 'recipes', enabled: true },
+		{ label: 'Alertas de comunidad y comentarios', key: 'community', enabled: false }
+	];
+
+	const integrations = [
+		{ name: 'Google Calendar', status: 'Sincronizado' },
+		{ name: 'Salud iOS', status: 'Pendiente de activar' },
+		{ name: 'Garmin Connect', status: 'Sincronizado' }
+	];
 </script>
 
 <Banner />
@@ -50,14 +71,14 @@
 <main class="profile">
 	<section class="hero">
 		<div class="container hero-grid">
-			<article class="card profile-card">
-				<h1>{user.name}</h1>
-				<p class="location">{user.location}</p>
-				<ul class="summary">
-					<li><strong>Edad:</strong> {user.age}</li>
-					<li><strong>Meta:</strong> {user.goal}</li>
-					<li><strong>Actividad:</strong> {user.activity}</li>
-				</ul>
+		<article class="card profile-card">
+			<h1>{$authUser?.name ?? user.name}</h1>
+			<p class="location">{user.location}</p>
+			<ul class="summary">
+				<li><strong>Edad:</strong> {$authUser?.age ?? user.age}</li>
+				<li><strong>Meta:</strong> {$authUser?.goal ?? user.goal}</li>
+				<li><strong>Actividad:</strong> {$authUser?.activity ?? user.activity}</li>
+			</ul>
 				<div class="conditions">
 					<h3>Condiciones a considerar</h3>
 					<ul>
@@ -155,6 +176,68 @@
 						<p>{entry.comment}</p>
 					</div>
 				{/each}
+			</article>
+		</div>
+	</section>
+
+	<section class="account">
+		<div class="container account-grid">
+			<article class="card account-form">
+				<h2>Datos de cuenta</h2>
+				<form>
+					<div class="field-row">
+						<div>
+							<label for="email">Correo</label>
+							<input id="email" type="email" value={$authUser?.email ?? account.email} readonly />
+						</div>
+						<div>
+							<label for="phone">Teléfono</label>
+							<input id="phone" type="tel" value={$authUser?.phone ?? account.phone} readonly />
+						</div>
+					</div>
+					<div class="field-row">
+						<div>
+							<label for="plan">Plan actual</label>
+							<input id="plan" type="text" value={$authUser?.plan ?? account.plan} readonly />
+						</div>
+						<div>
+							<label for="timezone">Zona horaria</label>
+							<input id="timezone" type="text" value={$authUser?.timezone ?? account.timezone} readonly />
+						</div>
+					</div>
+					<div class="meta">
+						<span>Miembro desde {$authUser?.memberSince ?? account.memberSince}</span>
+						<button class="btn ghost" type="button">Actualizar contraseña</button>
+					</div>
+				</form>
+			</article>
+			<article class="card notifications">
+				<h2>Preferencias de notificación</h2>
+				<ul>
+					{#each notifications as item}
+						<li>
+							<span>{item.label}</span>
+							<label class="toggle">
+								<input type="checkbox" checked={item.enabled} />
+								<span></span>
+							</label>
+						</li>
+					{/each}
+				</ul>
+			</article>
+			<article class="card integrations">
+				<h2>Integraciones y dispositivos</h2>
+				<ul>
+					{#each integrations as integration}
+						<li>
+							<div>
+								<strong>{integration.name}</strong>
+								<span>{integration.status}</span>
+							</div>
+							<a href="#">Gestionar</a>
+						</li>
+					{/each}
+				</ul>
 			</article>
 		</div>
 	</section>
@@ -278,6 +361,124 @@
 		gap: 0.6rem;
 	}
 
+	.account-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 2rem;
+	}
+
+	.account-form form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.4rem;
+	}
+
+	.account-form .field-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		gap: 1rem;
+	}
+
+	.account-form input {
+		width: 100%;
+	}
+
+	.account-form .meta {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		color: var(--color-soft);
+		font-size: 0.9rem;
+	}
+
+	.notifications ul,
+	.integrations ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.notifications li,
+	.integrations li {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.notifications span {
+		font-weight: 600;
+		color: var(--color-forest);
+	}
+
+	.toggle {
+		position: relative;
+		width: 40px;
+		height: 22px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.toggle input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.toggle span {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(8, 44, 36, 0.2);
+		border-radius: 999px;
+		transition: background 0.2s ease;
+	}
+
+	.toggle span::before {
+		content: '';
+		position: absolute;
+		height: 16px;
+		width: 16px;
+		left: 4px;
+		top: 3px;
+		background: #fff;
+		border-radius: 50%;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+		transition: transform 0.2s ease;
+	}
+
+	.toggle input:checked + span {
+		background: var(--gradient-leaf);
+	}
+
+	.toggle input:checked + span::before {
+		transform: translateX(18px);
+	}
+
+	.integrations li div {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.integrations li span {
+		color: var(--color-soft);
+		font-size: 0.9rem;
+	}
+
+	.integrations a {
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--color-forest);
+	}
+
 	.favorite-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -351,6 +552,15 @@
 	@media (max-width: 640px) {
 		.actions {
 			flex-direction: column;
+		}
+
+		.account-form .field-row {
+			grid-template-columns: 1fr;
+		}
+
+		.account-form .meta {
+			flex-direction: column;
+			align-items: flex-start;
 		}
 	}
 </style>

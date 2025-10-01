@@ -1,10 +1,12 @@
 <script>
+	import { authUser, logout } from '$lib/stores/auth';
+
 	const navLinks = [
 		{ text: 'Inicio', href: '/' },
 		{ text: 'Recetas', href: '/recetas' },
 		{ text: 'Planes', href: '/planes' },
 		{ text: 'Receta rápida', href: '/receta-rapida' },
-		{ text: 'Chef IA', href: '/planificador-ia' },
+		{ text: 'Chef IA', href: '/chef-ia' },
 		{ text: 'Comunidad', href: '/perfil' }
 	];
 
@@ -17,6 +19,22 @@
 	const closeMenu = () => {
 		menuOpen = false;
 	};
+
+	const handleLogout = () => {
+		logout();
+		closeMenu();
+	};
+
+	function initials(name = '') {
+		return name
+			.trim()
+			.split(' ')
+			.filter(Boolean)
+			.map((part) => part[0])
+			.slice(0, 2)
+			.join('')
+			.toUpperCase();
+	}
 </script>
 
 <nav class="site-nav" data-open={menuOpen}>
@@ -39,8 +57,19 @@
 			{/each}
 		</div>
 		<div class="nav-cta">
-			<a class="ghost" href="/acerca">Acerca</a>
-			<a class="primary" href="/perfil">Mi perfil</a>
+			{#if $authUser}
+				<div class="user-pill">
+					<span class="avatar">{initials($authUser.name || $authUser.email)}</span>
+					<div class="user-info">
+						<strong>{$authUser.name ?? 'Usuario NutriPlan'}</strong>
+						<span>{$authUser.email}</span>
+					</div>
+					<button type="button" on:click={handleLogout}>Salir</button>
+				</div>
+			{:else}
+				<a class="ghost" href="/login">Ingresar</a>
+				<a class="primary" href="/signup">Regístrate</a>
+			{/if}
 		</div>
 	</div>
 </nav>
@@ -188,6 +217,58 @@
 		box-shadow: 0 18px 28px rgba(15, 184, 114, 0.32);
 	}
 
+	.user-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 999px;
+		padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+		box-shadow: 0 12px 24px rgba(8, 44, 36, 0.12);
+	}
+
+	.avatar {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: var(--gradient-mint);
+		color: white;
+		font-weight: 700;
+	}
+
+	.user-info {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.1;
+	}
+
+	.user-info strong {
+		font-size: 0.95rem;
+	}
+
+	.user-info span {
+		color: var(--color-soft);
+		font-size: 0.8rem;
+	}
+
+	.user-pill button {
+		border: none;
+		background: rgba(8, 44, 36, 0.08);
+		color: var(--color-forest);
+		padding: 0.3rem 0.8rem;
+		border-radius: 999px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: transform 0.2s ease;
+	}
+
+	.user-pill button:hover {
+		transform: translateY(-1px);
+	}
+
 	@media (max-width: 960px) {
 		.nav-inner {
 			padding: 0.75rem 1rem;
@@ -216,12 +297,22 @@
 		}
 
 		.nav-cta {
-			display: none;
+			gap: 0.6rem;
 		}
 
 		.menu-toggle {
 			display: inline-flex;
 			margin-left: auto;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.user-pill {
+			padding: 0.4rem 0.6rem 0.4rem 0.4rem;
+		}
+
+		.user-pill button {
+			padding: 0.3rem 0.65rem;
 		}
 	}
 </style>

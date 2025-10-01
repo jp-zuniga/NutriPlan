@@ -1,5 +1,6 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
+	import { authUser } from '$lib/stores/auth';
 
 	import ImagenVigoron from '$lib/assets/vigoron.jpg';
 	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
@@ -139,6 +140,8 @@
 			description: 'Conoce el nivel de dificultad, tiempo real y calificaciones honestas.'
 		}
 	];
+
+	const firstName = (name = '') => name.trim().split(' ')[0] || 'NutriChef';
 </script>
 
 <Banner />
@@ -151,6 +154,9 @@
 					<img src={SVG_AI} alt="IA" />
 					Nuevo con IA
 				</div>
+				{#if $authUser}
+					<span class="welcome">Hola, {firstName($authUser.name ?? $authUser.email)} 👋</span>
+				{/if}
 				<h1>NutriPlan, sabor y bienestar nicaragüense</h1>
 				<p>
 					Tu plataforma para planear comidas nutritivas con el sabor de casa. Recibe recomendaciones
@@ -489,6 +495,13 @@
 		border-radius: 999px;
 		font-weight: 600;
 		font-size: 0.9rem;
+	}
+
+	.welcome {
+		font-family: var(--font-accent);
+		font-size: 1.1rem;
+		color: var(--color-forest);
+		margin-top: 0.25rem;
 	}
 
 	.pill img {
