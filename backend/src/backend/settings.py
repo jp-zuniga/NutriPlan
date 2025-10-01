@@ -12,6 +12,7 @@ from datetime import timedelta
 import os
 from pathlib import Path
 
+from dj_database_url import config as db_config
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
@@ -91,14 +92,11 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("PGDATABASE"),
-        "USER": os.getenv("PGUSER"),
-        "PASSWORD": os.getenv("PGPASSWORD"),
-        "HOST": os.getenv("PGHOST"),
-        "PORT": os.getenv("PGPORT"),
-    }
+    "default": db_config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # Password validation
