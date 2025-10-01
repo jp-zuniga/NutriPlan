@@ -7,6 +7,10 @@
 	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
 	import SVG_AI from '$lib/assets/ai.svg';
 
+	import icon_SoupBowl from '$lib/assets/soup-bowl.svg';
+	import icon_Calendar from '$lib/assets/calendar.svg';
+	import icon_RabbitFast from '$lib/assets/rabbit-fast.svg';
+
 	const quickActions = [
 		{
 			title: 'Recetas',
@@ -14,7 +18,7 @@
 				'Explora platos típicos, saludables y fusiones creativas para cada momento del día.',
 			cta: 'Ver recetas',
 			accent: 'leaf',
-			icon: '🍲'
+			icon: icon_SoupBowl
 		},
 		{
 			title: 'Planes Nutricionales',
@@ -22,7 +26,7 @@
 				'Genera un plan semanal que respete tus metas, tu actividad física y tus preferencias.',
 			cta: 'Crear plan',
 			accent: 'mint',
-			icon: '🧭'
+			icon: icon_Calendar
 		},
 		{
 			title: 'Receta Rápida',
@@ -30,7 +34,7 @@
 				'Escribe lo que tienes en casa y deja que nuestra IA sugiera la mejor coincidencia.',
 			cta: 'Receta rápida',
 			accent: 'sunrise',
-			icon: '⚡'
+			icon: icon_RabbitFast
 		}
 	];
 
@@ -225,9 +229,10 @@
 			</header>
 			<div class="card-grid">
 				{#each quickActions as action}
-					<article class={`feature-card ${action.accent}`}>
-						<span class="feature-icon">{action.icon}</span>
-						<h3>{action.title}</h3>
+					<article class={`feature-card ${action.accent}`} style="color: white">
+						<img src={action.icon} style="width: 35px; height: 35px" alt={action.title} />
+						<!-- <span class="feature-icon">{action.icon}</span> -->
+						<h3 style="color: white">{action.title}</h3>
 						<p>{action.description}</p>
 						<a href="#">{action.cta} →</a>
 					</article>
@@ -238,7 +243,7 @@
 
 	<section class="featured">
 		<div class="container">
-			<header class="section-head">
+			<header class="section-head" style="margin-bottom: 25px">
 				<h2>Recetas destacadas de la semana</h2>
 				<p>
 					Curadas por nutricionistas nicas y la comunidad. Ajusta filtros para calorías, tiempo o
@@ -378,7 +383,7 @@
 	<section class="cta-final">
 		<div class="container cta-inner">
 			<div>
-				<h2>Listo para comer mejor, con sabor a Nicaragua</h2>
+				<h2 style="color: white">Listo para comer mejor, con sabor a Nicaragua</h2>
 				<p>Crea tu cuenta gratis y comienza a recibir recomendaciones hechas a tu medida.</p>
 			</div>
 			<div class="cta-actions">

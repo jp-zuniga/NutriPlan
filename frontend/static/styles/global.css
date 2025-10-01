@@ -184,7 +184,6 @@ textarea:focus {
 
 .btn.ghost,
 .btn.ghost:visited {
-  background: rgba(8, 44, 36, 0.08);
   color: var(--color-forest);
 }
 

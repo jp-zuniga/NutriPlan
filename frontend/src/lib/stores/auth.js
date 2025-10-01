@@ -1,43 +1,56 @@
-import { writable } from 'svelte/store';
+import { writable, readable } from 'svelte/store';
 
 const STORAGE_KEY = 'nutriplan-user';
 
-function createAuthStore() {
-	const { subscribe, set, update } = writable(null);
+function safeReadLocalUser() {
+	try {
+		const raw = window.localStorage.getItem(STORAGE_KEY);
+		return raw ? JSON.parse(raw) : null;
+	} catch(err) {
+		console.error("Error leyendo el usuario: ", err)
+		return null
+	}
+}
 
-	if (typeof window !== 'undefined') {
-		try {
-			const stored = window.localStorage.getItem(STORAGE_KEY);
-			if (stored) {
-				set(JSON.parse(stored));
-			}
-		} catch (error) {
-			console.error('Error leyendo datos de usuario', error);
-		}
+function createInternalStore() {
 
-		subscribe((value) => {
+	const initial = typeof window !== 'undefined' ? safeReadLocalUser() : null;
+
+	const _store = writable(initial);
+
+	if (typeof window !== undefined) {
+		_store.subscribe(val => {
 			try {
-				if (value) {
-					window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+				if(val) {
+					window.localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
 				} else {
-					window.localStorage.removeItem(STORAGE_KEY);
+					window.localStorage.removeItem(STORAGE_KEY)
 				}
-			} catch (error) {
-				console.error('Error guardando datos de usuario', error);
+			} catch(err) {
+				console.error("Error guardando datos del usuario: ", err)
 			}
 		});
 	}
 
-	return {
-		subscribe,
-		set,
-		update,
-		login: (user) => set(user),
-		logout: () => set(null)
-	};
+	return _store
 }
 
-export const authUser = createAuthStore();
+const _internalUserStore = createInternalStore()
+
+export const authUser = {
+	subscribe: _internalUserStore.subscribe
+}
+
+function talkToServer(email, password) {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			// Communicate with the server
+
+			// Return the session token
+			return {user: 'Felipe', session_token: 'SKAJDOASDNUIU'}
+		}, 1000)
+	})	
+}
 
 export function mockSignUp({ name, email, password, phone }) {
 	return new Promise((resolve) => {
@@ -70,32 +83,16 @@ export function mockSignUp({ name, email, password, phone }) {
 export function mockLogin({ email, password }) {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			if (typeof window === 'undefined') {
-				reject(new Error('Operación no disponible'));
-				return;
-			}
-
-			const stored = window.localStorage.getItem(STORAGE_KEY);
-			if (!stored) {
-				reject(new Error('No encontramos una cuenta con ese correo.'));
-				return;
-			}
-
 			try {
-				const user = JSON.parse(stored);
-				if (user.email === email && user.credentials?.password === password) {
-					authUser.login(user);
-					resolve(user);
-				} else {
-					reject(new Error('Credenciales incorrectas.'));
-				}
-			} catch (error) {
-				reject(new Error('No se pudo leer la información de la cuenta.'));
+				_internalUserStore.set({ name: 'Dani', email: email})
+				resolve('Dani')
+			} catch(err) {
+				reject(err)
 			}
 		}, 800);
 	});
 }
 
 export function logout() {
-	authUser.logout();
+	_internalUserStore.set(null)
 }
