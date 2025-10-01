@@ -1,0 +1,3 @@
+"""
+NutriPlan Django app.
+"""

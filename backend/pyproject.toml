@@ -1,0 +1,39 @@
+[project]
+    dependencies = [
+        "django-cors-headers>=4.9.0",
+        "django>=5.2.5",
+        "djangorestframework-simplejwt>=5.5.1",
+        "djangorestframework>=3.16.1",
+        "google-genai>=1.38.0",
+        "gunicorn>=23.0.0",
+        "psycopg[binary]>=3.2.10",
+        "pydantic>=2.11.9",
+        "python-dotenv>=1.1.1",
+    ]
+    name = "nutriplan-backend"
+    requires-python = ">=3.13"
+    version = "0.2.0"
+
+[dependency-groups]
+    dev = [
+        "ruff>=0.12.12",
+    ]
+
+[tool.ruff.lint]
+    ignore = [
+        "COM812",
+        "D200",
+        "D202",
+        "D203",
+        "D212",
+        "D401",
+    ]
+    select = ["ALL"]
+
+    [tool.ruff.lint.isort]
+        case-sensitive             = true
+        combine-as-imports         = true
+        force-sort-within-sections = true
+        order-by-type              = true
+        relative-imports-order     = "closest-to-furthest"
+        split-on-trailing-comma    = false
