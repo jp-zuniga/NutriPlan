@@ -1,5 +1,6 @@
 <script>
 	import { authUser, logout } from '$lib/stores/auth';
+	import LogoFavicon from '$lib/assets/favicon.svg';
 
 	const navLinks = [
 		{ text: 'Inicio', href: '/' },
@@ -7,7 +8,7 @@
 		{ text: 'Planes', href: '/planes' },
 		{ text: 'Receta rápida', href: '/receta-rapida' },
 		{ text: 'Chef IA', href: '/chef-ia' },
-		{ text: 'Comunidad', href: '/perfil' }
+		{ text: 'Perfil', href: '/perfil' }
 	];
 
 	let menuOpen = false;
@@ -40,7 +41,7 @@
 <nav class="site-nav" data-open={menuOpen}>
 	<div class="nav-inner">
 		<a class="brand" href="/" on:click={closeMenu}>
-			<img src="/assets/images/NutriPlan.png" alt="NutriPlan logo" />
+			<img src={LogoFavicon} alt="NutriPlan logo" />
 			<div class="brand-copy">
 				<span class="title">NutriPlan</span>
 				<span class="subtitle">Come mejor, vive mejor</span>
@@ -144,7 +145,9 @@
 		width: 100%;
 		background: var(--color-forest, #05463a);
 		border-radius: 999px;
-		transition: transform 0.3s ease, opacity 0.3s ease;
+		transition:
+			transform 0.3s ease,
+			opacity 0.3s ease;
 	}
 
 	.site-nav[data-open='true'] .menu-toggle span:nth-child(1) {
@@ -170,7 +173,9 @@
 		font-weight: 600;
 		color: var(--color-soft, #587a6a);
 		font-size: 0.98rem;
-		transition: color 0.2s ease, transform 0.2s ease;
+		transition:
+			color 0.2s ease,
+			transform 0.2s ease;
 	}
 
 	.nav-links a:hover {
@@ -194,7 +199,9 @@
 		text-decoration: none;
 		font-weight: 600;
 		font-size: 0.95rem;
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	.nav-cta .ghost {
@@ -287,7 +294,9 @@
 			opacity: 0;
 			pointer-events: none;
 			transform: translateY(-10px);
-			transition: opacity 0.25s ease, transform 0.25s ease;
+			transition:
+				opacity 0.25s ease,
+				transform 0.25s ease;
 		}
 
 		.nav-links.open {
@@ -303,6 +312,10 @@
 		.menu-toggle {
 			display: inline-flex;
 			margin-left: auto;
+		}
+
+		.nav-cta {
+			display: none;
 		}
 	}
 

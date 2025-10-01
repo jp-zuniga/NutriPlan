@@ -589,6 +589,7 @@
 		overflow: hidden;
 		box-shadow: var(--shadow-soft);
 		isolation: isolate;
+		height: 320px;
 	}
 
 	.hero-card img {
@@ -596,6 +597,11 @@
 		height: 320px;
 		object-fit: cover;
 		filter: saturate(1.05);
+	}
+
+	.hero-card.main img {
+		height: 150%;
+		object-fit: cover;
 	}
 
 	.card-meta {
