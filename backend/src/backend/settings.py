@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 
 from dj_database_url import config as db_config
-from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,16 +29,29 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LANGUAGE_CODE = "en-us"
 ROOT_URLCONF = "backend.urls"
-SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
+SECRET_KEY = os.getenv("SECRET_KEY")
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "Lax"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 TIME_ZONE = "America/Managua"
 USE_I18N = True
 USE_TZ = True
+USE_X_FORWARDED_HOST = True
 WSGI_APPLICATION = "backend.wsgi.application"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "django.security.csrf": {"handlers": ["console"], "level": "INFO"},
+        "django.request": {"handlers": ["console"], "level": "INFO"},
+        "django.contrib.auth": {"handlers": ["console"], "level": "INFO"},
+    },
+}
 
 #######################################################################################
 
