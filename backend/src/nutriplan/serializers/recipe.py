@@ -35,6 +35,8 @@ class RecipeSerializer(ModelSerializer):
 
         model = Recipe
         fields = (
+            "id",
+            "slug",
             "name",
             "description",
             "category",
@@ -55,7 +57,14 @@ class RecipeSerializer(ModelSerializer):
             "updated_at",
         )
 
-        read_only_fields = ("created_at", "updated_at", "primary_image", "total_time")
+        read_only_fields = (
+            "id",
+            "slug",
+            "created_at",
+            "updated_at",
+            "primary_image",
+            "total_time",
+        )
 
     def get_ingredients(self, obj: Recipe) -> list[dict[str, Any]]:
         """

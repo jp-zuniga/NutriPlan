@@ -92,7 +92,10 @@ class UserRegistrationSerializer(ModelSerializer):
         if attrs.get("password") != attrs.get("password_confirm"):
             raise ValidationError({"password_confirm": "Las contraseñas no coinciden."})
 
-        validate_password(attrs["password"])
+        validate_password(
+            password=attrs["password"], user=CustomUser(email=attrs.get("email", ""))
+        )
+
         return attrs
 
 

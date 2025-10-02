@@ -35,7 +35,7 @@ def register_user(request: Request) -> Response:
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(user)  # type: ignore[reportArgumentType]
         return Response(
             {
                 "user": UserProfileSerializer(user).data,
@@ -59,12 +59,12 @@ def login_user(request: Request) -> Response:
 
     Returns:
         Response:
-            - On success: serialized user profile, refresh token, and access token.
-            - On failure: error message and appropriate HTTP status code.
+            - On success: Serialized user profile, refresh token, and access token.
+            - On failure: Error message and appropriate HTTP status code.
 
     """
 
-    email = request.data.get("email") or ""  # type: ignore[reportAttributeAccessIssue]
+    email = request.data.get("email").strip().lower() or ""  # type: ignore[reportAttributeAccessIssue]
     password = request.data.get("password")  # type: ignore[reportAttributeAccessIssue]
 
     if not email or not password:
@@ -72,7 +72,7 @@ def login_user(request: Request) -> Response:
 
     user = authenticate(
         request,  # type: ignore[reportArgumentType]
-        username=email,
+        **{CustomUser.USERNAME_FIELD: email},
         password=password,
     )
 

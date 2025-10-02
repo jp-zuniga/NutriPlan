@@ -4,7 +4,7 @@ Read-only viewset for recipes, including search and filter capabilities.
 
 from typing import ClassVar
 
-from django.db.models import Count, F, Prefetch, Q
+from django.db.models import Count, Prefetch, Q
 from django.db.models.manager import BaseManager
 from rest_framework import viewsets
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
@@ -41,15 +41,17 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
 
     """
 
-    filter_backends: ClassVar[BaseFilterBackend] = [SearchFilter, OrderingFilter]  # type: ignore[reportAssignmentType]
+    filter_backends: ClassVar[list[BaseFilterBackend]] = [SearchFilter, OrderingFilter]  # type: ignore[reportAssignmentType]
     lookup_field: ClassVar[str] = "slug"
     ordering: ClassVar[list[str]] = ["-created_at", "name"]
     ordering_fields: ClassVar[list[str]] = [
         "name",
         "prep_time",
         "cook_time",
+        "total_time",
         "servings",
         "calories_per_serving",
+        "total_calories",
         "protein_per_serving",
         "carbs_per_serving",
         "fat_per_serving",
@@ -73,17 +75,16 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
             .prefetch_related(
                 Prefetch("ingredients", queryset=Ingredient.objects.all()),
                 Prefetch(
-                    "recipeingredient_set",
+                    "recipe_ingredients",
                     queryset=RecipeIngredient.objects.select_related("ingredient"),
                 ),
                 Prefetch(
-                    "recipeimage_set",
+                    "recipe_images",
                     queryset=RecipeImage.objects.select_related("image").order_by(
                         "order", "id"
                     ),
                 ),
             )
-            .annotate(total_time=F("prep_time") + F("cook_time"))
         )
 
         params = self.request.GET
@@ -119,15 +120,15 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
 
         include_ids = _parse_int_list(params.get("include_ingredients"))
         if include_ids:
-            qs = qs.filter(recipeingredient__ingredient_id__in=include_ids)
+            qs = qs.filter(recipe_ingredients__ingredient_id__in=include_ids)
             qs = qs.annotate(
-                match_count=Count("recipeingredient__ingredient", distinct=True)
+                match_count=Count("recipe_ingredients__ingredient", distinct=True)
             )
 
             qs = qs.filter(match_count__gte=len(set(include_ids)))
 
         exclude_ids = _parse_int_list(params.get("exclude_ingredients"))
         if exclude_ids:
-            qs = qs.exclude(recipeingredient__ingredient_id__in=exclude_ids)
+            qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
         return qs
