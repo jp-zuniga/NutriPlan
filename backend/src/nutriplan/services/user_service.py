@@ -21,7 +21,7 @@ class UserService:
         Creates a new user with the provided user data.
 
         Args:
-            user_data:          dictionary containing user information.
+            user_data:          Dictionary containing user information.
                 - "email":      email address for the new user.
                 - "password":   password for the new user.
                 - "first_name": first name of the user, defaults to empty string.

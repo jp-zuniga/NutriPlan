@@ -231,7 +231,7 @@ def _link_ingredients_with_quantities(  # noqa: C901, PLR0912
 
 def seed_ingredients_with_json(items: list[dict[str, Any]]) -> tuple[int, int]:  # noqa: C901, PLR0912
     """
-    Persist ingredient items. Returns (created, skipped).
+    Persist ingredient items. Return (created, skipped).
     """
 
     created = 0

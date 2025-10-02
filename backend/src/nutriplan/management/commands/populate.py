@@ -30,15 +30,15 @@ class Command(BaseCommand):
         Adds command-line arguments to the management command parser.
 
         Args:
-            parser: argument parser to which the command-line arguments are added.
+            parser: Arg-parser to which the command-line arguments are added.
 
         Supported arguments:
         --------------------
-            --ingredients (int): Number of ingredients to populate (default: 0).
-            --recipes (int): Number of recipes to populate (default: 0).
-            --locale (str): Locale to use for data generation (default: "en-US").
-            --dry-run (store_true): If set, performs a dry run without making changes.
-            --verbose (store_true): If set, enables verbose output.
+            --ingredients: number of ingredients to populate (default: 0).
+            --recipes:     number of recipes to populate (default: 0).
+            --locale:      locale to use for data generation (default: "en-US").
+            --dry-run:     if set, performs a dry run without making changes.
+            --verbose:     if set, enables verbose output.
 
         """
 
@@ -62,14 +62,11 @@ class Command(BaseCommand):
         Args:
             args: Additional positional arguments (unused).
             opts: Command-line options, including:
-                - "ingredients" (int): Number of ingredients to generate.
-                - "recipes" (int): Number of recipes to generate.
-                - "locale" (str): Locale to use for data generation.
-                - "dry_run" (bool): If True, output generated data without saving.
-                - "verbose" (bool): If True, print detailed output.
-
-        Returns:
-            None
+                - "ingredients": number of ingredients to generate.
+                - "recipes":     number of recipes to generate.
+                - "locale":      locale to use for data generation.
+                - "dry_run":     if True, output generated data without saving.
+                - "verbose":     if True, print detailed output.
 
         """
 

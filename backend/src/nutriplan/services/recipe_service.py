@@ -20,10 +20,10 @@ class RecipeService:
         Retrieve all Recipe objects that belong to a specific category.
 
         Args:
-            category_name: name of the category to filter recipes by.
+            category_name: Name of the category to filter recipes by.
 
         Returns:
-            BaseManager[Recipe]: queryset with Recipe objects in the specified category.
+            BaseManager[Recipe]: Queryset with Recipe objects in the specified category.
 
         """
 
@@ -37,10 +37,10 @@ class RecipeService:
         Retrieve recipes that contain any of the specified ingredient names.
 
         Args:
-            ingredient_names: list or iterable of ingredient names to filter recipes by.
+            ingredient_names: List or iterable of ingredient names to filter recipes by.
 
         Returns:
-            BaseManager[Recipe]: queryset of Recipe objects that include
+            BaseManager[Recipe]: Queryset of Recipe objects that include
                                  at least one of the specified ingredients.
 
         """
@@ -55,20 +55,20 @@ class RecipeService:
         Creates a new Recipe instance along with its associated ingredients.
 
         Args:
-            recipe_data:         dictionary containing the recipe's details.
+            recipe_data:         Dictionary containing the recipe's details.
                 - "name":        name of the recipe.
                 - "description": description of the recipe.
                 - "category":    category of the recipe.
                 - "prep_time":   preparation time in minutes, defaults to 0.
                 - "cook_time":   cooking time in minutes, defaults to 0.
 
-            ingredients_data:   list of dictionaries, each containing:
+            ingredients_data:   List of dictionaries, each containing:
                 - "ingredient": ingredient instance or identifier to associate.
                 - "amount":     quantity of the ingredient.
                 - "unit":       unit of measurement, defaults to an empty string.
 
         Returns:
-            Recipe: created Recipe instance with associated ingredients.
+            Recipe: Created Recipe instance with associated ingredients.
 
         """
 

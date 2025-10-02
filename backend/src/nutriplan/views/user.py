@@ -27,7 +27,7 @@ class IsSelfOrAdmin(BasePermission):
 
         Args:
             request: HTTP request containing user information.
-            obj: object for which permission is being checked.
+            obj:     Object for which permission is being checked.
 
         Returns:
             bool: True if user is authenticated and owns the object; False otherwise.
@@ -66,7 +66,7 @@ class UserViewSet(ModelViewSet):
         Determines and returns list of permissions based on current action.
 
         Returns:
-            list: instantiated permission classes.
+            list: Instantiated permission classes.
 
         """
 
@@ -84,7 +84,7 @@ class UserViewSet(ModelViewSet):
         If the user is staff or not authenticated, returns the default queryset.
 
         Returns:
-            QuerySet: queryset appropiate for current user.
+            QuerySet: Queryset appropiate for current user.
 
         """
 
@@ -104,11 +104,11 @@ class UserViewSet(ModelViewSet):
 
         Args:
             request: HTTP request object.
-            args: Variable length argument list.
-            kwargs: Arbitrary keyword arguments.
+            args:    Variable length argument list.
+            kwargs:  Arbitrary keyword arguments.
 
         Returns:
-            Response: response object with a message and HTTP 405 status code.
+            Response: Object with a message and HTTP 405 status code.
 
         """
 
@@ -135,7 +135,7 @@ class UserViewSet(ModelViewSet):
             request: HTTP request containing user and data.
 
         Returns:
-            Response: object containing serialized user data.
+            Response: Object containing serialized user data.
 
         """
 
