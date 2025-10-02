@@ -31,14 +31,22 @@ def test_login(request: HttpRequest) -> HttpResponseBadRequest | JsonResponse:
     """
 
     if request.method != "POST":
-        return HttpResponseBadRequest("POST only")
-    username = request.POST.get("username")
-    password = request.POST.get("password")
-    user = authenticate(request, username=username, password=password)
-    if user is not None and user.is_active and user.is_staff:
-        login(request, user)
-        return JsonResponse({"ok": True, "user": user.username})
-    return JsonResponse({"ok": False}, status=401)
+        return JsonResponse({"ok": False, "error": "POST only"}, status=405)
+    u = request.POST.get("username", "")
+    p = request.POST.get("password", "")
+    user = authenticate(request, username=u, password=p)
+    if not user:
+        return JsonResponse(
+            {
+                "ok": False,
+                "why": "authenticate() returned None",
+                "u": u,
+                "len_p": len(p),
+            },
+            status=401,
+        )
+    login(request, user)
+    return JsonResponse({"ok": True, "user": user.username})
 
 
 urlpatterns = [
