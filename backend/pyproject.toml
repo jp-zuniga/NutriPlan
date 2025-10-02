@@ -14,7 +14,7 @@
     ]
     name = "nutriplan-backend"
     requires-python = ">=3.13"
-    version = "0.2.0"
+    version = "0.3"
 
 [dependency-groups]
     dev = [
@@ -42,4 +42,4 @@
 
     [tool.ruff.lint.per-file-ignores]
         "**/migrations/**.py" = ["D100", "D101", "D104", "E501", "RUF012"]
-        "**/settings.py" = ["E501"]
+        "**/settings.py"      = ["E501"]
