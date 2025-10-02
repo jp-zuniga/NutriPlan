@@ -3,8 +3,19 @@ Ingredient model used in recipes.
 """
 
 from decimal import Decimal
+from typing import ClassVar
 
-from django.db.models import CharField, DecimalField, ManyToManyField, Model, TextField
+from django.contrib.postgres.indexes import GinIndex
+from django.db.models import (
+    CharField,
+    CheckConstraint,
+    DecimalField,
+    Index,
+    ManyToManyField,
+    Model,
+    Q,
+    TextField,
+)
 
 
 class Ingredient(Model):
@@ -27,6 +38,27 @@ class Ingredient(Model):
         """
         Class metadata.
         """
+
+        constraints: ClassVar[list[CheckConstraint]] = [
+            CheckConstraint(check=Q(calories_per_100g__gte=0), name="chk_ing_cal_ge_0"),
+            CheckConstraint(check=Q(protein_per_100g__gte=0), name="chk_ing_pro_ge_0"),
+            CheckConstraint(check=Q(carbs_per_100g__gte=0), name="chk_ing_carb_ge_0"),
+            CheckConstraint(check=Q(fat_per_100g__gte=0), name="chk_ing_fat_ge_0"),
+            CheckConstraint(check=Q(sugar_per_100g__gte=0), name="chk_ing_sug_ge_0"),
+        ]
+
+        indexes: ClassVar[list[Index]] = [
+            GinIndex(
+                fields=["description"],
+                name="gin_trgm_ingredient_desc",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["name"],
+                name="gin_trgm_ingredient_name",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
         ordering = ("name",)
 

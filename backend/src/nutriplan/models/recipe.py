@@ -3,23 +3,38 @@ Models for recipes, their ingredient relations, and images.
 """
 
 from decimal import Decimal
+from typing import ClassVar
+from uuid import uuid4
 
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.lookups import Unaccent
+from django.contrib.postgres.search import SearchVector
 from django.db.models import (
     CASCADE,
     SET_NULL,
     CharField,
+    CheckConstraint,
     DateTimeField,
     DecimalField,
+    F,
     ForeignKey,
+    Index,
+    IntegerField,
     ManyToManyField,
     Model,
     PositiveIntegerField,
     PositiveSmallIntegerField,
+    Q,
+    SlugField,
     TextField,
     URLField,
+    UUIDField,
     UniqueConstraint,
+    Value,
 )
-from django.utils import timezone
+from django.db.models.fields.generated import GeneratedField
+from django.db.models.functions import Coalesce, Lower
+from django.utils.text import slugify
 
 from .category import Category
 from .ingredient import Ingredient
@@ -32,7 +47,9 @@ class Recipe(Model):
     A cookable recipe with times, nutrition, category, ingredients and images.
     """
 
-    name = CharField(max_length=100, primary_key=True)
+    id = UUIDField(primary_key=True, default=uuid4, editable=False)
+    slug = SlugField(max_length=120, unique=True, db_index=True)
+    name = CharField(max_length=100)
     description = TextField(help_text="Short description shown prominently.")
     category = ForeignKey(
         Category,
@@ -55,7 +72,7 @@ class Recipe(Model):
         blank=True,
     )
 
-    main_image_url = URLField(blank=True, help_text="Primary image URL")
+    main_image_url = URLField(blank=True, help_text="Primary recipe image.")
     prep_time = PositiveIntegerField(
         verbose_name="Prep Time",
         help_text="Preparation time (in minutes)",
@@ -67,12 +84,26 @@ class Recipe(Model):
         default=0,
     )
 
+    total_time = GeneratedField(
+        expression=F("prep_time") + F("cook_time"),
+        output_field=IntegerField(),
+        db_persist=True,
+        editable=False,
+    )
+
     servings = PositiveSmallIntegerField(default=1)
     calories_per_serving = DecimalField(
-        max_digits=7,
+        max_digits=8,
         decimal_places=2,
         default=Decimal(0),
         help_text="kcal per serving",
+    )
+
+    total_calories = GeneratedField(
+        expression=Coalesce(F("calories_per_serving"), 0) * Coalesce(F("servings"), 0),
+        output_field=DecimalField(max_digits=8, decimal_places=2),
+        db_persist=True,
+        editable=False,
     )
 
     protein_per_serving = DecimalField(
@@ -103,13 +134,43 @@ class Recipe(Model):
         help_text="grams sugar per serving",
     )
 
-    created_at = DateTimeField(default=timezone.now)
-    updated_at = DateTimeField(default=timezone.now)
+    created_at = DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = DateTimeField(auto_now=True)
 
     class Meta:
         """
         Meta options for default ordering.
         """
+
+        constraints: ClassVar[list[CheckConstraint | UniqueConstraint]] = [
+            CheckConstraint(check=Q(prep_time__gte=0), name="chk_rec_prep_ge_0"),
+            CheckConstraint(check=Q(cook_time__gte=0), name="chk_rec_cook_ge_0"),
+            CheckConstraint(check=Q(servings__gte=0), name="chk_rec_serv_ge_0"),
+            UniqueConstraint(Lower("slug"), name="uniq_recipe_slug_ci"),
+        ]
+
+        indexes: ClassVar[list[Index]] = [
+            GinIndex(
+                SearchVector(
+                    Unaccent(Coalesce("name", Value(""))),
+                    Unaccent(Coalesce("description", Value(""))),
+                    config="spanish",
+                ),
+                name="idx_recipe_fts_es",
+            ),
+            GinIndex(
+                fields=["description"],
+                name="idx_recipe_desc_trgm",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["name"], name="idx_recipe_name_trgm", opclasses=["gin_trgm_ops"]
+            ),
+            Index(fields=["category"]),
+            Index(fields=["created_at"]),
+            Index(fields=["slug"], name="idx_recipe_slug"),
+            Index(fields=["total_time"]),
+        ]
 
         ordering = ("-created_at", "name")
 
@@ -120,36 +181,34 @@ class Recipe(Model):
 
         return self.name
 
-    @property
-    def total_time(self) -> int:
+    def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
         """
-        Total time in minutes (prep + cook).
-        """
-
-        return self.prep_time + self.cook_time
-
-    def format_time(self, minutes: int) -> str:
-        """
-        Format a minutes value as a human-readable string.
+        Save current instance with auto-generated slug.
         """
 
-        if minutes < MINUTES:
-            return f"{minutes} min"
+        if not self.slug:
+            self.slug = self._build_unique_slug()
 
-        hours = minutes // MINUTES
-        mins = minutes % MINUTES
+        super().save(*args, **kwargs)
 
-        if mins == 0:
-            return f"{hours} hr"
-        return f"{hours} hr {mins} min"
+    def _build_unique_slug(self) -> str:
+        base = slugify(self.name or "")
+        slug = base or str(self.id)
+        qs = type(self).objects.all()
 
-    @property
-    def total_calories(self) -> Decimal:
-        """
-        Total kcal for the full recipe (per-serving kcal * servings).
-        """
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
 
-        return (self.calories_per_serving or Decimal(0)) * max(self.servings or 0, 0)
+        if not qs.filter(slug=slug).exists():
+            return slug
+
+        i = 2
+        while True:
+            candidate = f"{base}-{i}"
+            if not qs.filter(slug=candidate).exists():
+                return candidate
+
+            i += 1
 
     @property
     def primary_image(self) -> str:
@@ -159,12 +218,14 @@ class Recipe(Model):
 
         if self.main_image_url:
             return self.main_image_url
+
         ri = (
             self.images.through.objects.filter(recipe=self)
             .select_related("image")
             .order_by("order", "id")
             .first()
         )
+
         return ri.image.url if ri and ri.image else ""
 
 
@@ -194,11 +255,16 @@ class RecipeIngredient(Model):
         """
 
         constraints = (
+            CheckConstraint(check=Q(amount__gt=0), name="chk_ri_amount_gt_0"),
             UniqueConstraint(
                 fields=["recipe", "ingredient"],
                 name="unique_recipe_ingredient",
             ),
         )
+
+        indexes: ClassVar[list[Index]] = [
+            Index(fields=["ingredient"], name="idx_ri_ingredient"),
+        ]
 
     def __str__(self) -> str:
         """
@@ -216,7 +282,6 @@ class RecipeImage(Model):
     """
 
     recipe = ForeignKey(Recipe, on_delete=CASCADE, related_name="recipe_images")
-
     image = ForeignKey("Image", on_delete=CASCADE, related_name="uses")
     order = PositiveSmallIntegerField(default=0)
 
@@ -225,10 +290,15 @@ class RecipeImage(Model):
         Default ordering for deterministic image sequences.
         """
 
-        ordering = ("order", "id")
-        constraints = (
+        constraints: tuple[UniqueConstraint] = (
             UniqueConstraint(fields=["recipe", "image"], name="unique_recipe_image"),
         )
+
+        indexes: ClassVar[list[Index]] = [
+            Index(fields=["recipe", "order", "id"], name="idx_recipeimage_rec_ord"),
+        ]
+
+        ordering = ("order", "id")
 
     def __str__(self) -> str:
         """
