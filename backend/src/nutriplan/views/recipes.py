@@ -42,7 +42,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     filter_backends: ClassVar[BaseFilterBackend] = [SearchFilter, OrderingFilter]  # type: ignore[reportAssignmentType]
-    lookup_field: ClassVar[str] = "name"
+    lookup_field: ClassVar[str] = "slug"
     ordering: ClassVar[list[str]] = ["-created_at", "name"]
     ordering_fields: ClassVar[list[str]] = [
         "name",

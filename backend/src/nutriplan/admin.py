@@ -2,7 +2,7 @@
 Register models with admin interface and customizes their admin options.
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 from django.contrib import admin
@@ -19,15 +19,6 @@ from nutriplan.models import (
     Recipe,
     RecipeIngredient,
 )
-
-
-class CategoryAdmin(admin.ModelAdmin):
-    """
-    Admin interface options for the Category model.
-    """
-
-    list_display = ("name", "friendly_name", "description")
-    readonly_fields = ("name",)
 
 
 class CustomAdmin(UserAdmin):
@@ -118,6 +109,25 @@ class CustomAdmin(UserAdmin):
             form.base_fields.pop("username")  # type: ignore[reportAttributeAccessIssue]
 
         return form
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    """
+    Admin interface options for the Category model.
+    """
+
+    list_display = ("name", "friendly_name", "description")
+    readonly_fields = ("name",)
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    """
+    Admin interface options for the Recipe model.
+    """
+
+    prepopulated_fields: ClassVar[Mapping[str, Sequence[str]]] = {"slug": ("name",)}  # type: ignore[reportIncompatibleVariableOverride]
+    list_display = ("name", "slug", "category", "created_at")
+    search_fields = ("name", "slug")
 
 
 admin.site.register(Category, CategoryAdmin)

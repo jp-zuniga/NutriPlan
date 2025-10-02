@@ -4,7 +4,8 @@ Model for recipe categories.
 
 from typing import ClassVar
 
-from django.db.models import CharField, Model, TextField
+from django.contrib.postgres.indexes import GinIndex
+from django.db.models import CharField, Index, Model, TextField
 
 
 class Category(Model):
@@ -21,8 +22,16 @@ class Category(Model):
         Class metadata.
         """
 
-        verbose_name_plural = "Categories"
+        indexes: ClassVar[list[Index]] = [
+            GinIndex(
+                fields=["friendly_name"],
+                name="gin_trgm_category_name",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+
         ordering: ClassVar[list[str]] = ["friendly_name"]
+        verbose_name_plural = "Categories"
 
     def __str__(self) -> str:
         """

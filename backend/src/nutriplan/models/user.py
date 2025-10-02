@@ -127,11 +127,11 @@ class CustomUser(AbstractUser):
 
     Attributes:
         dietary_restrictions: User's health-related restrictions.
-        phone_number: User's contact number.
+        phone_number:         User's contact number.
 
     """
 
-    email = EmailField(unique=True)
+    email = EmailField(db_collation="case-insensitive", unique=True)
     dietary_restrictions = ManyToManyField(
         "DietaryRestriction", blank=True, related_name="users"
     )
