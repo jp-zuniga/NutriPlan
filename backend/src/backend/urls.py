@@ -2,9 +2,11 @@
 URL configuration for Django project.
 """
 
+from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.hashers import check_password
+from django.db import connection
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.urls import include, path
 from rest_framework.views import csrf_exempt
@@ -28,47 +30,71 @@ def whoami(request: HttpRequest) -> JsonResponse:
 
 
 @csrf_exempt
-def test_login(request: HttpRequest) -> HttpResponseBadRequest | JsonResponse:
+def test_login(request: HttpRequest) -> JsonResponse:
     """
     Test endpoint.
     """
 
     if request.method != "POST":
-        return HttpResponseBadRequest("POST only.")
+        return JsonResponse({"ok": False, "error": "POST only"}, status=405)
 
     u = request.POST.get("username", "")
     p = request.POST.get("password", "")
 
-    # 1) existe el usuario y coincide la password?
     try:
-        user_obj = User.objects.get(username=u)
+        obj = User.objects.get(username=u)
         exists = True
-        pw_matches = check_password(p, user_obj.password)
+        pw_ok = check_password(p, obj.password)
     except User.DoesNotExist:
-        user_obj = None
         exists = False
-        pw_matches = False
+        pw_ok = False
 
-    # 2) test authenticate()
     user = authenticate(request, username=u, password=p)
-    if user is not None and user.is_active and user.is_staff:
+    if user:
         login(request, user)
         return JsonResponse({"ok": True, "user": user.username})
 
-    # 3) devolver test
-    return JsonResponse({
-        "ok": False,
-        "why": "authenticate() returned None",
-        "u": u,
-        "len_p": len(p),
-        "user_exists": exists,
-        "password_matches_hash": pw_matches,
-    }, status=401)
+    return JsonResponse(
+        {
+            "ok": False,
+            "why": "authenticate() returned None",
+            "u": u,
+            "len_p": len(p),
+            "user_exists": exists,
+            "password_matches_hash": pw_ok,
+        },
+        status=401,
+    )
+
+
+def debug_db(_request: HttpRequest) -> HttpResponseBadRequest | JsonResponse:
+    """
+    Otro test endpoint.
+    """
+
+    info = {
+        "alias": connection.alias,
+        "engine": connection.settings_dict.get("ENGINE"),
+        "name": connection.settings_dict.get("NAME"),
+        "host": connection.settings_dict.get("HOST"),
+        "port": connection.settings_dict.get("PORT"),
+        "user_model": str(User),
+        "users_count": User.objects.count(),
+        "allowed_hosts": settings.ALLOWED_HOSTS,
+        "using_env_DATABASE_URL": bool(settings.DATABASES["default"].get("NAME")),
+    }
+
+    first = User.objects.order_by("id").values(
+        "id", "username", "email", "is_staff", "is_superuser"
+    )[:5]
+
+    return JsonResponse({"db": info, "sample_users": list(first)})
 
 
 urlpatterns = [
     path("", include("nutriplan.urls")),
     path("admin/", admin.site.urls),
+    path("debug/db/", debug_db),
     path("test-login/", test_login),
     path("whoami/", whoami),
 ]
