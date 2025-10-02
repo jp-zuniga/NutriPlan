@@ -79,7 +79,7 @@ class UserViewSet(ModelViewSet):
 
     def get_queryset(self) -> QuerySet:  # type: ignore[incompatibleMethodOverride]
         """
-        Returns a queryset filtered by the current authenticated user.
+        Return a queryset filtered by the current authenticated user.
 
         If the user is staff or not authenticated, returns the default queryset.
 
@@ -129,7 +129,7 @@ class UserViewSet(ModelViewSet):
 
         If the request method is PUT/PATCH, updates user's data with provided payload.
         Validates input data and performs update operation.
-        Returns serialized data of authenticated user.
+        Return serialized data of authenticated user.
 
         Args:
             request: HTTP request containing user and data.

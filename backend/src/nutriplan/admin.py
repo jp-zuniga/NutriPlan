@@ -2,11 +2,14 @@
 Register models with admin interface and customizes their admin options.
 """
 
+from collections.abc import Sequence
 from typing import ClassVar
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
+from rest_framework.request import HttpRequest
 
 from nutriplan.models import (
     Category,
@@ -27,14 +30,33 @@ class CategoryAdmin(admin.ModelAdmin):
     readonly_fields = ("name",)
 
 
-class CustomUserAdmin(UserAdmin):
+class CustomAdmin(UserAdmin):
     """
     Admin interface options for the CustomUser model.
     """
 
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "phone_number",
+                    "password",
+                    "password_confirm",
+                    "is_staff",
+                    "is_superuser",
+                ),
+            },
+        ),
+    )
+
     fieldsets = (
-        (None, {"fields": ("username", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
+        (None, {"fields": ("email", "password")}),
+        (_("Personal Info"), {"fields": ("first_name", "last_name", "phone_number")}),
         (
             _("Permissions"),
             {
@@ -44,19 +66,62 @@ class CustomUserAdmin(UserAdmin):
                     "is_superuser",
                     "groups",
                     "user_permissions",
-                ),
+                )
             },
         ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+        (_("Important Dates"), {"fields": ("last_login", "date_joined")}),
         (_("Dietary Restrictions"), {"fields": ("dietary_restrictions",)}),
     )
 
-    list_display: ClassVar[list[str]] = ["username", "email", "first_name", "last_name"]  # type: ignore[reportAssignmentType]
     model = CustomUser
+    list_display: ClassVar[list[str]] = [  # type: ignore[reportAssignmentType]
+        "email",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "is_staff",
+    ]
+
+    ordering: tuple[str] = ("email",)  # type: ignore[reportIncompatibleVariableOverride]
+    search_fields: ClassVar[Sequence[str]] = [  # type: ignore[reportIncompatibleVariableOverride]
+        "email",
+        "first_name",
+        "last_name",
+    ]
+
+    def get_form(
+        self,
+        request: HttpRequest,
+        obj: object | None = None,
+        change: bool = False,  # noqa: FBT001, FBT002
+        **kwargs,  # noqa: ANN003
+    ) -> type[ModelForm]:
+        """
+        Override the default `get_form` method to customize the admin form.
+
+        Removes the `username` field from the form's `base_fields` if it exists,
+        effectively hiding the `username` field from the admin interface for this model.
+
+        Args:
+            request: Current HTTP request object.
+            obj: Object being edited, or None if adding a new object.
+            change: True if editing an existing object, False if adding a new one.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            type[ModelForm]: Modified class with "username" field removed if present.
+
+        """
+
+        form = super().get_form(request, obj, change, **kwargs)
+        if "username" in form.base_fields:  # type: ignore[reportAttributeAccessIssue]
+            form.base_fields.pop("username")  # type: ignore[reportAttributeAccessIssue]
+
+        return form
 
 
 admin.site.register(Category, CategoryAdmin)
-admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(CustomUser, CustomAdmin)
 admin.site.register(DietaryRestriction)
 admin.site.register(Ingredient)
 admin.site.register(Recipe)

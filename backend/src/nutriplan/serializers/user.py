@@ -5,6 +5,7 @@ Serializers for user registration and profile management.
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.password_validation import validate_password
+from rest_framework.fields import EmailField
 from rest_framework.serializers import (
     CharField,
     ModelSerializer,
@@ -24,7 +25,11 @@ class UserRegistrationSerializer(ModelSerializer):
     Serializer for user registration.
     """
 
+    full_name = CharField(write_only=True)
+    email = EmailField()
+    phone_number = CharField(required=False, allow_blank=True)
     password = CharField(write_only=True, min_length=8)
+    password_confirm = CharField(write_only=True, min_length=8)
 
     class Meta:
         """
@@ -32,36 +37,63 @@ class UserRegistrationSerializer(ModelSerializer):
         """
 
         model = CustomUser
-        fields = ("email", "username", "password", "first_name", "last_name")
+        fields = ("full_name", "email", "phone_number", "password", "password_confirm")
 
     def create(self, validated_data: dict) -> AbstractUser:
         """
         Creates a new user instance using the provided validated data.
 
         Args:
-            validated_data: user information.
+            validated_data: User information.
 
         Returns:
-            AbstractUser: created user instance.
+            AbstractUser: Created user instance.
 
         """
 
-        return UserService.create_user(validated_data)
+        full_name = validated_data.pop("full_name", "").strip()
+        first_name, last_name = "", ""
+        if full_name:
+            parts = full_name.split()
+            first_name = parts[0]
+            last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
 
-    def validate_pw(self, value: str) -> str:
+        email = validated_data.get("email", "").strip().lower()
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            raise ValidationError({"email": "Este correo ya está registrado."})
+
+        phone_number = validated_data.get("phone_number", "").strip()
+
+        password = validated_data.pop("password")
+        validated_data.pop("password_confirm", None)
+
+        return UserService.create_user(
+            {
+                "email": email,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name,
+                "phone_number": phone_number,
+            }
+        )
+
+    def validate(self, attrs: dict) -> dict:
         """
-        Validates the provided password using Django's built-in password validators.
+        Validates registration data.
 
         Args:
-            value: string to validate.
+            attrs: User's registration attributes.
 
         Returns:
-            str: validated password string.
+            dict: Validated user attributes.
 
         """
 
-        validate_password(value)
-        return value
+        if attrs.get("password") != attrs.get("password_confirm"):
+            raise ValidationError({"password_confirm": "Las contraseñas no coinciden."})
+
+        validate_password(attrs["password"])
+        return attrs
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -83,13 +115,14 @@ class UserProfileSerializer(ModelSerializer):
         model = CustomUser
         fields = (
             "id",
-            "username",
             "email",
             "first_name",
             "last_name",
+            "phone_number",
             "dietary_restrictions",
         )
-        read_only_fields = ("id", "username", "email")
+
+        read_only_fields = ("id", "email")
 
 
 class ChangePasswordSerializer(Serializer):
@@ -107,15 +140,16 @@ class ChangePasswordSerializer(Serializer):
         Validates that the provided password matches the current user's password.
 
         Args:
-            value: password to validate.
+            value: Password to validate.
 
         Returns:
-            str: validated password if it matches.
+            str: Validated password if it matches.
 
         Raises:
-            ValidationError: if provided password doesn't match.
+            ValidationError: If provided password doesn't match.
 
         """
+
         user = self.context["request"].user
         if not user.check_password(value):
             msg = "Invalid current password."
@@ -131,10 +165,10 @@ class ChangePasswordSerializer(Serializer):
         that the new password meets the required security standards.
 
         Args:
-            value: new password to be validated.
+            value: New password to be validated.
 
         Returns:
-            str: validated password.
+            str: Validated password.
 
         Raises:
             ValidationError: If password doesn't meet the validation criteria.
