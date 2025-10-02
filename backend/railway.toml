@@ -9,7 +9,7 @@
     healthcheckPath = "/"
     healthcheckTimeout = 180
     numReplicas = 1
-    # preDeployCommand = "uv run src/manage.py migrate"
+    preDeployCommand = ""
     restartPolicyMaxRetries = 5
     restartPolicyType = "ON_FAILURE"
     runtime = "V2"
