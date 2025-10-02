@@ -94,9 +94,9 @@ class CustomAdmin(UserAdmin):
         effectively hiding the `username` field from the admin interface for this model.
 
         Args:
-            request: Current HTTP request object.
-            obj: Object being edited, or None if adding a new object.
-            change: True if editing an existing object, False if adding a new one.
+            request:  Current HTTP request object.
+            obj:      Object being edited, or None if adding a new object.
+            change:   True if editing an existing object, False if adding a new one.
             **kwargs: Additional keyword arguments.
 
         Returns:

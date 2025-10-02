@@ -23,9 +23,9 @@ class GeminiClient:
         Initializes the Gemini LLM service.
 
         Args:
-            api_key: API key for Gemini.
-            model: name of Gemini model to use.
-            temperature: temperature for response generation, controlling randomness.
+            api_key:     API key for Gemini.
+            model:       Name of Gemini model to use.
+            temperature: Temperature for response generation, controlling randomness.
 
         Raises:
             RuntimeError: If API key isn't provided and 'GOOGLE_API_KEY' is not set.
