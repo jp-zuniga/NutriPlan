@@ -14,7 +14,7 @@ load_dotenv()
 
 #######################################################################################
 
-ALLOWED_HOSTS = ["*.up.railway.app"]
+ALLOWED_HOSTS = ["*.railway.app"]
 AUTH_USER_MODEL = "nutriplan.CustomUser"
 BASE_DIR = Path(__file__).resolve().parent.parent
 CORS_ALLOW_ALL_ORIGINS = True
