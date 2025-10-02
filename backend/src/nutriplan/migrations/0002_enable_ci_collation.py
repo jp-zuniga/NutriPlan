@@ -5,7 +5,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "nutriplan",
-            "0002_alter_customuser_managers_remove_customuser_username_and_more",
+            "0001_initial",
         )
     ]
     operations = [
