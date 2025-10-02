@@ -3,7 +3,7 @@ Global Django settings for NutriPlan.
 """
 
 from datetime import timedelta
-import os
+from os import getenv
 from pathlib import Path
 
 from dj_database_url import config as db_config
@@ -21,24 +21,11 @@ ALLOWED_HOSTS = [
 
 AUTH_USER_MODEL = "nutriplan.CustomUser"
 BASE_DIR = Path(__file__).resolve().parent.parent
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-# CSRF_COOKIE_DOMAIN = ".up.railway.app"
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SECURE = True
-CSRF_USE_SESSIONS = True
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = getenv("DEBUG", "False").lower() == "true"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LANGUAGE_CODE = "en-us"
 ROOT_URLCONF = "backend.urls"
-SECRET_KEY = os.getenv("SECRET_KEY")
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-# SESSION_COOKIE_DOMAIN = ".up.railway.app"
-SESSION_COOKIE_HTTPONLY = False
-SESSION_COOKIE_NAME = "sessionid"
-SESSION_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = True
+SECRET_KEY = getenv("SECRET_KEY")
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
@@ -49,22 +36,7 @@ USE_TZ = True
 USE_X_FORWARDED_HOST = True
 WSGI_APPLICATION = "backend.wsgi.application"
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "loggers": {
-        "django.security.csrf": {"handlers": ["console"], "level": "INFO"},
-        "django.request": {"handlers": ["console"], "level": "INFO"},
-        "django.contrib.auth": {"handlers": ["console"], "level": "INFO"},
-    },
-}
-
 #######################################################################################
-
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -88,7 +60,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 DATABASES = {
     "default": db_config(
-        default=os.getenv("DATABASE_URL"),
+        default=getenv("DATABASE_URL"),
         conn_max_age=600,
         conn_health_checks=True,
     )
