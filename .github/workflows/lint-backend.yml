@@ -2,11 +2,19 @@ name: lint-backend
 
 on:
   push:
+    branches:
+      - main
+      - backend-dev
+      - test-prod
     paths:
-      - backend/**"
+      - "backend/**"
   pull_request:
+    branches:
+      - main
+      - backend-dev
+      - test-prod
     paths:
-      - backend/**"
+      - "backend/**"
 
 jobs:
   check:
