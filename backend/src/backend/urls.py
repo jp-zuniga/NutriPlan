@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.contrib.auth import authenticate, login
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.urls import include, path
+from rest_framework.views import csrf_exempt
 
 
 def whoami(request: HttpRequest) -> JsonResponse:
@@ -23,6 +24,7 @@ def whoami(request: HttpRequest) -> JsonResponse:
     )
 
 
+@csrf_exempt
 def test_login(request: HttpRequest) -> HttpResponseBadRequest | JsonResponse:
     """
     Test endpoint.
