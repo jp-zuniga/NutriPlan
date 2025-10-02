@@ -22,7 +22,6 @@ class UserService:
 
         Args:
             user_data:          dictionary containing user information.
-                - "username":   username for the new user.
                 - "email":      email address for the new user.
                 - "password":   password for the new user.
                 - "first_name": first name of the user, defaults to empty string.
@@ -33,13 +32,19 @@ class UserService:
 
         """
 
-        return CustomUser.objects.create_user(
-            username=user_data["username"],
+        user: CustomUser = CustomUser.objects.create_user(  # type: ignore[reportCallIssue]
             email=user_data["email"],
             password=user_data["password"],
             first_name=user_data.get("first_name", ""),
             last_name=user_data.get("last_name", ""),
         )
+
+        phone = user_data.get("phone_number", "")
+        if phone:
+            user.phone_number = phone
+            user.save(update_fields=["phone_number"])
+
+        return user
 
     @staticmethod
     def add_dietary_restriction(user: User, restriction_name: str) -> User:
@@ -50,11 +55,11 @@ class UserService:
         The restriction is then associated with the user's `dietary_restrictions`.
 
         Args:
-            user:             user instance to modify.
-            restriction_name: name of dietary restriction to add.
+            user:             User instance to modify.
+            restriction_name: Name of dietary restriction to add.
 
         Returns:
-            User: updated user instance with new dietary restriction.
+            User: Updated user instance with new dietary restriction.
 
         """
 
@@ -68,10 +73,10 @@ class UserService:
         Retrieve a CustomUser instance along with its related dietary restrictions.
 
         Args:
-            user_id: unique identifier of user to retrieve.
+            user_id: Unique identifier of user to retrieve.
 
         Returns:
-            AbstractUser: user instance with pre-fetched dietary restrictions.
+            AbstractUser: User instance with pre-fetched dietary restrictions.
 
         """
 

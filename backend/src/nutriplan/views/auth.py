@@ -33,7 +33,6 @@ def register_user(request: Request) -> Response:
     """
 
     serializer = UserRegistrationSerializer(data=request.data)
-
     if serializer.is_valid():
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
@@ -65,29 +64,28 @@ def login_user(request: Request) -> Response:
 
     """
 
-    username = request.data.get("username")  # type: ignore[reportAttributeAccessIssue]
+    email = request.data.get("email") or ""  # type: ignore[reportAttributeAccessIssue]
     password = request.data.get("password")  # type: ignore[reportAttributeAccessIssue]
 
-    if not username or not password:
-        return Response(
-            {"error": "Username and password are required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    if not email or not password:
+        return Response({"error": "Email y contraseña son requeridos."}, status=400)
 
-    user = authenticate(username=username, password=password)
+    user = authenticate(
+        request,  # type: ignore[reportArgumentType]
+        username=email,
+        password=password,
+    )
 
-    if user:
-        refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "user": UserProfileSerializer(user).data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }
-        )
+    if user is None:
+        return Response({"error": "Credenciales inválidas."}, status=401)
 
+    refresh = RefreshToken.for_user(user)
     return Response(
-        {"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED
+        {
+            "user": UserProfileSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
     )
 
 
@@ -105,7 +103,8 @@ def get_user_profile(request: Request) -> Response:
 
     """
 
-    user = UserService.get_user_with_restrictions(request.user.id)
-    serializer = UserProfileSerializer(user)
-
-    return Response(serializer.data)
+    return Response(
+        UserProfileSerializer(
+            UserService.get_user_with_restrictions(request.user.id)
+        ).data
+    )
