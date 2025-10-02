@@ -18,7 +18,7 @@ router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("users", UserViewSet, basename="user")
 
 urlpatterns = [
-    path("api/", include(router.urls)),
-    path("api/auth/register/", register_user),
-    path("api/auth/login/", login_user),
+    path("", include(router.urls)),
+    path("auth/register/", register_user),
+    path("auth/login/", login_user),
 ]
