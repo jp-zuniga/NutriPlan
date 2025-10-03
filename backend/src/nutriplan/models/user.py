@@ -7,7 +7,16 @@ from __future__ import annotations
 from typing import ClassVar
 
 from django.contrib.auth.models import AbstractUser, UserManager
-from django.db.models import CharField, EmailField, ManyToManyField, Model, TextField
+from django.db.models import (
+    CharField,
+    EmailField,
+    Index,
+    ManyToManyField,
+    Model,
+    TextField,
+    UniqueConstraint,
+)
+from django.db.models.functions import Lower
 
 
 class CustomUserManager(UserManager):
@@ -46,7 +55,7 @@ class CustomUserManager(UserManager):
             msg = "Email must be set"
             raise ValueError(msg)
 
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, **extra_fields)
         if password:
             user.set_password(password)
@@ -131,7 +140,7 @@ class CustomUser(AbstractUser):
 
     """
 
-    email = EmailField(db_collation="case-insensitive", unique=True)
+    email = EmailField(db_index=True, unique=True)
     dietary_restrictions = ManyToManyField(
         "DietaryRestriction", blank=True, related_name="users"
     )
@@ -142,6 +151,19 @@ class CustomUser(AbstractUser):
 
     REQUIRED_FIELDS: ClassVar[list[str]] = []  # type: ignore[incompatibleVariableOverride]
     USERNAME_FIELD = "email"
+
+    class Meta:
+        """
+        Class metadata.
+        """
+
+        constraints: ClassVar[list[UniqueConstraint]] = [
+            UniqueConstraint(Lower("email"), name="uniq_user_email_ci"),
+        ]
+
+        indexes: ClassVar[list[Index]] = [
+            Index(Lower("email"), name="idx_user_email_lower"),
+        ]
 
     def __str__(self) -> str:
         """

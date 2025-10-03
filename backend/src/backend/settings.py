@@ -19,6 +19,7 @@ ALLOWED_HOSTS = [
     ".railway.app",
 ]
 
+APPEND_SLASH = False
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 AUTH_USER_MODEL = "nutriplan.CustomUser"
 BASE_DIR = Path(__file__).resolve().parent.parent
