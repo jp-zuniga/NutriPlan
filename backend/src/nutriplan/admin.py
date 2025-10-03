@@ -80,11 +80,10 @@ class CustomAdmin(UserAdmin):
         "last_name",
     ]
 
-    def get_form(
+    def get_form(  # type: ignore[reportIncompatibleMethodOverride]
         self,
         request: HttpRequest,
         obj: object | None = None,
-        change: bool = False,  # noqa: FBT001, FBT002
         **kwargs,  # noqa: ANN003
     ) -> type[ModelForm]:
         """
@@ -104,7 +103,7 @@ class CustomAdmin(UserAdmin):
 
         """
 
-        form = super().get_form(request, obj, change, **kwargs)
+        form = super().get_form(request, obj, **kwargs)
         if "username" in form.base_fields:  # type: ignore[reportAttributeAccessIssue]
             form.base_fields.pop("username")  # type: ignore[reportAttributeAccessIssue]
 

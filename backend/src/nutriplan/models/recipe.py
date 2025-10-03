@@ -7,8 +7,6 @@ from typing import ClassVar
 from uuid import uuid4
 
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.lookups import Unaccent
-from django.contrib.postgres.search import SearchVector
 from django.db.models import (
     CASCADE,
     SET_NULL,
@@ -30,7 +28,6 @@ from django.db.models import (
     URLField,
     UUIDField,
     UniqueConstraint,
-    Value,
 )
 from django.db.models.fields.generated import GeneratedField
 from django.db.models.functions import Coalesce, Lower
@@ -150,14 +147,6 @@ class Recipe(Model):
         ]
 
         indexes: ClassVar[list[Index]] = [
-            GinIndex(
-                SearchVector(
-                    Unaccent(Coalesce("name", Value(""))),
-                    Unaccent(Coalesce("description", Value(""))),
-                    config="spanish",
-                ),
-                name="idx_recipe_fts_es",
-            ),
             GinIndex(
                 fields=["description"],
                 name="idx_recipe_desc_trgm",
