@@ -2,7 +2,7 @@
 URL and routing configuration.
 """
 
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
 from nutriplan.views.auth import login_user, register_user
@@ -11,7 +11,7 @@ from nutriplan.views.ingredients import IngredientViewSet
 from nutriplan.views.recipes import RecipeViewSet
 from nutriplan.views.user import UserViewSet
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=r"/?")
 router.register("categories", CategoryViewSet, basename="category")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("recipes", RecipeViewSet, basename="recipe")
@@ -19,6 +19,6 @@ router.register("users", UserViewSet, basename="user")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("auth/register/", register_user),
-    path("auth/login/", login_user),
+    re_path(r"^auth/register/?$", register_user),
+    re_path(r"^auth/login/?$", login_user),
 ]
