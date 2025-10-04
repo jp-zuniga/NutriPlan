@@ -14,9 +14,9 @@ load_dotenv()
 #######################################################################################
 
 ALLOWED_HOSTS = [
-    "localhost:5173",
-    "localhost:8000",
-    "127.0.0.1",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1",
     ".railway.app",
 ]
 
@@ -57,9 +57,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "localhost:5173",
-    "localhost:8000",
-    "127.0.0.1",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1",
     ".railway.app",
 ]
 
@@ -113,6 +113,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
+    "EXCEPTION_HANDLER": "backend.middleware.custom_exception_handler.custom_exception_handler",
 }
 
 SIMPLE_JWT = {
