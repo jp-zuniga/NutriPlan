@@ -9,7 +9,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import BasePermission, IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_405_METHOD_NOT_ALLOWED
+from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.viewsets import ModelViewSet
 
 from nutriplan.serializers.user import ChangePasswordSerializer, UserProfileSerializer
