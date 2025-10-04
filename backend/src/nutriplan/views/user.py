@@ -5,6 +5,7 @@ User API: profile management and password change.
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import BasePermission, IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -112,10 +113,8 @@ class UserViewSet(ModelViewSet):
 
         """
 
-        return Response(
-            {"detail": "Use the registration endpoint."},
-            status=HTTP_405_METHOD_NOT_ALLOWED,
-        )
+        msg = "POST"
+        raise MethodNotAllowed(msg, detail="Use the registration endpoint.")
 
     @action(
         detail=False,

@@ -5,7 +5,7 @@ Serializers for user registration and profile management.
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.password_validation import validate_password
-from rest_framework.fields import EmailField
+from rest_framework.fields import DjangoValidationError, EmailField
 from rest_framework.serializers import (
     CharField,
     ModelSerializer,
@@ -92,9 +92,14 @@ class UserRegistrationSerializer(ModelSerializer):
         if attrs.get("password") != attrs.get("password_confirm"):
             raise ValidationError({"password_confirm": "Las contraseñas no coinciden."})
 
-        validate_password(
-            password=attrs["password"], user=CustomUser(email=attrs.get("email", ""))
-        )
+        try:
+            validate_password(
+                password=attrs["password"],
+                user=CustomUser(email=attrs.get("email", "")),
+            )
+        except DjangoValidationError as e:
+            # <- AQUÍ el cambio clave: mandarlo como error de "password"
+            raise ValidationError({"password": list(e.messages)}) from e
 
         return attrs
 
@@ -138,7 +143,7 @@ class ChangePasswordSerializer(Serializer):
     current_password = CharField(write_only=True)
     new_password = CharField(write_only=True, min_length=8)
 
-    def validate_current_pw(self, value: str) -> str:
+    def validate_current_password(self, value: str) -> str:
         """
         Validates that the provided password matches the current user's password.
 
@@ -155,12 +160,12 @@ class ChangePasswordSerializer(Serializer):
 
         user = self.context["request"].user
         if not user.check_password(value):
-            msg = "Invalid current password."
+            msg = "Contraseña actual inválida."
             raise ValidationError(msg)
 
         return value
 
-    def validate_new_pw(self, value: str) -> str:
+    def validate_new_password(self, value: str) -> str:
         """
         Validates the new password provided by the user.
 
@@ -178,5 +183,8 @@ class ChangePasswordSerializer(Serializer):
 
         """
 
-        validate_password(value, self.context["request"].user)
+        try:
+            validate_password(value, self.context["request"].user)
+        except DjangoValidationError as e:
+            raise ValidationError(list(e.messages)) from e
         return value

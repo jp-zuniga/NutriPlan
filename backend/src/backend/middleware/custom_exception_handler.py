@@ -42,7 +42,7 @@ def custom_exception_handler(exc, context) -> Response:
     # Construir respuesta uniforme
     formatted = {
         "error": "validation_error",
-        "message": detail,
+        "message": detail or "Error de validación.",
         "fields": response.data,  # conserva info detallada
     }
 
