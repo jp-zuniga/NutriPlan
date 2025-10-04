@@ -14,7 +14,8 @@ load_dotenv()
 #######################################################################################
 
 ALLOWED_HOSTS = [
-    "localhost",
+    "localhost:5173",
+    "localhost:8000",
     "127.0.0.1",
     ".railway.app",
 ]
@@ -53,6 +54,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "localhost:5173",
+    "localhost:8000",
+    "127.0.0.1",
+    ".railway.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
