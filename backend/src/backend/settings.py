@@ -14,9 +14,9 @@ load_dotenv()
 #######################################################################################
 
 ALLOWED_HOSTS = [
-    "http://localhost:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1",
+    "localhost:5173",
+    "localhost:8000",
+    "127.0.0.1",
     ".railway.app",
 ]
 
@@ -60,7 +60,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
     "http://127.0.0.1",
-    ".railway.app",
+    "https://*.up.railway.app",
+    "https://*.railway.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
