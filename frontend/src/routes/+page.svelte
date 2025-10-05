@@ -154,9 +154,9 @@
 	<section class="hero">
 		<div class="container hero-inner">
 			<div class="hero-copy">
-				<div class="pill">
-					<img src={SVG_AI} alt="IA" />
-					Nuevo con IA
+				<div class="pill no-select">
+					<img src={SVG_AI} alt="ai" />
+					Potenciado por IA
 				</div>
 				{#if $authUser}
 					<span class="welcome">Hola, {firstName($authUser.name ?? $authUser.email)} 👋</span>
@@ -209,13 +209,13 @@
 							<span>Macros adaptados a tu rutina</span>
 						</div>
 					</article>
-					<article class="mini-card alt">
+					<!-- <article class="mini-card alt">
 						<div>
 							<h4>Recetas compatibles</h4>
 							<span>8 coincidencias con tus ingredientes</span>
 						</div>
 						<p>Agrega más ingredientes para afinar la búsqueda.</p>
-					</article>
+					</article> -->
 				</div>
 			</div>
 		</div>
@@ -495,12 +495,17 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		background: rgba(18, 38, 33, 0.08);
-		color: var(--color-forest);
+		background: linear-gradient(
+			to right,
+			#8e54e9,
+			#4776e6
+		); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+		color: var(--color-cream);
 		padding: 0.5rem 1.2rem;
 		border-radius: 999px;
 		font-weight: 600;
 		font-size: 0.9rem;
+		width: fit-content;
 	}
 
 	.welcome {
@@ -596,6 +601,17 @@
 		box-shadow: var(--shadow-soft);
 		isolation: isolate;
 		height: 320px;
+	}
+
+	.hero-card.main div {
+		opacity: 95%;
+		/* backdrop-filter: blur(30px); */
+	}
+
+	.hero-card.main h3,
+	p {
+		margin-bottom: 0px;
+		margin-top: 0px;
 	}
 
 	.hero-card img {
@@ -754,7 +770,7 @@
 		gap: 1.5rem;
 		overflow-x: auto;
 		scroll-snap-type: x mandatory;
-		padding-bottom: 0.5rem;
+		padding-bottom: 2rem;
 	}
 
 	.featured .recipe-carousel::-webkit-scrollbar {

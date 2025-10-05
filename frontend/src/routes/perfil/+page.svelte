@@ -1,10 +1,11 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
-	import { authUser } from '$lib/stores/auth';
+	import { authUser, redirectIfNull } from '$lib/stores/auth';
 
 	import ImagenVigoron from '$lib/assets/vigoron.jpg';
 	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
 	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
+	import { onMount } from 'svelte';
 
 	const user = {
 		name: 'María Fernanda',
@@ -68,180 +69,189 @@
 
 <Banner />
 
-<main class="profile">
-	<section class="hero">
-		<div class="container hero-grid">
-		<article class="card profile-card">
-			<h1>{$authUser?.name ?? user.name}</h1>
-			<p class="location">{user.location}</p>
-			<ul class="summary">
-				<li><strong>Edad:</strong> {$authUser?.age ?? user.age}</li>
-				<li><strong>Meta:</strong> {$authUser?.goal ?? user.goal}</li>
-				<li><strong>Actividad:</strong> {$authUser?.activity ?? user.activity}</li>
-			</ul>
-				<div class="conditions">
-					<h3>Condiciones a considerar</h3>
+{#if authUser}
+	<main class="profile">
+		<section class="hero">
+			<div class="container hero-grid">
+				<article class="card profile-card">
+					<h1>{$authUser?.name ?? user.name}</h1>
+					<p class="location">{user.location}</p>
+					<ul class="summary">
+						<li><strong>Edad:</strong> {$authUser?.age ?? user.age}</li>
+						<li><strong>Meta:</strong> {$authUser?.goal ?? user.goal}</li>
+						<li><strong>Actividad:</strong> {$authUser?.activity ?? user.activity}</li>
+					</ul>
+					<div class="conditions">
+						<h3>Condiciones a considerar</h3>
+						<ul>
+							{#each user.conditions as condition}
+								<li>{condition}</li>
+							{/each}
+						</ul>
+					</div>
+					<div class="actions">
+						<a class="btn primary" href="/planificador-ia">Actualizar evaluación IA</a>
+						<a class="btn ghost" href="#">Compartir con nutricionista</a>
+					</div>
+				</article>
+				<section class="card tracker">
+					<h2>Seguimiento de progreso</h2>
+					<div class="metrics">
+						{#each progress as item}
+							<div>
+								<strong>{item.metric}</strong>
+								<span class="value">{item.value}</span>
+								<span class="change">{item.change}</span>
+							</div>
+						{/each}
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section class="preferences">
+			<div class="container prefs-grid">
+				<article class="card">
+					<h2>Ingredientes preferidos</h2>
+					<div class="chips">
+						{#each preferences.ingredients as ingredient}
+							<span class="chip">{ingredient}</span>
+						{/each}
+					</div>
+				</article>
+				<article class="card">
+					<h2>Restricciones</h2>
 					<ul>
-						{#each user.conditions as condition}
-							<li>{condition}</li>
+						{#each preferences.restrictions as restriction}
+							<li>{restriction}</li>
 						{/each}
 					</ul>
-				</div>
-				<div class="actions">
-					<a class="btn primary" href="/planificador-ia">Actualizar evaluación IA</a>
-					<a class="btn ghost" href="#">Compartir con nutricionista</a>
-				</div>
-			</article>
-			<section class="card tracker">
-				<h2>Seguimiento de progreso</h2>
-				<div class="metrics">
-					{#each progress as item}
-						<div>
-							<strong>{item.metric}</strong>
-							<span class="value">{item.value}</span>
-							<span class="change">{item.change}</span>
-						</div>
-					{/each}
-				</div>
-			</section>
-		</div>
-	</section>
-
-	<section class="preferences">
-		<div class="container prefs-grid">
-			<article class="card">
-				<h2>Ingredientes preferidos</h2>
-				<div class="chips">
-					{#each preferences.ingredients as ingredient}
-						<span class="chip">{ingredient}</span>
-					{/each}
-				</div>
-			</article>
-			<article class="card">
-				<h2>Restricciones</h2>
-				<ul>
-					{#each preferences.restrictions as restriction}
-						<li>{restriction}</li>
-					{/each}
-				</ul>
-			</article>
-			<article class="card">
-				<h2>Etiquetas preferidas</h2>
-				<div class="chips">
-					{#each preferences.tags as tag}
-						<span class="chip">{tag}</span>
-					{/each}
-				</div>
-			</article>
-		</div>
-	</section>
-
-	<section class="favorites">
-		<div class="container">
-			<header class="section-head">
-				<h2>Recetas favoritas</h2>
-				<p>Tu top 3 más cocinado, listos para agregar al plan de esta semana.</p>
-			</header>
-			<div class="favorite-grid">
-				{#each user.favorites as favorite}
-					<article class="card">
-						<img src={favorite.image} alt={favorite.title} />
-						<div class="body">
-							<h3>{favorite.title}</h3>
-							<p>{favorite.calories}</p>
-							<a href="/recetas">Ver receta</a>
-						</div>
-					</article>
-				{/each}
+				</article>
+				<article class="card">
+					<h2>Etiquetas preferidas</h2>
+					<div class="chips">
+						{#each preferences.tags as tag}
+							<span class="chip">{tag}</span>
+						{/each}
+					</div>
+				</article>
 			</div>
-		</div>
-	</section>
+		</section>
 
-	<section class="community">
-		<div class="container community-grid">
-			<article class="card">
-				<h2>Actividad reciente</h2>
-				<ul>
-					<li>Guardaste el plan "Activa AM" hace 2 días.</li>
-					<li>Registraste 3 comidas completadas hoy.</li>
-					<li>La IA sugirió 2 nuevas recetas según tus ingredientes.</li>
-				</ul>
-			</article>
-			<article class="card">
-				<h2>Interacciones de la comunidad</h2>
-				{#each community as entry}
-					<div class="entry">
-						<strong>{entry.name}</strong>
-						<span>{entry.recipe}</span>
-						<p>{entry.comment}</p>
-					</div>
-				{/each}
-			</article>
-		</div>
-	</section>
-
-	<section class="account">
-		<div class="container account-grid">
-			<article class="card account-form">
-				<h2>Datos de cuenta</h2>
-				<form>
-					<div class="field-row">
-						<div>
-							<label for="email">Correo</label>
-							<input id="email" type="email" value={$authUser?.email ?? account.email} readonly />
-						</div>
-						<div>
-							<label for="phone">Teléfono</label>
-							<input id="phone" type="tel" value={$authUser?.phone ?? account.phone} readonly />
-						</div>
-					</div>
-					<div class="field-row">
-						<div>
-							<label for="plan">Plan actual</label>
-							<input id="plan" type="text" value={$authUser?.plan ?? account.plan} readonly />
-						</div>
-						<div>
-							<label for="timezone">Zona horaria</label>
-							<input id="timezone" type="text" value={$authUser?.timezone ?? account.timezone} readonly />
-						</div>
-					</div>
-					<div class="meta">
-						<span>Miembro desde {$authUser?.memberSince ?? account.memberSince}</span>
-						<button class="btn ghost" type="button">Actualizar contraseña</button>
-					</div>
-				</form>
-			</article>
-			<article class="card notifications">
-				<h2>Preferencias de notificación</h2>
-				<ul>
-					{#each notifications as item}
-						<li>
-							<span>{item.label}</span>
-							<label class="toggle">
-								<input type="checkbox" checked={item.enabled} />
-								<span></span>
-							</label>
-						</li>
-					{/each}
-				</ul>
-			</article>
-			<article class="card integrations">
-				<h2>Integraciones y dispositivos</h2>
-				<ul>
-					{#each integrations as integration}
-						<li>
-							<div>
-								<strong>{integration.name}</strong>
-								<span>{integration.status}</span>
+		<section class="favorites">
+			<div class="container">
+				<header class="section-head">
+					<h2>Recetas favoritas</h2>
+					<p>Tu top 3 más cocinado, listos para agregar al plan de esta semana.</p>
+				</header>
+				<div class="favorite-grid">
+					{#each user.favorites as favorite}
+						<article class="card">
+							<img src={favorite.image} alt={favorite.title} />
+							<div class="body">
+								<h3>{favorite.title}</h3>
+								<p>{favorite.calories}</p>
+								<a href="/recetas">Ver receta</a>
 							</div>
-							<a href="#">Gestionar</a>
-						</li>
+						</article>
 					{/each}
-				</ul>
-			</article>
-		</div>
-	</section>
-</main>
+				</div>
+			</div>
+		</section>
+
+		<section class="community">
+			<div class="container community-grid">
+				<article class="card">
+					<h2>Actividad reciente</h2>
+					<ul>
+						<li>Guardaste el plan "Activa AM" hace 2 días.</li>
+						<li>Registraste 3 comidas completadas hoy.</li>
+						<li>La IA sugirió 2 nuevas recetas según tus ingredientes.</li>
+					</ul>
+				</article>
+				<article class="card">
+					<h2>Interacciones de la comunidad</h2>
+					{#each community as entry}
+						<div class="entry">
+							<strong>{entry.name}</strong>
+							<span>{entry.recipe}</span>
+							<p>{entry.comment}</p>
+						</div>
+					{/each}
+				</article>
+			</div>
+		</section>
+
+		<section class="account">
+			<div class="container account-grid">
+				<article class="card account-form">
+					<h2>Datos de cuenta</h2>
+					<form>
+						<div class="field-row">
+							<div>
+								<label for="email">Correo</label>
+								<input id="email" type="email" value={$authUser?.email ?? account.email} readonly />
+							</div>
+							<div>
+								<label for="phone">Teléfono</label>
+								<input id="phone" type="tel" value={$authUser?.phone ?? account.phone} readonly />
+							</div>
+						</div>
+						<div class="field-row">
+							<div>
+								<label for="plan">Plan actual</label>
+								<input id="plan" type="text" value={$authUser?.plan ?? account.plan} readonly />
+							</div>
+							<div>
+								<label for="timezone">Zona horaria</label>
+								<input
+									id="timezone"
+									type="text"
+									value={$authUser?.timezone ?? account.timezone}
+									readonly
+								/>
+							</div>
+						</div>
+						<div class="meta">
+							<span>Miembro desde {$authUser?.memberSince ?? account.memberSince}</span>
+							<button class="btn ghost" type="button">Actualizar contraseña</button>
+						</div>
+					</form>
+				</article>
+				<article class="card notifications">
+					<h2>Preferencias de notificación</h2>
+					<ul>
+						{#each notifications as item}
+							<li>
+								<span>{item.label}</span>
+								<label class="toggle">
+									<input type="checkbox" checked={item.enabled} />
+									<span></span>
+								</label>
+							</li>
+						{/each}
+					</ul>
+				</article>
+				<article class="card integrations">
+					<h2>Integraciones y dispositivos</h2>
+					<ul>
+						{#each integrations as integration}
+							<li>
+								<div>
+									<strong>{integration.name}</strong>
+									<span>{integration.status}</span>
+								</div>
+								<a href="#">Gestionar</a>
+							</li>
+						{/each}
+					</ul>
+				</article>
+			</div>
+		</section>
+	</main>
+{:else}
+	<h2>Couldn't find your account</h2>
+{/if}
 
 <style>
 	.profile {

@@ -87,6 +87,10 @@ button {
   box-shadow: 0 18px 32px rgba(8, 44, 36, 0.16);
 }
 
+.no-margin {
+  margin: 0px;
+}
+
 .no-select {
   user-select: none;
 }
@@ -182,6 +186,12 @@ textarea:focus {
   box-shadow: 0 24px 36px rgba(15, 184, 114, 0.32);
 }
 
+.btn.primary:disabled {
+  opacity: 75%;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .btn.ghost,
 .btn.ghost:visited {
   color: var(--color-forest);
@@ -201,4 +211,9 @@ textarea:focus {
   color: var(--color-forest);
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+hr {
+  width: 100%;
+  opacity: 25%;
 }

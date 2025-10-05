@@ -1,4 +1,6 @@
-// Temporary for now
-export const API_ENDPOINT = "http://localhost:3000"
+import { PUBLIC_API_ENDPOINT } from "$env/static/public"
 
-export const AI_API_ENDPOINT = API_ENDPOINT + "/ai-endpoint"
+export const API_LOGIN_ENDPOINT = PUBLIC_API_ENDPOINT + "/auth/login/"
+export const API_REGISTER_ENDPOINT = PUBLIC_API_ENDPOINT + "/auth/register/"
+export const API_USERS_ENDPOINT = PUBLIC_API_ENDPOINT + "/users/"
+export const API_ME_ENDPOINT = PUBLIC_API_ENDPOINT + "/users/me/"

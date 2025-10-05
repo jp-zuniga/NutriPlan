@@ -3,11 +3,14 @@
 	import { get } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import Banner from '$lib/components/Banner.svelte';
-	import { mockSignUp, authUser } from '$lib/stores/auth';
+	import { authUser } from '$lib/stores/auth';
+	import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
+	import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
+	import { load } from '../recetas/[slug]/+page';
 
-	let loading = false;
-	let error = '';
-	let success = false;
+	let loading = $state(false);
+	let error = $state('');
+	let success = $state(false);
 	let form = {
 		name: '',
 		email: '',
@@ -16,6 +19,8 @@
 		confirm: ''
 	};
 
+	let errorfields = $state({});
+
 	onMount(() => {
 		const user = get(authUser);
 		if (user) {
@@ -23,33 +28,98 @@
 		}
 	});
 
-	const handleSubmit = async (event) => {
-		event.preventDefault();
-		error = '';
-		success = false;
-
-		if (form.password !== form.confirm) {
-			error = 'Las contraseñas no coinciden.';
-			return;
+	const createFormRequest = () => {
+		let formRequest = {};
+		for (const question of questions) {
+			formRequest[question.id] = question.value;
 		}
-
-		loading = true;
-		try {
-			await mockSignUp({
-				name: form.name,
-				email: form.email,
-				password: form.password,
-				phone: form.phone
-			});
-			success = true;
-			setTimeout(() => goto('/'), 1000);
-		} catch (err) {
-			error = err.message ?? 'No pudimos crear tu cuenta.';
-		} finally {
-			loading = false;
-		}
+		return formRequest;
 	};
 
+	const handleLogin = async (event) => {
+		event.preventDefault();
+
+		error = '';
+		loading = true;
+		success = false;
+
+		let request = createFormRequest();
+
+		try {
+			const response = await fetch('/api/register/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(request)
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				error = data?.error || `Error creando tu cuenta (HTTP ${response.status})`;
+				loading = false;
+				return;
+			}
+
+			success = true;
+			setTimeout(() => {
+				goto('/');
+			}, 600);
+		} catch (err) {}
+	};
+
+	const getQuestion = (id) => questions.find((q) => q.id === id) ?? null;
+
+	const questions = $state([
+		{
+			id: 'full_name',
+			label: 'Nombre Completo',
+			type: 'text',
+			placeholder: 'Ej. María Fernanda',
+			required: true,
+			value: null
+		},
+		{
+			id: 'email',
+			label: 'Correo Electrónico',
+			type: 'email',
+			placeholder: 'tu@correo.com',
+			required: true,
+			value: null
+		},
+		{
+			id: 'phone',
+			label: 'Teléfono',
+			type: 'tel',
+			placeholder: '+505',
+			required: false,
+			value: null
+		},
+		{
+			id: 'password',
+			label: 'Contraseña',
+			type: 'password',
+			placeholder: 'Minimo 8 caracteres',
+			required: true,
+			value: null,
+			validator: (password) => {
+				if (password.length < 8) return 'La contraseña debe tener un mínimo de 8 caracteres';
+				return '';
+			}
+		},
+		{
+			id: 'password_confirm',
+			label: 'Confirmar contraseña',
+			type: 'password',
+			placeholder: '',
+			required: true,
+			value: null,
+			validator: (password) => {
+				const pass = getQuestion('password')?.value ?? '';
+				if (pass !== password) return 'Las contraseñas deben coincidir';
+				return '';
+			}
+		}
+	]);
 </script>
 
 <Banner />
@@ -60,8 +130,8 @@
 			<article class="copy">
 				<h1>Crea tu cuenta NutriPlan</h1>
 				<p>
-					Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya tu plan
-					a partir de tu historia y cultura alimentaria.
+					Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya tu
+					plan a partir de tu historia y cultura alimentaria.
 				</p>
 				<ul>
 					<li>✨ Planes ajustados a tu presupuesto y tiempo</li>
@@ -69,18 +139,30 @@
 					<li>📈 Seguimiento de metas y recordatorios</li>
 				</ul>
 			</article>
-			<form class="card form" on:submit={handleSubmit}>
+			<form class="card form" method="POST" onsubmit={handleLogin}>
 				<h2>Regístrate</h2>
-				<label for="name">Nombre completo</label>
-				<input id="name" type="text" placeholder="Ej. María Fernanda" required bind:value={form.name} />
-				<label for="email">Correo electrónico</label>
-				<input id="email" type="email" placeholder="tu@correo.com" required bind:value={form.email} />
-				<label for="phone">Número de contacto (opcional)</label>
-				<input id="phone" type="tel" placeholder="+505" bind:value={form.phone} />
-				<label for="password">Contraseña</label>
-				<input id="password" type="password" placeholder="Mínimo 8 caracteres" required bind:value={form.password} />
-				<label for="confirm">Confirmar contraseña</label>
-				<input id="confirm" type="password" required bind:value={form.confirm} />
+				<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
+
+				{#each questions as question}
+					<label for={question.id}
+						>{question.label}
+						{#if question.required}
+							<span style="color: red">*</span>
+						{/if}
+					</label>
+					<input
+						name={question.id}
+						type={question.type}
+						placeholder={question.placeholder}
+						required={question.required}
+						bind:value={question.value}
+						oninput={(event) => {
+							const error = question.validator ? question.validator(event.target.value) : '';
+							event.target.setCustomValidity(error || '');
+						}}
+					/>
+				{/each}
+				<hr style="width: 100%" />
 				<button class="btn primary" type="submit" disabled={loading}>
 					{#if loading}
 						Creando cuenta…
@@ -89,10 +171,10 @@
 					{/if}
 				</button>
 				{#if error}
-					<p class="feedback error">{error}</p>
+					<p id="fb-error" class="feedback error">{error}</p>
 				{/if}
 				{#if success}
-					<p class="feedback success">¡Cuenta creada! Preparando tu experiencia…</p>
+					<p id="fb-success" class="feedback success">¡Cuenta creada! Preparando tu experiencia…</p>
 				{/if}
 				<p class="login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
 			</form>
@@ -101,6 +183,34 @@
 </main>
 
 <style>
+	input {
+		transition: 0.25s ease;
+	}
+
+	input:user-invalid {
+		background-color: #ffd0ce;
+	}
+
+	#fb-error,
+	#fb-success {
+		width: 100%;
+		padding: 5px;
+		font-size: 15px;
+		text-align: center;
+		color: rgb(0, 0, 0);
+		border-radius: 15px;
+	}
+
+	#fb-error {
+		border: 2px solid rgb(255, 0, 0);
+		background-color: rgba(255, 0, 0, 0.35);
+	}
+
+	#fb-success {
+		border: 2px solid rgb(0, 255, 0);
+		background-color: rgba(0, 255, 0, 0.35);
+	}
+
 	.signup-page {
 		display: flex;
 		flex-direction: column;

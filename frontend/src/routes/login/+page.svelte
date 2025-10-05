@@ -1,9 +1,10 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { get } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import Banner from '$lib/components/Banner.svelte';
-	import { mockLogin, authUser } from '$lib/stores/auth';
+	import { authUser } from '$lib/stores/auth';
+	import { load } from '../recetas/[slug]/+page';
 
 	const highlights = [
 		'Accede a tus planes y recetas guardadas',
@@ -11,13 +12,9 @@
 		'Comparte tu evolución con tu nutricionista'
 	];
 
-	let loading = false;
-	let error = '';
-	let showSuccess = false;
-	let form = {
-		email: '',
-		password: ''
-	};
+	let loading = $state(false);
+	let error = $state('');
+	let success = $state(false);
 
 	onMount(() => {
 		const user = get(authUser);
@@ -26,23 +23,72 @@
 		}
 	});
 
-	const handleSubmit = async (event) => {
-		event.preventDefault();
-		error = '';
-		showSuccess = false;
-		loading = true;
-
-		try {
-			await mockLogin(form);
-			showSuccess = true;
-			setTimeout(() => goto('/'), 900);
-		} catch (err) {
-			error = err.message ?? 'No se pudo iniciar sesión.';
-		} finally {
-			loading = false;
+	const createFormRequest = () => {
+		let formRequest = {};
+		for (const question of questions) {
+			formRequest[question.id] = question.value;
 		}
+		return formRequest;
 	};
 
+	const handleSubmit = async (event) => {
+		event.preventDefault();
+
+		if (loading) return;
+
+		error = '';
+		success = false;
+		loading = true;
+
+		// Fuerza un re-render
+		await tick();
+
+		let request = createFormRequest();
+
+		try {
+			const response = await fetch('/api/login/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(request)
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				error = data?.error || `Error creando tu cuenta (HTTP ${response.status})`;
+				loading = false;
+				return;
+			}
+
+			success = true;
+			setTimeout(() => {
+				goto('/');
+			}, 600);
+		} catch (err) {}
+	};
+
+	const questions = $state([
+		{
+			id: 'email',
+			label: 'Correo Electrónico',
+			type: 'email',
+			placeholder: 'tu@correo.com',
+			required: true,
+			value: null
+		},
+		{
+			id: 'password',
+			label: 'Contraseña',
+			type: 'password',
+			placeholder: '••••••••',
+			required: true,
+			value: null
+			// validator: (password) => {
+			// 	if (password.length < 8) return 'La contraseña debe tener un mínimo de 8 caracteres';
+			// 	return '';
+			// }
+		}
+	]);
 </script>
 
 <Banner />
@@ -53,8 +99,8 @@
 			<article class="copy">
 				<h1>Inicia sesión en NutriPlan</h1>
 				<p>
-					Retoma tus planes personalizados, sincroniza tus recetas favoritas y continúa tu camino hacia un
-					bienestar con sabor nicaragüense.
+					Retoma tus planes personalizados, sincroniza tus recetas favoritas y continúa tu camino
+					hacia un bienestar con sabor nicaragüense.
 				</p>
 				<ul>
 					{#each highlights as item}
@@ -62,27 +108,31 @@
 					{/each}
 				</ul>
 			</article>
-			<form class="card form" on:submit={handleSubmit}>
+			<form class="card form" onsubmit={handleSubmit}>
 				<h2>Bienvenido de vuelta</h2>
-				<label for="email">Correo electrónico</label>
-				<input
-					id="email"
-					type="email"
-					placeholder="tu@correo.com"
-					required
-					bind:value={form.email}
-				/>
-				<label for="password">Contraseña</label>
-				<input
-					id="password"
-					type="password"
-					placeholder="••••••••"
-					required
-					bind:value={form.password}
-				/>
+				{#each questions as question}
+					<label for={question.id}
+						>{question.label}
+						{#if question.required}
+							<span style="color: red">*</span>
+						{/if}
+					</label>
+					<input
+						name={question.id}
+						type={question.type}
+						placeholder={question.placeholder}
+						required={question.required}
+						bind:value={question.value}
+						oninput={(event) => {
+							const error = question.validator ? question.validator(event.target.value) : '';
+							event.target.setCustomValidity(error || '');
+						}}
+						disabled={loading}
+					/>
+				{/each}
 				<div class="form-row">
 					<label class="remember">
-						<input type="checkbox" /> Recuérdame
+						<input name="remember" type="checkbox" /> Recuérdame
 					</label>
 					<a href="#">¿Olvidaste tu contraseña?</a>
 				</div>
@@ -93,11 +143,19 @@
 						Ingresar
 					{/if}
 				</button>
-				{#if error}
+				<!-- {#if error}
 					<p class="feedback error">{error}</p>
 				{/if}
 				{#if showSuccess}
 					<p class="feedback success">¡Bienvenido! Redirigiendo…</p>
+				{/if} -->
+				{#if error}
+					<p id="fb-error" class="feedback error">{error}</p>
+				{/if}
+				{#if success}
+					<p id="fb-success" class="feedback success">
+						¡Sesión Iniciada! Preparando tu experiencia…
+					</p>
 				{/if}
 				<p class="signup">
 					¿Aún no tienes cuenta? <a href="/signup">Regístrate aquí</a>
@@ -108,6 +166,34 @@
 </main>
 
 <style>
+	input {
+		transition: 0.25s ease;
+	}
+
+	input:user-invalid {
+		background-color: #ffd0ce;
+	}
+
+	#fb-error,
+	#fb-success {
+		width: 100%;
+		padding: 5px;
+		font-size: 15px;
+		text-align: center;
+		color: rgb(0, 0, 0);
+		border-radius: 15px;
+	}
+
+	#fb-error {
+		border: 2px solid rgb(255, 0, 0);
+		background-color: rgba(255, 0, 0, 0.35);
+	}
+
+	#fb-success {
+		border: 2px solid rgb(0, 255, 0);
+		background-color: rgba(0, 255, 0, 0.35);
+	}
+
 	.login {
 		display: flex;
 		flex-direction: column;

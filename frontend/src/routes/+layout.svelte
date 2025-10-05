@@ -1,6 +1,13 @@
 <script>
 	import favicon from '$lib/assets/favicon.svg';
-	let { children } = $props();
+	import { authUser } from '$lib/stores/auth.js';
+
+	let { data, children } = $props();
+
+	$effect(() => {
+		console.log(`Data: ${JSON.stringify(data.user)}`);
+		authUser.set(data.user);
+	});
 </script>
 
 <svelte:head>

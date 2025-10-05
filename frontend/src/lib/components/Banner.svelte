@@ -1,6 +1,11 @@
 <script>
-	import { authUser, logout } from '$lib/stores/auth';
+	import { authUser } from '$lib/stores/auth';
 	import LogoFavicon from '$lib/assets/favicon.svg';
+	import { goto } from '$app/navigation';
+
+	$effect(() => {
+		console.log(`Auth user: ${JSON.stringify($authUser)}`);
+	});
 
 	const navLinks = [
 		{ text: 'Inicio', href: '/' },
@@ -11,7 +16,7 @@
 		{ text: 'Perfil', href: '/perfil' }
 	];
 
-	let menuOpen = false;
+	let menuOpen = $state(false);
 
 	const toggleMenu = () => {
 		menuOpen = !menuOpen;
@@ -22,7 +27,7 @@
 	};
 
 	const handleLogout = () => {
-		logout();
+		goto('/api/logout/');
 		closeMenu();
 	};
 
@@ -40,32 +45,38 @@
 
 <nav class="site-nav" data-open={menuOpen}>
 	<div class="nav-inner">
-		<a class="brand" href="/" on:click={closeMenu}>
+		<a class="brand" href="/" onclick={closeMenu}>
 			<img src={LogoFavicon} alt="NutriPlan logo" />
 			<div class="brand-copy">
 				<span class="title">NutriPlan</span>
 				<span class="subtitle">Come mejor, vive mejor</span>
 			</div>
 		</a>
-		<button class="menu-toggle" type="button" on:click={toggleMenu} aria-expanded={menuOpen}>
+		<button
+			class="menu-toggle"
+			type="button"
+			onclick={toggleMenu}
+			aria-expanded={menuOpen}
+			aria-label="Menu Toggle"
+		>
 			<span></span>
 			<span></span>
 			<span></span>
 		</button>
 		<div class="nav-links" class:open={menuOpen}>
 			{#each navLinks as link}
-				<a href={link.href} on:click={closeMenu}>{link.text}</a>
+				<a href={link.href} onclick={closeMenu}>{link.text}</a>
 			{/each}
 		</div>
 		<div class="nav-cta">
 			{#if $authUser}
 				<div class="user-pill">
-					<span class="avatar">{initials($authUser.name || $authUser.email)}</span>
+					<span class="avatar">{initials($authUser.first_name || $authUser.email)}</span>
 					<div class="user-info">
-						<strong>{$authUser.name ?? 'Usuario NutriPlan'}</strong>
+						<strong>{$authUser.first_name} {$authUser.last_name}</strong>
 						<span>{$authUser.email}</span>
 					</div>
-					<button type="button" on:click={handleLogout}>Salir</button>
+					<button type="button" onclick={handleLogout}>Salir</button>
 				</div>
 			{:else}
 				<a class="ghost" href="/login">Ingresar</a>

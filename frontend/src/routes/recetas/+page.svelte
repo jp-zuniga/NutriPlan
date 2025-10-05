@@ -89,7 +89,11 @@
 			<div class="search-panel">
 				<label for="recipe-search">¿Qué te apetece cocinar?</label>
 				<div class="search-input">
-					<input id="recipe-search" type="text" placeholder="Buscar por ingrediente, receta o estilo" />
+					<input
+						id="recipe-search"
+						type="text"
+						placeholder="Buscar por ingrediente, receta o estilo"
+					/>
 					<button type="button">Buscar</button>
 				</div>
 				<div class="filter-row">
@@ -172,7 +176,10 @@
 		<div class="container">
 			<header class="section-head">
 				<h2>Colecciones destacadas</h2>
-				<p>Dale variedad a tus planes con selecciones temáticas listas para agregar a tu menú semanal.</p>
+				<p>
+					Dale variedad a tus planes con selecciones temáticas listas para agregar a tu menú
+					semanal.
+				</p>
 			</header>
 			<div class="spotlight-grid">
 				{#each spotlight as item}
@@ -278,7 +285,10 @@
 		font-weight: 600;
 		color: var(--color-soft);
 		cursor: pointer;
-		transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+		transition:
+			background 0.2s ease,
+			color 0.2s ease,
+			border-color 0.2s ease;
 	}
 
 	.categories button.active,
@@ -384,7 +394,9 @@
 		box-shadow: 0 18px 32px rgba(8, 44, 36, 0.1);
 		display: flex;
 		flex-direction: column;
-		transition: transform 0.25s ease, box-shadow 0.25s ease;
+		transition:
+			transform 0.25s ease,
+			box-shadow 0.25s ease;
 	}
 
 	.recipe-card:hover {
@@ -484,6 +496,11 @@
 		font-weight: 600;
 		color: var(--color-forest);
 		text-decoration: none;
+	}
+
+	select option:hover,
+	select option:checked {
+		box-shadow: 0 0 10px 100px #1882a8 inset;
 	}
 
 	@media (max-width: 960px) {
