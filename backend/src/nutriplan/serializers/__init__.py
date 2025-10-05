@@ -3,14 +3,29 @@ Serializers for NutriPlan app models.
 """
 
 from .category import CategorySerializer
+from .collection import (
+    AddRemoveRecipeSerializer,
+    CollectionItemReadSerializer,
+    RecipeCollectionSerializer,
+    ReorderItemsSerializer,
+)
 from .ingredient import IngredientSerializer
 from .recipe import RecipeSerializer
-from .user import UserProfileSerializer, UserRegistrationSerializer
+from .user import (
+    ChangePasswordSerializer,
+    UserProfileSerializer,
+    UserRegistrationSerializer,
+)
 
-__all__ = [
+__all__: list[str] = [
+    "AddRemoveRecipeSerializer",
     "CategorySerializer",
+    "ChangePasswordSerializer",
+    "CollectionItemReadSerializer",
     "IngredientSerializer",
+    "RecipeCollectionSerializer",
     "RecipeSerializer",
+    "ReorderItemsSerializer",
     "UserProfileSerializer",
     "UserRegistrationSerializer",
 ]
