@@ -5,7 +5,7 @@ Register models with admin interface and customizes their admin options.
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
-from django.contrib import admin
+from django.contrib.admin import ModelAdmin, site
 from django.contrib.auth.admin import UserAdmin
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
@@ -13,10 +13,12 @@ from rest_framework.request import HttpRequest
 
 from nutriplan.models import (
     Category,
+    CollectionItem,
     CustomUser,
     DietaryRestriction,
     Ingredient,
     Recipe,
+    RecipeCollection,
     RecipeIngredient,
 )
 
@@ -110,7 +112,7 @@ class CustomAdmin(UserAdmin):
         return form
 
 
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     """
     Admin interface options for the Category model.
     """
@@ -119,7 +121,18 @@ class CategoryAdmin(admin.ModelAdmin):
     readonly_fields = ("name",)
 
 
-class RecipeAdmin(admin.ModelAdmin):
+class CollectionItemAdmin(ModelAdmin):
+    """
+    Admin interface options for the CollectionItem model.
+    """
+
+    list_display = ("collection", "recipe", "order", "added_at")
+    search_fields = ("collection__name", "recipe__name", "collection__owner__email")
+    list_filter = ("collection__is_public",)
+    autocomplete_fields = ("collection", "recipe")
+
+
+class RecipeAdmin(ModelAdmin):
     """
     Admin interface options for the Recipe model.
     """
@@ -129,9 +142,23 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug")
 
 
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(CustomUser, CustomAdmin)
-admin.site.register(DietaryRestriction)
-admin.site.register(Ingredient)
-admin.site.register(Recipe)
-admin.site.register(RecipeIngredient)
+class RecipeCollectionAdmin(ModelAdmin):
+    """
+    Admin interface options for the RecipeCollection model.
+    """
+
+    list_display = ("name", "owner", "is_public", "created_at")
+    search_fields = ("name", "owner__email")
+    list_filter = ("is_public",)
+    readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("owner",)
+
+
+site.register(Category, CategoryAdmin)
+site.register(CollectionItem, CollectionItemAdmin)
+site.register(CustomUser, CustomAdmin)
+site.register(DietaryRestriction)
+site.register(Ingredient)
+site.register(Recipe, RecipeAdmin)
+site.register(RecipeIngredient)
+site.register(RecipeCollection, RecipeCollectionAdmin)

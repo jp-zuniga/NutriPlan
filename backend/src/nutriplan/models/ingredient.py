@@ -36,7 +36,7 @@ class Ingredient(Model):
 
     class Meta:
         """
-        Class metadata.
+        Ensure non-negative nutrition values and indexing for search.
         """
 
         constraints: ClassVar[list[CheckConstraint]] = [
@@ -60,7 +60,7 @@ class Ingredient(Model):
             ),
         ]
 
-        ordering = ("name",)
+        ordering: tuple[str] = ("name",)
 
     def __str__(self) -> str:
         """

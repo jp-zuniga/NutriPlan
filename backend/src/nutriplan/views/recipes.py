@@ -10,8 +10,7 @@ from rest_framework import viewsets
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, BasePermission
 
-from nutriplan.models.ingredient import Ingredient
-from nutriplan.models.recipe import Recipe, RecipeImage, RecipeIngredient
+from nutriplan.models import Ingredient, Recipe, RecipeImage, RecipeIngredient
 from nutriplan.serializers import RecipeSerializer
 
 

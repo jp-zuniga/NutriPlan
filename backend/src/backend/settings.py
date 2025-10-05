@@ -78,7 +78,7 @@ DATABASES = {
 }
 
 INSTALLED_APPS = [
-    "nutriplan.apps.NutriplanConfig",
+    "nutriplan.apps.NutriPlanConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

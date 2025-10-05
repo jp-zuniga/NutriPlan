@@ -19,7 +19,7 @@ class Category(Model):
 
     class Meta:
         """
-        Class metadata.
+        Ensure case-insensitive indexing and ordering on `friendly_name` for search.
         """
 
         indexes: ClassVar[list[Index]] = [
@@ -35,7 +35,7 @@ class Category(Model):
 
     def __str__(self) -> str:
         """
-        Return friendly name if available, else the actual name.
+        Return friendly name if available, else actual name.
         """
 
         return self.friendly_name or self.name

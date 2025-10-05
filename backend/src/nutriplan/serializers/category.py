@@ -14,7 +14,7 @@ class CategorySerializer(ModelSerializer):
 
     class Meta:
         """
-        Class metadata.
+        Ensure all fields of the `Category` model are included.
         """
 
         model = Category

@@ -5,7 +5,7 @@ NutriPlan Django app configuration.
 from django.apps import AppConfig
 
 
-class NutriplanConfig(AppConfig):
+class NutriPlanConfig(AppConfig):
     """
     AppConfig for NutriPlan.
 
