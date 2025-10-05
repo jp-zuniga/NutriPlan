@@ -4,4 +4,4 @@ Custom management commands for NutriPlan.
 
 from .populate import Command as Populate
 
-__all__ = ["Populate"]
+__all__: list[str] = ["Populate"]

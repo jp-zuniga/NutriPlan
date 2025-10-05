@@ -9,8 +9,8 @@ from typing import ClassVar
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from nutriplan.models.ingredient import Ingredient
-from nutriplan.serializers.ingredient import IngredientSerializer
+from nutriplan.models import Ingredient
+from nutriplan.serializers import IngredientSerializer
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):

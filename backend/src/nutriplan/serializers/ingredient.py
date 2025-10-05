@@ -14,7 +14,7 @@ class IngredientSerializer(ModelSerializer):
 
     class Meta:
         """
-        Class metadata.
+        Ensure all fields of the `Ingredient` model are included.
         """
 
         model = Ingredient

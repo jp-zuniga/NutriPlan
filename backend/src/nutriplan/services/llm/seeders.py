@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from nutriplan.services.llm.gemini import GeminiClient
 
 
-INGREDIENT_SCHEMA_EXAMPLE = {
+INGREDIENT_SCHEMA_EXAMPLE: dict[str, list[dict[str, str | dict[str, int | float]]]] = {
     "items": [
         {
             "name": "Tomato",
@@ -33,7 +33,9 @@ INGREDIENT_SCHEMA_EXAMPLE = {
     ]
 }
 
-RECIPE_SCHEMA_EXAMPLE = {
+RECIPE_SCHEMA_EXAMPLE: dict[
+    str, list[dict[str, int | str | list[str] | list[dict[str, str | int]]]]
+] = {
     "items": [
         {
             "name": "Simple Tomato Salad",
@@ -246,12 +248,13 @@ def seed_ingredients_with_json(items: list[dict[str, Any]]) -> tuple[int, int]: 
         description = (row.get("description") or "").strip() or f"{name} ingredient."
         unit = (row.get("unit") or "").strip() or "g"
         nutrition = row.get("nutrition") or {}
-
         ing_defaults: dict[str, Any] = {}
+
         if category:
             ing_defaults["category"] = category
         if description:
             ing_defaults["description"] = description
+
         if (
             unit
             and hasattr(Ingredient, "_meta")
@@ -275,6 +278,7 @@ def seed_ingredients_with_json(items: list[dict[str, Any]]) -> tuple[int, int]: 
             ing, created_flag = Ingredient.objects.get_or_create(
                 name=name, defaults=ing_defaults
             )
+
             if not created_flag:
                 changed = False
                 for k, v in ing_defaults.items():

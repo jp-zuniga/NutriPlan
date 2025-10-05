@@ -83,6 +83,7 @@ class CustomUserManager(UserManager):
             CustomUser: Newly created user instance.
 
         Notes:
+        -----
             - User will have `is_staff` and `is_superuser` set to `False` by default.
 
         """
@@ -154,7 +155,7 @@ class CustomUser(AbstractUser):
 
     class Meta:
         """
-        Class metadata.
+        Ensure case-insensitive uniqueness and indexing on `email`.
         """
 
         constraints: ClassVar[list[UniqueConstraint]] = [

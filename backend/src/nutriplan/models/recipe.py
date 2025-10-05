@@ -136,7 +136,7 @@ class Recipe(Model):
 
     class Meta:
         """
-        Meta options for default ordering.
+        Ensure non-negative values, unique case-insensitive slug, and indexing.
         """
 
         constraints: ClassVar[list[CheckConstraint | UniqueConstraint]] = [
@@ -161,7 +161,7 @@ class Recipe(Model):
             Index(fields=["total_time"]),
         ]
 
-        ordering = ("-created_at", "name")
+        ordering: tuple[str, str] = ("-created_at", "name")
 
     def __str__(self) -> str:
         """
@@ -243,7 +243,7 @@ class RecipeIngredient(Model):
         Enforce uniqueness of ingredient per recipe.
         """
 
-        constraints = (
+        constraints: tuple[CheckConstraint, UniqueConstraint] = (
             CheckConstraint(check=Q(amount__gt=0), name="chk_ri_amount_gt_0"),
             UniqueConstraint(
                 fields=["recipe", "ingredient"],
@@ -287,7 +287,7 @@ class RecipeImage(Model):
             Index(fields=["recipe", "order", "id"], name="idx_recipeimage_rec_ord"),
         ]
 
-        ordering = ("order", "id")
+        ordering: tuple[str, str] = ("order", "id")
 
     def __str__(self) -> str:
         """

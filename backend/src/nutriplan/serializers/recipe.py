@@ -14,7 +14,9 @@ from rest_framework.serializers import (
 )
 
 from nutriplan.models.recipe import Recipe, RecipeImage, RecipeIngredient
-from nutriplan.serializers import CategorySerializer, IngredientSerializer
+
+from .category import CategorySerializer
+from .ingredient import IngredientSerializer
 
 
 class RecipeSerializer(ModelSerializer):

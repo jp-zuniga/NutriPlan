@@ -33,7 +33,7 @@ class UserRegistrationSerializer(ModelSerializer):
 
     class Meta:
         """
-        Class metadata.
+        Ensure required fields for registration.
         """
 
         model = CustomUser
@@ -117,7 +117,7 @@ class UserProfileSerializer(ModelSerializer):
 
     class Meta:
         """
-        Class metadata.
+        Ensure profile fields are read-only where appropriate.
         """
 
         model = CustomUser
