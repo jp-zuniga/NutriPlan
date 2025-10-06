@@ -5,10 +5,12 @@ Model for recipe categories.
 from typing import ClassVar
 
 from django.contrib.postgres.indexes import GinIndex
-from django.db.models import CharField, Index, Model, TextField
+from django.db.models import CharField, Index, TextField
+
+from .base_model import BaseModel
 
 
-class Category(Model):
+class Category(BaseModel):
     """
     Model representing a recipe category, with name and description.
     """
@@ -17,7 +19,7 @@ class Category(Model):
     friendly_name = CharField(max_length=100, blank=True)
     description = TextField(blank=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure case-insensitive indexing and ordering on `friendly_name` for search.
         """

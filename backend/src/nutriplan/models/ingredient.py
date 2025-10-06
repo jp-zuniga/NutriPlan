@@ -12,13 +12,14 @@ from django.db.models import (
     DecimalField,
     Index,
     ManyToManyField,
-    Model,
     Q,
     TextField,
 )
 
+from .base_model import BaseModel
 
-class Ingredient(Model):
+
+class Ingredient(BaseModel):
     """
     A raw ingredient with nutrition facts per 100g.
     """
@@ -34,7 +35,7 @@ class Ingredient(Model):
         "DietaryRestriction", blank=True, related_name="ingredients"
     )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure non-negative nutrition values and indexing for search.
         """

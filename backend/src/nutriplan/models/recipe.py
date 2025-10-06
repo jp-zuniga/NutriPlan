@@ -19,7 +19,6 @@ from django.db.models import (
     Index,
     IntegerField,
     ManyToManyField,
-    Model,
     PositiveIntegerField,
     PositiveSmallIntegerField,
     Q,
@@ -33,13 +32,14 @@ from django.db.models.fields.generated import GeneratedField
 from django.db.models.functions import Coalesce, Lower
 from django.utils.text import slugify
 
+from .base_model import BaseModel
 from .category import Category
 from .ingredient import Ingredient
 
 MINUTES = 60
 
 
-class Recipe(Model):
+class Recipe(BaseModel):
     """
     A cookable recipe with times, nutrition, category, ingredients and images.
     """
@@ -134,7 +134,7 @@ class Recipe(Model):
     created_at = DateTimeField(auto_now_add=True, db_index=True)
     updated_at = DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure non-negative values, unique case-insensitive slug, and indexing.
         """
@@ -218,7 +218,7 @@ class Recipe(Model):
         return ri.image.url if ri and ri.image else ""
 
 
-class RecipeIngredient(Model):
+class RecipeIngredient(BaseModel):
     """
     Through model linking recipes and ingredients with amounts and units.
     """
@@ -238,7 +238,7 @@ class RecipeIngredient(Model):
     amount = DecimalField(max_digits=6, decimal_places=2)
     unit = CharField(max_length=20, blank=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Enforce uniqueness of ingredient per recipe.
         """
@@ -265,7 +265,7 @@ class RecipeIngredient(Model):
         )
 
 
-class RecipeImage(Model):
+class RecipeImage(BaseModel):
     """
     Additional images for a recipe with display ordering.
     """
@@ -274,7 +274,7 @@ class RecipeImage(Model):
     image = ForeignKey("Image", on_delete=CASCADE, related_name="uses")
     order = PositiveSmallIntegerField(default=0)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Default ordering for deterministic image sequences.
         """
@@ -297,7 +297,7 @@ class RecipeImage(Model):
         return f"Image for {self.recipe.name} ({self.image.url})"
 
 
-class Image(Model):
+class Image(BaseModel):
     """
     Reusable image entity backed by a URL and optional alt text.
     """

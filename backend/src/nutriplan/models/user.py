@@ -12,11 +12,12 @@ from django.db.models import (
     EmailField,
     Index,
     ManyToManyField,
-    Model,
     TextField,
     UniqueConstraint,
 )
 from django.db.models.functions import Lower
+
+from .base_model import BaseModel
 
 
 class CustomUserManager(UserManager):
@@ -131,7 +132,7 @@ class CustomUserManager(UserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class CustomUser(AbstractUser):
+class CustomUser(BaseModel, AbstractUser):
     """
     Custom user model that extends Django's AbstractUser.
 
@@ -153,7 +154,7 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS: ClassVar[list[str]] = []  # type: ignore[incompatibleVariableOverride]
     USERNAME_FIELD = "email"
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure case-insensitive uniqueness and indexing on `email`.
         """
@@ -174,7 +175,7 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-class DietaryRestriction(Model):
+class DietaryRestriction(BaseModel):
     """
     Represents a dietary restriction that can be associated with a user.
     """
