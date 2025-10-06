@@ -5,20 +5,21 @@ This module provides endpoints for user registration, login, and profile retriev
 """
 
 from django.contrib.auth import authenticate, get_user_model
-from rest_framework import permissions, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer, UserRegistrationSerializer
-from nutriplan.services.user_service import UserService
+from nutriplan.services import UserService
 
 CustomUser = get_user_model()
 
 
 @api_view(["POST"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([AllowAny])
 def register_user(request: Request) -> Response:
     """
     Register a new user with the provided data.
@@ -42,14 +43,14 @@ def register_user(request: Request) -> Response:
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             },
-            status=status.HTTP_201_CREATED,
+            status=HTTP_201_CREATED,
         )
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([AllowAny])
 def login_user(request: Request) -> Response:
     """
     Authenticate a user and return JWT tokens upon successful login.
@@ -90,7 +91,7 @@ def login_user(request: Request) -> Response:
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def get_user_profile(request: Request) -> Response:
     """
     Retrieve the authenticated user's profile along with their dietary restrictions.
