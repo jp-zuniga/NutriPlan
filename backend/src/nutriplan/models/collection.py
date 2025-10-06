@@ -12,25 +12,23 @@ from django.db.models import (
     DateTimeField,
     ForeignKey,
     Index,
-    Model,
     PositiveIntegerField,
     SlugField,
-    UUIDField,
     UniqueConstraint,
 )
 from django.db.models.functions import Lower
 from django.utils.text import slugify
 
+from .base_model import BaseModel
 from .recipe import Recipe
 from .user import CustomUser
 
 
-class RecipeCollection(Model):
+class RecipeCollection(BaseModel):
     """
     A user-owned list of recipes. Name must be unique per owner.
     """
 
-    id = UUIDField(primary_key=True, default=uuid4, editable=False)
     owner = ForeignKey(CustomUser, on_delete=CASCADE, related_name="recipe_collections")
     name = CharField(max_length=100)
     slug = SlugField(max_length=120, db_index=True)
@@ -39,7 +37,7 @@ class RecipeCollection(Model):
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure per-owner uniqueness and fast lookups.
         """
@@ -91,7 +89,7 @@ class RecipeCollection(Model):
         super().save(*args, **kwargs)
 
 
-class CollectionItem(Model):
+class CollectionItem(BaseModel):
     """
     Through table linking recipes to collections with explicit order.
     """
@@ -101,7 +99,7 @@ class CollectionItem(Model):
     order = PositiveIntegerField(default=0)
     added_at = DateTimeField(auto_now_add=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         """
         Ensure unique recipe per collection and fast lookups.
         """
