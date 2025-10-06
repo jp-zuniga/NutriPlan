@@ -3,9 +3,10 @@ URL and routing configuration.
 """
 
 from django.urls import include, path, re_path
-from rest_framework.routers import DefaultRouter
+from django.urls.resolvers import URLPattern, URLResolver
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
+from backend.custom_router import CustomRouter
 from nutriplan.views import (
     CategoryViewSet,
     IngredientViewSet,
@@ -16,14 +17,14 @@ from nutriplan.views import (
     register_user,
 )
 
-router = DefaultRouter(trailing_slash=r"/?")
+router = CustomRouter()
 router.register("categories", CategoryViewSet, basename="category")
 router.register("collections", RecipeCollectionViewSet, basename="collection")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("users", UserViewSet, basename="user")
 
-urlpatterns = [
+urlpatterns: list[URLResolver | URLPattern] = [
     path("", include(router.urls)),
     re_path(r"^auth/register/?$", register_user),
     re_path(r"^auth/login/?$", login_user),
