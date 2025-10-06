@@ -12,14 +12,14 @@ def custom_exception_handler(exc: Exception, context: str) -> Response:
     Custom exception handler for Django REST Framework (DRF) exceptions.
 
     Args:
-        exc: Exception instance raised during request processing.
+        exc:     Exception instance raised during request processing.
         context: Additional context about the exception.
 
     Returns:
-        Response: A DRF Response object with a standardized error format:
-                 "error": <error_type>,
-                 "message": <human_readable_message>,
-                 "fields": <detailed_error_information>
+        Response: Object with standardized error format:
+                  "error": <error_type>,
+                  "message": <human_readable_message>,
+                  "fields": <detailed_error_information>
 
     """
 

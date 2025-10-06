@@ -6,9 +6,9 @@ from typing import ClassVar
 
 from django.db.models import Count, Prefetch, Q
 from django.db.models.manager import BaseManager
-from rest_framework import viewsets
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, BasePermission
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from nutriplan.models import Ingredient, Recipe, RecipeImage, RecipeIngredient
 from nutriplan.serializers import RecipeSerializer
@@ -30,7 +30,7 @@ def _parse_int_list(value: str | None) -> list[int]:
     return out
 
 
-class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
+class RecipeViewSet(ReadOnlyModelViewSet):
     """
     Read-only API for recipes with search and filters.
 
