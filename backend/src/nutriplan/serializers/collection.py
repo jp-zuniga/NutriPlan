@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Any
 
 from rest_framework.serializers import (
     BooleanField,
-    CharField,
+    IntegerField,
+    ListField,
     ModelSerializer,
     Serializer,
     SerializerMethodField,
@@ -147,9 +148,9 @@ class ReorderItemsSerializer(Serializer):
         """
 
         recipe_id = UUIDField()
-        order = CharField()
+        order = IntegerField(min_value=0)
 
-    items = SerializerMethodField()
+    items = ListField(child=Item())
 
     def get_items(self, obj: Mapping) -> list[dict[str, Any]]:
         """

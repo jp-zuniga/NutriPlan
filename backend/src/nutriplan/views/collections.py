@@ -6,13 +6,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from rest_framework import viewsets
+from django.db.models import Prefetch
 from rest_framework.decorators import action
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
+from rest_framework.viewsets import ModelViewSet
 
-from nutriplan.models import CollectionItem, Recipe, RecipeCollection
-from nutriplan.serializers import AddRemoveRecipeSerializer, RecipeCollectionSerializer
+from nutriplan.models import (
+    CollectionItem,
+    Recipe,
+    RecipeCollection,
+    RecipeImage,
+    RecipeIngredient,
+)
+from nutriplan.serializers import (
+    AddRemoveRecipeSerializer,
+    RecipeCollectionSerializer,
+    ReorderItemsSerializer,
+)
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -52,7 +64,7 @@ class IsOwnerOrAdmin(BasePermission):
         )
 
 
-class RecipeCollectionViewSet(viewsets.ModelViewSet):
+class RecipeCollectionViewSet(ModelViewSet):
     """
     API endpoint for interacting with recipe collections.
 
@@ -72,7 +84,7 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
 
     serializer_class = RecipeCollectionSerializer
     permission_classes: ClassVar[list[type[BasePermission]]] = [IsAuthenticated]
-    lookup_field: ClassVar[str] = "slug"
+    lookup_field: ClassVar[str] = "id"
 
     def get_queryset(self) -> QuerySet[RecipeCollection]:  # type: ignore[reportIncompatibleMethodOverride]
         """
@@ -86,14 +98,25 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
         """
 
         user = self.request.user
-        qs = RecipeCollection.objects.select_related("owner").prefetch_related(
-            "items__recipe"
+
+        recipe_qs = Recipe.objects.select_related("category").prefetch_related(
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredient.objects.select_related("ingredient"),
+            ),
+            Prefetch(
+                "recipe_images",
+                queryset=RecipeImage.objects.select_related("image").order_by(
+                    "order", "id"
+                ),
+            ),
         )
 
-        if user.is_staff:
-            return qs
+        qs = RecipeCollection.objects.select_related("owner").prefetch_related(
+            Prefetch("items__recipe", queryset=recipe_qs)
+        )
 
-        return qs.filter(owner=user)
+        return qs if user.is_staff else qs.filter(owner=user)
 
     def get_permissions(self) -> list[BasePermission]:
         """
@@ -115,6 +138,38 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
         ):
             return [IsAuthenticated(), IsOwnerOrAdmin()]
         return [IsAuthenticated()]
+
+    @action(detail=False, methods=["get"], url_path=r"by-slug/(?P<slug>[^/]+)")
+    def by_slug(self, request: Request, slug: str) -> Response:
+        """
+        Retrieve collection instance by its slug.
+
+        Args:
+            request: HTTP request object.
+            slug:    Identifier for collection.
+
+        Returns:
+            Response: Object containing serialized collection data if found,
+                      or 404 error message if collection doesn't exist.
+
+        """
+
+        qs = self.get_queryset().filter(slug__iexact=slug)
+
+        count = qs.count()
+        if count == 0:
+            msg = "Colección no encontrada."
+            raise RecipeCollection.DoesNotExist(msg)
+
+        if count > 1:
+            # si el requester es staff
+            raise ValidationError(
+                {"slug": "Slug no es único. Usa el ID de la colección."}
+            )
+
+        collection = qs.first()
+        self.check_object_permissions(request, collection)
+        return Response(self.get_serializer(collection).data)
 
     @action(detail=True, methods=["post"], url_path="add-recipe")
     def add_recipe(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
@@ -138,8 +193,9 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
         recipe_id = payload.validated_data["recipe_id"]
         try:
             recipe = Recipe.objects.get(pk=recipe_id)
-        except Recipe.DoesNotExist:
-            return Response({"detail": "Receta no encontrada."}, status=404)
+        except Recipe.DoesNotExist as e:
+            msg = "Receta no encontrada."
+            raise Recipe.DoesNotExist(msg) from e
 
         item, created = CollectionItem.objects.get_or_create(
             collection=collection, recipe=recipe
@@ -187,9 +243,8 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
         ).delete()
 
         if not deleted:
-            return Response(
-                {"detail": "La receta no estaba en la colección."}, status=404
-            )
+            msg = "Receta no encontrada en la colección."
+            raise Recipe.DoesNotExist(msg)
 
         return Response(self.get_serializer(collection).data, status=200)
 
@@ -225,38 +280,20 @@ class RecipeCollectionViewSet(viewsets.ModelViewSet):
         """
 
         collection: RecipeCollection = self.get_object()
-        items = request.data.get("items") or []
-        if not isinstance(items, list) or not items:
-            return Response(
-                {"detail": "Formato inválido: se espera 'items'."}, status=400
-            )
 
-        # Normalizamos y validamos
-        mapping: dict[str, int] = {}
-        for row in items:
-            rid = str(row.get("recipe_id", "")).strip()
-            try:
-                order = int(row.get("order"))
-            except Exception:  # noqa: BLE001
-                return Response(
-                    {"detail": "Todos los 'order' deben ser enteros."}, status=400
-                )
-            if not rid:
-                return Response(
-                    {"detail": "Falta recipe_id en algún item."}, status=400
-                )
-            mapping[rid] = order
+        payload = ReorderItemsSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        items = payload.validated_data["items"]
+        mapping = {str(row["recipe_id"]): row["order"] for row in items}
 
         qs = CollectionItem.objects.filter(
             collection=collection, recipe_id__in=mapping.keys()
         )
 
         if qs.count() != len(mapping):
-            return Response(
-                {"detail": "Alguna receta no pertenece a la colección."}, status=400
-            )
+            msg = "Una o más recetas no pertenecen a la colección."
+            raise Recipe.DoesNotExist(msg)
 
-        # Aplicamos en bloque
         for ci in qs:
             new_order = mapping[str(ci.recipe_id)]
             if ci.order != new_order:
