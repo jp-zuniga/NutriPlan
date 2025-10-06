@@ -2,10 +2,10 @@
 URL configuration for Django project.
 """
 
-from django.contrib import admin
-from django.urls import include, path
+from django.contrib.admin import site
+from django.urls import URLResolver, include, path, re_path
 
-urlpatterns = [
+urlpatterns: list[URLResolver] = [
     path("", include("nutriplan.urls")),
-    path("admin/", admin.site.urls),
+    re_path(r"^admin/?", site.urls),
 ]
