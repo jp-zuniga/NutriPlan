@@ -9,9 +9,9 @@ from django.db import DataError, DatabaseError, IntegrityError, OperationalError
 from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 
-from nutriplan.models import Ingredient, Recipe
+from nutriplan.models import Ingredient, Recipe, RecipeIngredient
 
-from .utils import ensure_category, link_ingredients
+from .utils import ensure_category, resolve_existing_ingredients
 
 
 def seed_ingredients_with_json(  # noqa: C901
@@ -105,7 +105,7 @@ def seed_ingredients_with_json(  # noqa: C901
     return created, skipped
 
 
-def seed_recipes_with_json(  # noqa: C901
+def seed_recipes_with_json(  # noqa: C901, PLR0912, PLR0915
     items: list[dict[str, Any]],
 ) -> tuple[int, int]:
     """
@@ -131,12 +131,6 @@ def seed_recipes_with_json(  # noqa: C901
     created = 0
     skipped = 0
     ing_by_lower = {i.name.lower(): i for i in Ingredient.objects.all()}
-    allowed_categories = {
-        c.name  # type: ignore[reportAttributeAccessIssue]
-        for c in Recipe._meta.get_field(  # noqa: SLF001
-            "category"
-        ).remote_field.model.objects.all()
-    }
 
     for row in items or []:
         name = (row.get("name") or "").strip()
@@ -157,9 +151,18 @@ def seed_recipes_with_json(  # noqa: C901
         cook_time = _safe_int(row.get("cook_time"), default=0)
 
         cat_name = (row.get("category_name") or "").strip()
-        category = None
-        if cat_name and cat_name in allowed_categories:
-            category = ensure_category(cat_name)
+        category = ensure_category(cat_name)
+        if category is None:
+            skipped += 1
+            continue
+
+        resolved = resolve_existing_ingredients(
+            row.get("ingredients") or [], ing_by_lower
+        )
+
+        if not resolved:
+            skipped += 1
+            continue
 
         try:
             with atomic():
@@ -194,7 +197,13 @@ def seed_recipes_with_json(  # noqa: C901
                     if changed:
                         recipe.save()
 
-                link_ingredients(recipe, row.get("ingredients") or [], ing_by_lower)
+                for ing, amount, unit in resolved:
+                    RecipeIngredient.objects.get_or_create(
+                        recipe=recipe,
+                        ingredient=ing,
+                        defaults={"amount": amount, "unit": unit},
+                    )
+
                 if was_created:
                     created += 1
         except (

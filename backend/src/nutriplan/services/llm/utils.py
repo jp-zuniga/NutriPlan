@@ -41,6 +41,47 @@ def ensure_category(name: str | None) -> Category | None:
         return None
 
 
+def resolve_existing_ingredients(
+    rows: list[dict[str, Any]],
+    ing_by_lower: dict[str, Ingredient],
+) -> list[tuple[Ingredient, float, str]] | None:
+    """
+    Resolve list of ingredient rows to existing Ingredient objects.
+
+    Args:
+        rows:         List of ingredients represented as dictionaries..
+        ing_by_lower: Mapping of lowercase ingredient names to Ingredient objects
+
+    """
+
+    if not rows:
+        return None
+
+    resolved: list[tuple[Ingredient, float, str]] = []
+
+    for it in rows:
+        raw_name = (it.get("name") or "").strip()
+        if not raw_name:
+            return None
+
+        ing = ing_by_lower.get(raw_name.lower())
+        if not ing:
+            return None
+
+        try:
+            amount = float(it.get("amount"))  # type: ignore[reportArgumentType]
+        except (TypeError, ValueError, InvalidOperation):
+            return None
+
+        if amount <= 0:
+            return None
+
+        unit = (it.get("unit") or "").strip()
+        resolved.append((ing, amount, unit))
+
+    return resolved
+
+
 def link_ingredients(
     recipe: Recipe, rows: list[dict[str, Any]], ing_by_lower: dict[str, Ingredient]
 ) -> None:
@@ -65,17 +106,15 @@ def link_ingredients(
         if not ing:
             continue
 
-        amount = it.get("amount")
-        unit = (it.get("unit") or "").strip()
-
         try:
-            amount = float(amount)  # type: ignore[reportArgumentType]
+            amount = float(it.get("amount"))  # type: ignore[reportArgumentType]
         except (TypeError, ValueError, InvalidOperation):
             continue
 
         if amount <= 0:
             continue
 
+        unit = (it.get("unit") or "").strip()
         try:
             RecipeIngredient.objects.get_or_create(
                 recipe=recipe,
@@ -89,5 +128,4 @@ def link_ingredients(
             OperationalError,
             DatabaseError,
         ):
-            # ignorar conflictos/errores de DB por duplicados o tipos
             continue
