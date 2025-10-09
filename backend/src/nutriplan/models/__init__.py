@@ -6,6 +6,7 @@ from .category import Category
 from .collection import CollectionItem, RecipeCollection
 from .ingredient import Ingredient
 from .recipe import Recipe, RecipeImage, RecipeIngredient
+from .social import Provider, SocialAccount
 from .user import CustomUser, DietaryRestriction
 
 __all__: list[str] = [
@@ -14,8 +15,10 @@ __all__: list[str] = [
     "CustomUser",
     "DietaryRestriction",
     "Ingredient",
+    "Provider",
     "Recipe",
     "RecipeCollection",
     "RecipeImage",
     "RecipeIngredient",
+    "SocialAccount",
 ]
