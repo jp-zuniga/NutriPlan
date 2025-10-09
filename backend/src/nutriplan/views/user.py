@@ -15,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet
 from nutriplan.serializers import ChangePasswordSerializer, UserProfileSerializer
 from nutriplan.services import UserService
 
-from .permissions import IsSelfOrAdmin
+from .permissions import UserAccessPermission
 
 User = get_user_model()
 
@@ -54,7 +54,7 @@ class UserViewSet(ModelViewSet):
         if self.action in ("list", "destroy", "create"):
             return [IsAdminUser()]
         if self.action in ("retrieve", "update", "partial_update"):
-            return [IsAuthenticated(), IsSelfOrAdmin()]
+            return [IsAuthenticated(), UserAccessPermission()]
 
         return [IsAuthenticated()]
 

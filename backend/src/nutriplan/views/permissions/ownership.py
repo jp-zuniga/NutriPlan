@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from nutriplan.views import RecipeCollectionViewSet
 
 
-class IsOwnerOrAdmin(BasePermission):
+class CollectionAccessPermission(BasePermission):
     """
     Only owners (or admins) can read/modify their collections.
     """
