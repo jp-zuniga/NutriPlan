@@ -7,8 +7,8 @@ from typing import ClassVar
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from nutriplan.models.category import Category
-from nutriplan.serializers.category import CategorySerializer
+from nutriplan.models import Category
+from nutriplan.serializers import CategorySerializer
 
 
 class CategoryViewSet(ReadOnlyModelViewSet):

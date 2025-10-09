@@ -17,6 +17,7 @@ from nutriplan.serializers import RecipeSerializer
 def _parse_int_list(value: str | None) -> list[int]:
     if not value:
         return []
+
     out: list[int] = []
 
     for part in value.split(","):
@@ -27,6 +28,7 @@ def _parse_int_list(value: str | None) -> list[int]:
             out.append(int(stripped_part))
         except ValueError:
             continue
+
     return out
 
 
