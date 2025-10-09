@@ -13,6 +13,7 @@ from nutriplan.views import (
     RecipeCollectionViewSet,
     RecipeViewSet,
     UserViewSet,
+    google_sign_in,
     login_user,
     register_user,
 )
@@ -26,8 +27,9 @@ router.register("users", UserViewSet, basename="user")
 
 urlpatterns: list[URLResolver | URLPattern] = [
     path("", include(router.urls)),
-    re_path(r"^auth/register/?$", register_user),
+    re_path(r"^auth/google/?$", google_sign_in),
     re_path(r"^auth/login/?$", login_user),
+    re_path(r"^auth/register/?$", register_user),
     re_path(r"^auth/refresh/?$", TokenRefreshView.as_view()),
     re_path(r"^auth/verify/?$", TokenVerifyView.as_view()),
 ]
