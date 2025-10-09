@@ -9,8 +9,9 @@ from json import dumps
 from django.core.management.base import BaseCommand, CommandParser
 
 from nutriplan.models import Ingredient
-from nutriplan.services.llm.gemini import GeminiClient
-from nutriplan.services.llm.seeders import (
+from nutriplan.services.llm import (
+    DEFAULT_LOCALE,
+    GeminiClient,
     build_ingredient_prompt,
     build_recipe_prompt,
     generate_and_seed_ingredients,
@@ -36,7 +37,7 @@ class Command(BaseCommand):
         --------------------
             --ingredients: number of ingredients to populate (default: 0).
             --recipes:     number of recipes to populate (default: 0).
-            --locale:      locale to use for data generation (default: "en-US").
+            --locale:      locale to use for data generation (default: "es-NI").
             --dry-run:     if set, performs a dry run without making changes.
             --verbose:     if set, enables verbose output.
 
@@ -44,7 +45,7 @@ class Command(BaseCommand):
 
         parser.add_argument("--ingredients", type=int, default=0)
         parser.add_argument("--recipes", type=int, default=0)
-        parser.add_argument("--locale", type=str, default="en-US")
+        parser.add_argument("--locale", type=str, default=DEFAULT_LOCALE)
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--verbose", action="store_true")
 
