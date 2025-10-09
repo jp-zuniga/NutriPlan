@@ -6,7 +6,7 @@ from .categories import CategoryViewSet
 from .collections import RecipeCollectionViewSet
 from .ingredients import IngredientViewSet
 from .recipes import RecipeViewSet
-from .user import UserViewSet
+from .users import UserViewSet
 
 __all__: list[str] = [
     "CategoryViewSet",
