@@ -4,7 +4,11 @@ LLM utility functions.
 
 from __future__ import annotations
 
+from decimal import InvalidOperation
 from typing import Any
+
+from django.db import DataError, DatabaseError, IntegrityError, OperationalError
+from rest_framework.exceptions import ValidationError
 
 from nutriplan.models import Category, Ingredient, Recipe, RecipeIngredient
 
@@ -31,8 +35,10 @@ def ensure_category(name: str | None) -> Category | None:
     if not n:
         return None
 
-    cat, _ = Category.objects.get_or_create(name=n)
-    return cat
+    try:
+        return Category.objects.filter(name__iexact=n).first()
+    except (DatabaseError, OperationalError, IntegrityError, DataError):
+        return None
 
 
 def link_ingredients(
@@ -55,7 +61,6 @@ def link_ingredients(
         raw_name = (it.get("name") or "").strip()
         if not raw_name:
             continue
-
         ing = ing_by_lower.get(raw_name.lower())
         if not ing:
             continue
@@ -63,14 +68,26 @@ def link_ingredients(
         amount = it.get("amount")
         unit = (it.get("unit") or "").strip()
 
-        if not isinstance(amount, (int, float)) or amount <= 0:
+        try:
+            amount = float(amount)  # type: ignore[reportArgumentType]
+        except (TypeError, ValueError, InvalidOperation):
             continue
 
-        RecipeIngredient.objects.get_or_create(
-            recipe=recipe,
-            ingredient=ing,
-            defaults={
-                "amount": amount,
-                "unit": unit,
-            },
-        )
+        if amount <= 0:
+            continue
+
+        try:
+            RecipeIngredient.objects.get_or_create(
+                recipe=recipe,
+                ingredient=ing,
+                defaults={"amount": amount, "unit": unit},
+            )
+        except (
+            ValidationError,
+            IntegrityError,
+            DataError,
+            OperationalError,
+            DatabaseError,
+        ):
+            # ignorar conflictos/errores de DB por duplicados o tipos
+            continue
