@@ -8,13 +8,12 @@
         "google-genai>=1.38.0",
         "gunicorn>=23.0.0",
         "psycopg[binary]>=3.2.10",
-        "pydantic>=2.11.9",
         "python-dotenv>=1.1.1",
         "whitenoise>=6.11.0",
     ]
     name = "nutriplan-backend"
     requires-python = ">=3.13"
-    version = "0.3"
+    version = "0.4"
 
 [dependency-groups]
     dev = [
@@ -42,5 +41,5 @@
 
     [tool.ruff.lint.per-file-ignores]
         "**/migrations/**.py" = ["D100", "D101", "D104", "E501", "RUF012"]
+        "**/prompts.py"       = ["E501"]
         "**/settings.py"      = ["E501"]
-        "**/prompts.py"      = ["E501"]
