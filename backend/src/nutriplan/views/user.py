@@ -13,6 +13,7 @@ from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.viewsets import ModelViewSet
 
 from nutriplan.serializers import ChangePasswordSerializer, UserProfileSerializer
+from nutriplan.services import UserService
 
 User = get_user_model()
 
@@ -48,10 +49,12 @@ class UserViewSet(ModelViewSet):
 
     Routes:
       - GET /api/users
+
       - GET /api/users/{id}
       - PUT /api/users/{id}
       - PATCH /api/users/{id}
       - DELETE /api/users/{id}
+
       - GET /api/users/me
       - PUT /api/users/me
       - PATCH /api/users/me
@@ -148,7 +151,8 @@ class UserViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
 
-        return Response(self.get_serializer(request.user).data)
+        user = UserService.get_user_with_restrictions(request.user.id)
+        return Response(self.get_serializer(user).data)
 
     @action(
         detail=False,

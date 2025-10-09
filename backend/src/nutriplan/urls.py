@@ -13,10 +13,8 @@ from nutriplan.views import (
     RecipeCollectionViewSet,
     RecipeViewSet,
     UserViewSet,
-    google_sign_in,
-    login_user,
-    register_user,
 )
+from nutriplan.views.auth import google_sign_in, login_user, register_user
 
 router = CustomRouter()
 router.register("categories", CategoryViewSet, basename="category")
