@@ -5,6 +5,7 @@
         "django>=5.2.5",
         "djangorestframework-simplejwt>=5.5.1",
         "djangorestframework>=3.16.1",
+        "google-auth>=2.40.3",
         "google-genai>=1.38.0",
         "gunicorn>=23.0.0",
         "psycopg[binary]>=3.2.10",
