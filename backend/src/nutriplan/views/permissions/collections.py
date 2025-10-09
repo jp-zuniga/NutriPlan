@@ -1,5 +1,5 @@
 """
-Permission classes for ownership verification.
+Permission classes for collection-related views.
 """
 
 from __future__ import annotations
