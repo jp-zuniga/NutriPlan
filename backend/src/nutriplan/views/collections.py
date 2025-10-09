@@ -26,7 +26,7 @@ from nutriplan.serializers import (
     ReorderItemsSerializer,
 )
 
-from .permissions import IsOwnerOrAdmin
+from .permissions import CollectionAccessPermission
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -105,7 +105,7 @@ class RecipeCollectionViewSet(ModelViewSet):
             "remove_recipe",
             "reorder",
         ):
-            return [IsAuthenticated(), IsOwnerOrAdmin()]
+            return [IsAuthenticated(), CollectionAccessPermission()]
         return [IsAuthenticated()]
 
     @action(detail=False, methods=["get"], url_path=r"by-slug/(?P<slug>[^/]+)")

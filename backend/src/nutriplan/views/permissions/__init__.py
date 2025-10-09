@@ -2,7 +2,7 @@
 Permission classes for NutriPlan API endpoints.
 """
 
-from .ownership import IsOwnerOrAdmin
-from .users import IsSelfOrAdmin
+from .ownership import CollectionAccessPermission
+from .users import UserAccessPermission
 
-__all__: list[str] = ["IsOwnerOrAdmin", "IsSelfOrAdmin"]
+__all__: list[str] = ["CollectionAccessPermission", "UserAccessPermission"]
