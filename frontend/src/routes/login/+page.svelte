@@ -5,6 +5,7 @@
 	import Banner from '$lib/components/Banner.svelte';
 	import { authUser } from '$lib/stores/auth';
 	import { load } from '../recetas/[slug]/+page';
+	import { json } from '@sveltejs/kit';
 
 	const highlights = [
 		'Accede a tus planes y recetas guardadas',
@@ -55,7 +56,7 @@
 			const data = await response.json();
 
 			if (!response.ok) {
-				error = data?.error || `Error creando tu cuenta (HTTP ${response.status})`;
+				error = data?.error || `Error accediendo a tu cuenta (HTTP ${response.status})`;
 				loading = false;
 				return;
 			}
@@ -63,7 +64,7 @@
 			success = true;
 			setTimeout(() => {
 				goto('/');
-			}, 600);
+			}, 1000);
 		} catch (err) {}
 	};
 

@@ -1,4 +1,5 @@
 import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
+import { NODE_ENV } from '$env/static/private';
 import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
 import { fail, redirect } from '@sveltejs/kit';
 
@@ -44,7 +45,7 @@ export const actions = {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
-			secure: true,
+			secure: NODE_ENV == 'production',
 			maxAge: 60 * 60
 		});
 

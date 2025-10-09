@@ -1,7 +1,7 @@
 import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
 import { API_ME_ENDPOINT } from '$lib/endpoints.js';
 
-export const load = async ({ cookies }) => {
+export const load = async ({ cookies, fetch }) => {
 	console.log(`Getting session cookie...`);
 
 	const sessionCookie = cookies.get(SESSION_ACCESS_COOKIE);

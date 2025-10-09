@@ -1,5 +1,5 @@
 import { API_REGISTER_ENDPOINT } from "$lib/endpoints";
-import { SESSION_ACCESS_COOKIE } from "$lib/cookies";
+import { SESSION_ACCESS_COOKIE, SESSION_REFRESH_COOKIE } from "$lib/cookies";
 import { NODE_ENV } from "$env/static/private";
 
 export const POST = async({ request, cookies }) => {
@@ -34,6 +34,7 @@ export const POST = async({ request, cookies }) => {
 
         console.log("Data:", data)
         const access = data.access;
+        const refresh = data.refresh;
         console.log("Access:", access)
 
         if(!access) {
@@ -47,6 +48,16 @@ export const POST = async({ request, cookies }) => {
             secure: NODE_ENV == 'production',
             maxAge: 60 * 60 // 1h
         });
+
+        if (refresh) {
+            cookies.set(SESSION_REFRESH_COOKIE, refresh, {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'lax',
+                secure: NODE_ENV == 'production',
+                maxAge: 60 * 60 * 24 * 7 // 7d
+            });
+        }
 
         return new Response(JSON.stringify({ok: true}), {status: 200})
     } catch(err) {
