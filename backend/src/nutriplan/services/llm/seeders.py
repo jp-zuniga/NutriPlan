@@ -2,409 +2,220 @@
 Seeders that prompt Gemini for structured data and persist it.
 """
 
-from __future__ import annotations
+from decimal import InvalidOperation
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from django.db import DataError, DatabaseError, IntegrityError, OperationalError
+from django.db.transaction import atomic
+from rest_framework.exceptions import ValidationError
 
-from django.db import transaction
+from nutriplan.models import Ingredient, Recipe, RecipeIngredient
 
-from nutriplan.models import Category, Ingredient, Recipe
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from nutriplan.services.llm.gemini import GeminiClient
+from .utils import ensure_category, resolve_existing_ingredients
 
 
-INGREDIENT_SCHEMA_EXAMPLE: dict[str, list[dict[str, str | dict[str, int | float]]]] = {
-    "items": [
-        {
-            "name": "Tomato",
-            "description": "Fresh red tomato commonly used in salads and sauces.",
-            "category_name": "Vegetables",
-            "unit": "g",
-            "nutrition": {
-                "calories": 18,
-                "protein_g": 0.9,
-                "carbs_g": 3.9,
-                "fat_g": 0.2,
-            },
-        }
-    ]
-}
-
-RECIPE_SCHEMA_EXAMPLE: dict[
-    str, list[dict[str, int | str | list[str] | list[dict[str, str | int]]]]
-] = {
-    "items": [
-        {
-            "name": "Simple Tomato Salad",
-            "description": "A refreshing salad highlighting ripe tomatoes.",
-            "instructions": [
-                "Slice the tomatoes.",
-                "Season with salt, pepper, and olive oil.",
-                "Garnish with basil.",
-            ],
-            "category_name": "Salads",
-            "servings": 2,
-            "ingredients": [
-                {"name": "Tomato", "quantity": 200, "unit": "g"},
-                {"name": "Olive oil", "quantity": 1, "unit": "tbsp"},
-                {"name": "Salt", "quantity": 1, "unit": "pinch"},
-            ],
-        }
-    ]
-}
-
-
-def build_ingredient_prompt(count: int, locale: str) -> str:
+def seed_ingredients_with_json(  # noqa: C901
+    items: list[dict[str, Any]],
+) -> tuple[int, int]:
     """
-    Builds a prompt for generating ingredient items.
+    Seeds the Ingredient database table with a list of ingredient dictionaries.
 
     Args:
-        count: number of ingredient items to generate in the JSON object.
-        locale: locale to use for ingredient names and descriptions.
+        items: List of ingredient dictionaries. Each dictionary may contain:
+            - `name`:               Name of ingredient (required).
+            - `description`:        Description of ingredient.
+            - `nutrition_per_100g`: Nutritional info per 100g, with keys:
+                - `calories`
+                - `protein_g`
+                - `carbs_g`
+                - `fat_g`
+                - `sugar_g`
 
     Returns:
-        str: formatted prompt.
+        tuple[int, int]: Number of ingredients created and number of items skipped.
 
-    """
-
-    return f"""
-        You are a nutrition data assistant.
-        Generate a JSON object exactly like this schema (no extra keys):
-
-        {INGREDIENT_SCHEMA_EXAMPLE}
-
-        Rules:
-        - Return exactly: an object with key "items" -> list of {count} items.
-        - Use locale {locale} for names and descriptions.
-        - category_name should be a common food category (e.g., Meat, Fruits, Dairy).
-        - nutrition values are per 100 unit (if unknown, use grams and estimate).
-        - Do not include comments or markdown.
-    """
-
-
-def build_recipe_prompt(
-    count: int, locale: str, known_ingredients: Iterable[str]
-) -> str:
-    """
-    Builds a prompt string for generating recipes.
-
-    Args:
-        count: number of recipe items to generate.
-        locale: locale or language to use for the recipes.
-        known_ingredients: ingredient names that the recipes can use.
-
-    Returns:
-        str: formatted prompt string.
-
-    """
-
-    ingredients_csv = ", ".join(sorted(set(known_ingredients))[:200])
-    return f"""
-        You are a recipe generator.
-        Produce a JSON object exactly like this schema (no extra keys):
-
-        {RECIPE_SCHEMA_EXAMPLE}
-
-        Rules:
-        - Return exactly: an object with key "items" -> list of {count} items.
-        - Use locale {locale}.
-        - Choose realistic recipes that can be assembled from: {ingredients_csv}
-        - ingredients[*].name MUST match from the known list; otherwise omit it.
-        - instructions: 3-10 concise steps as plain text.
-        - If uncertain about servings, use 2 or 4.
-        - Do not include comments or markdown.
-    """
-
-
-def _safe_assign(model_obj, data: dict[str, Any], allowed: Iterable[str]) -> None:  # noqa: ANN001
-    """
-    Assign only whitelisted keys if the attribute exists on the model instance.
-    """
-
-    for key in allowed:
-        if hasattr(model_obj, key) and key in data:
-            setattr(model_obj, key, data[key])
-
-
-def _ensure_category(name: str | None) -> Category | None:
-    if not name:
-        return None
-
-    category, _ = Category.objects.get_or_create(name=name.strip())
-    return category
-
-
-def _get_first_present_name(names: Iterable[str], in_set: set[str]) -> str | None:
-    for n in names:
-        if n in in_set:
-            return n
-
-    return None
-
-
-def _link_ingredients_with_quantities(  # noqa: C901, PLR0912
-    recipe: Recipe, row_ings: list[dict[str, Any]], ing_by_name: dict[str, Ingredient]
-) -> None:
-    """
-    Link ingredients to a recipe.
-    """
-
-    if not hasattr(recipe, "ingredients"):
-        return
-
-    mgr = recipe.ingredients
-    through_model = getattr(mgr, "through", None)
-    metadata = through_model._meta  # noqa: SLF001 # type: ignore[reportOptionalMemberAccess]
-
-    resolved = []
-    for item in row_ings or []:
-        n = (item.get("name") or "").strip().lower()
-        if not n or n not in ing_by_name:
-            continue
-        resolved.append(
-            (
-                ing_by_name[n],
-                item.get("quantity"),
-                (item.get("unit") or "").strip() or None,
-            )
-        )
-
-    if not resolved:
-        return
-
-    auto_created = getattr(metadata, "auto_created", False) if through_model else True
-
-    if not through_model or auto_created:
-        mgr.add(*[ing.pk for ing, _, _ in resolved])
-        return
-
-    field_names = {f.name for f in metadata.get_fields()}
-    recipe_fk = None
-    ingredient_fk = None
-
-    for f in metadata.get_fields():
-        rel_model = getattr(f, "related_model", None)
-        if rel_model is None:
-            continue
-        if rel_model is type(recipe) and recipe_fk is None:
-            recipe_fk = f.name
-        if (
-            rel_model is type(next(iter(ing_by_name.values())))
-            and ingredient_fk is None
-        ):
-            ingredient_fk = f.name
-
-    qty_field = _get_first_present_name(
-        ("quantity", "amount", "qty", "quantity_g", "weight", "weight_g"), field_names
-    )
-
-    unit_field = _get_first_present_name(
-        ("unit", "measurement_unit", "unit_name", "uom"), field_names
-    )
-
-    recipe_fk = recipe_fk or "recipe"
-    ingredient_fk = ingredient_fk or "ingredient"
-
-    for ing, qty, unit in resolved:
-        defaults = {}
-        if qty_field and isinstance(qty, (int, float)):
-            defaults[qty_field] = qty
-        if unit_field and unit:
-            defaults[unit_field] = unit
-
-        try:
-            through_model.objects.get_or_create(
-                **{recipe_fk: recipe, ingredient_fk: ing},
-                defaults=defaults,
-            )
-        except Exception:  # noqa: BLE001
-            try:
-                obj = through_model(
-                    **{recipe_fk: recipe, ingredient_fk: ing} | defaults
-                )
-
-                obj.save()
-            except Exception:  # noqa: BLE001, S110
-                pass
-
-
-def seed_ingredients_with_json(items: list[dict[str, Any]]) -> tuple[int, int]:  # noqa: C901, PLR0912
-    """
-    Persist ingredient items. Return (created, skipped).
     """
 
     created = 0
     skipped = 0
-    for row in items:
+
+    for row in items or []:
         name = (row.get("name") or "").strip()
         if not name:
             skipped += 1
             continue
 
-        category = _ensure_category(row.get("category_name"))
-        description = (row.get("description") or "").strip() or f"{name} ingredient."
-        unit = (row.get("unit") or "").strip() or "g"
-        nutrition = row.get("nutrition") or {}
-        ing_defaults: dict[str, Any] = {}
-
-        if category:
-            ing_defaults["category"] = category
-        if description:
-            ing_defaults["description"] = description
-
-        if (
-            unit
-            and hasattr(Ingredient, "_meta")
-            and any(f.name == "unit" for f in Ingredient._meta.get_fields())  # noqa: SLF001
-        ):
-            ing_defaults["unit"] = unit
-
-        for fld, src in [
-            ("calories", "calories"),
-            ("protein_g", "protein_g"),
-            ("carbs_g", "carbs_g"),
-            ("fat_g", "fat_g"),
-        ]:
-            if (
-                any(f.name == fld for f in Ingredient._meta.get_fields())  # noqa: SLF001
-                and src in nutrition
-            ):
-                ing_defaults[fld] = nutrition[src]
+        desc = (row.get("description") or "").strip() or f"{name}."
+        nut = row.get("nutrition_per_100g") or {}
+        cal = nut.get("calories", 0) or 0
+        pro = nut.get("protein_g", 0) or 0
+        carb = nut.get("carbs_g", 0) or 0
+        fat = nut.get("fat_g", 0) or 0
+        sug = nut.get("sugar_g", 0) or 0
 
         try:
-            ing, created_flag = Ingredient.objects.get_or_create(
-                name=name, defaults=ing_defaults
+            obj, was_created = Ingredient.objects.get_or_create(
+                name=name,
+                defaults={
+                    "description": desc,
+                    "calories_per_100g": cal,
+                    "protein_per_100g": pro,
+                    "carbs_per_100g": carb,
+                    "fat_per_100g": fat,
+                    "sugar_per_100g": sug,
+                },
             )
 
-            if not created_flag:
+            if not was_created:
                 changed = False
-                for k, v in ing_defaults.items():
-                    if getattr(ing, k, None) in (None, "", 0) and v not in (
-                        None,
-                        "",
-                        0,
-                    ):
-                        setattr(ing, k, v)
-                        changed = True
+                if not obj.description and desc:
+                    obj.description = desc
+                    changed = True
+                if obj.calories_per_100g == 0 and cal:
+                    obj.calories_per_100g = cal
+                    changed = True
+                if obj.protein_per_100g == 0 and pro:
+                    obj.protein_per_100g = pro
+                    changed = True
+                if obj.carbs_per_100g == 0 and carb:
+                    obj.carbs_per_100g = carb
+                    changed = True
+                if obj.fat_per_100g == 0 and fat:
+                    obj.fat_per_100g = fat
+                    changed = True
+                if obj.sugar_per_100g == 0 and sug:
+                    obj.sugar_per_100g = sug
+                    changed = True
                 if changed:
-                    ing.save()
+                    obj.save()
             else:
                 created += 1
-        except Exception:  # noqa: BLE001
+        except (
+            ValidationError,
+            InvalidOperation,
+            ValueError,
+            TypeError,
+            IntegrityError,
+            DataError,
+            OperationalError,
+            DatabaseError,
+        ):
             skipped += 1
 
     return created, skipped
 
 
-def seed_recipes_with_json(items: list[dict[str, Any]]) -> tuple[int, int]:  # noqa: C901, PLR0912
+def seed_recipes_with_json(  # noqa: C901, PLR0912, PLR0915
+    items: list[dict[str, Any]],
+) -> tuple[int, int]:
     """
-    Persist recipes.
+    Seeds the database with recipe data from a list of dictionaries.
+
+    Each dictionary in the input list should represent a recipe in the following way:
+        - `name`:          Name of the recipe (required).
+        - `description`:   Description of the recipe (optional).
+        - `servings`:      Number of servings (optional, defaults to 1).
+        - `prep_time`:     Preparation time in minutes (optional, defaults to 0).
+        - `cook_time`:     Cooking time in minutes (optional, defaults to 0).
+        - `category_name`: Name of recipe category (optional).
+        - `ingredients`:   List of ingredient data for recipe (optional).
+
+    Args:
+        items: List of dictionaries containing recipe data.
+
+    Returns:
+        tuple[int, int]: Number of recipes created and number skipped.
+
     """
 
     created = 0
     skipped = 0
+    ing_by_lower = {i.name.lower(): i for i in Ingredient.objects.all()}
 
-    ing_by_name = {i.name.lower(): i for i in Ingredient.objects.all()}
-
-    for row in items:
-        name = (row.get("name") or row.get("title") or "").strip()
+    for row in items or []:
+        name = (row.get("name") or "").strip()
         if not name:
             skipped += 1
             continue
 
-        description = (row.get("description") or "").strip() or f"{name} recipe."
-        instructions_list = row.get("instructions") or []
-        instructions_text = "\n".join(
-            step.strip() for step in instructions_list if step
+        description = (row.get("description") or "").strip() or f"{name}."
+
+        def _safe_int(v: Any, default: int = 0) -> int:  # noqa: ANN401
+            try:
+                return max(int(v), 0)
+            except (TypeError, ValueError):
+                return default
+
+        servings = _safe_int(row.get("servings"), default=1) or 1
+        prep_time = _safe_int(row.get("prep_time"), default=0)
+        cook_time = _safe_int(row.get("cook_time"), default=0)
+
+        cat_name = (row.get("category_name") or "").strip()
+        category = ensure_category(cat_name)
+        if category is None:
+            skipped += 1
+            continue
+
+        resolved = resolve_existing_ingredients(
+            row.get("ingredients") or [], ing_by_lower
         )
 
-        defaults: dict[str, Any] = {}
-
-        if any(f.name == "title" for f in Recipe._meta.get_fields()):  # noqa: SLF001
-            defaults["title"] = name
-            lookup_field = "title"
-        else:
-            lookup_field = "name"
-
-        if any(f.name == "name" for f in Recipe._meta.get_fields()):  # noqa: SLF001
-            defaults["name"] = name
-        if any(f.name == "description" for f in Recipe._meta.get_fields()):  # noqa: SLF001
-            defaults["description"] = description
-
-        instr_field = _get_first_present_name(
-            ("instructions", "directions", "steps_text"),
-            {f.name for f in Recipe._meta.get_fields()},  # noqa: SLF001
-        )
-
-        if instr_field:
-            defaults[instr_field] = instructions_text
-
-        if isinstance(row.get("servings"), int) and any(
-            f.name == "servings"
-            for f in Recipe._meta.get_fields()  # noqa: SLF001
-        ):
-            defaults["servings"] = row["servings"]
-
-        category = _ensure_category(row.get("category_name"))
-        if category and any(f.name == "category" for f in Recipe._meta.get_fields()):  # noqa: SLF001
-            defaults["category"] = category
+        if not resolved:
+            skipped += 1
+            continue
 
         try:
-            with transaction.atomic():
-                recipe, created_flag = Recipe.objects.get_or_create(
-                    **{lookup_field: name}, defaults=defaults
+            with atomic():
+                recipe, was_created = Recipe.objects.get_or_create(
+                    name=name,
+                    defaults={
+                        "description": description,
+                        "category": category,
+                        "servings": servings,
+                        "prep_time": prep_time,
+                        "cook_time": cook_time,
+                    },
                 )
-                if not created_flag:
-                    # Optionally update missing optional fields on existing records
-                    changed = False
-                    for k, v in defaults.items():
-                        if getattr(recipe, k, None) in (None, "", 0) and v not in (
-                            None,
-                            "",
-                            0,
-                        ):
-                            setattr(recipe, k, v)
-                            changed = True
+
+                changed = False
+                if not was_created:
+                    if not recipe.description and description:
+                        recipe.description = description
+                        changed = True
+                    if category and recipe.category.id is None:  # type: ignore[reportOptionalMemberAccess]
+                        recipe.category = category
+                        changed = True
+                    if (recipe.servings or 0) == 0 and servings:
+                        recipe.servings = servings
+                        changed = True
+                    if (recipe.prep_time or 0) == 0 and prep_time:
+                        recipe.prep_time = prep_time
+                        changed = True
+                    if (recipe.cook_time or 0) == 0 and cook_time:
+                        recipe.cook_time = cook_time
+                        changed = True
                     if changed:
                         recipe.save()
 
-                _link_ingredients_with_quantities(
-                    recipe, row.get("ingredients") or [], ing_by_name
-                )
+                for ing, amount, unit in resolved:
+                    RecipeIngredient.objects.get_or_create(
+                        recipe=recipe,
+                        ingredient=ing,
+                        defaults={"amount": amount, "unit": unit},
+                    )
 
-                if created_flag:
+                if was_created:
                     created += 1
-        except Exception:  # noqa: BLE001
+        except (
+            ValidationError,
+            InvalidOperation,
+            ValueError,
+            TypeError,
+            IntegrityError,
+            DataError,
+            OperationalError,
+            DatabaseError,
+        ):
             skipped += 1
 
     return created, skipped
-
-
-def generate_and_seed_ingredients(
-    count: int, locale: str, client: GeminiClient
-) -> tuple[int, int]:
-    """
-    Call Gemini to generate ingredient JSON and persist it.
-    """
-
-    prompt = build_ingredient_prompt(count=count, locale=locale)
-    data = client.generate_json(prompt)
-    items = list(data.get("items") or [])
-    return seed_ingredients_with_json(items)
-
-
-def generate_and_seed_recipes(
-    count: int, locale: str, client: GeminiClient
-) -> tuple[int, int]:
-    """
-    Call Gemini to generate recipe JSON and persist it.
-    """
-
-    known = (ing.name for ing in Ingredient.objects.all())
-    prompt = build_recipe_prompt(count=count, locale=locale, known_ingredients=known)
-    data = client.generate_json(prompt)
-    items = list(data.get("items") or [])
-    return seed_recipes_with_json(items)

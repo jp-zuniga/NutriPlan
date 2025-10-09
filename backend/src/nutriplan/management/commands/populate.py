@@ -8,11 +8,13 @@ from json import dumps
 
 from django.core.management.base import BaseCommand, CommandParser
 
-from nutriplan.models import Ingredient
-from nutriplan.services.llm.gemini import GeminiClient
-from nutriplan.services.llm.seeders import (
+from nutriplan.services.llm import (
+    DEFAULT_LOCALE,
+    GeminiClient,
+    build_category_prompt,
     build_ingredient_prompt,
     build_recipe_prompt,
+    generate_and_seed_categories,
     generate_and_seed_ingredients,
     generate_and_seed_recipes,
 )
@@ -32,19 +34,21 @@ class Command(BaseCommand):
         Args:
             parser: Arg-parser to which the command-line arguments are added.
 
-        Supported arguments:
+        Supported Arguments:
         --------------------
-            --ingredients: number of ingredients to populate (default: 0).
-            --recipes:     number of recipes to populate (default: 0).
-            --locale:      locale to use for data generation (default: "en-US").
-            --dry-run:     if set, performs a dry run without making changes.
-            --verbose:     if set, enables verbose output.
+        - `--categories`:  Number of categories to populate (default: 0).
+        - `--ingredients`: Number of ingredients to populate (default: 0).
+        - `--recipes`:     Number of recipes to populate (default: 0).
+        - `--locale`:      Locale to use for data generation (default: "es-NI").
+        - `--dry-run`:     If set, performs a dry run without making changes.
+        - `--verbose`:     If set, enables verbose output.
 
         """
 
+        parser.add_argument("--categories", type=int, default=0)
         parser.add_argument("--ingredients", type=int, default=0)
         parser.add_argument("--recipes", type=int, default=0)
-        parser.add_argument("--locale", type=str, default="en-US")
+        parser.add_argument("--locale", type=str, default=DEFAULT_LOCALE)
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--verbose", action="store_true")
 
@@ -62,47 +66,71 @@ class Command(BaseCommand):
         Args:
             args: Additional positional arguments (unused).
             opts: Command-line options, including:
-                - "ingredients": number of ingredients to generate.
-                - "recipes":     number of recipes to generate.
-                - "locale":      locale to use for data generation.
-                - "dry_run":     if True, output generated data without saving.
-                - "verbose":     if True, print detailed output.
+                - `categories`:  Number of categories to generate.
+                - `ingredients`: Number of ingredients to generate.
+                - `recipes`:     Number of recipes to generate.
+                - `locale`:      Locale to use for data generation.
+                - `dry_run`:     If True, output generated data without saving.
+                - `verbose`:     If True, print detailed output.
 
         """
 
-        ing_n = int(opts.get("ingredients", 0))  # type: ignore[reportArgumentType]
-        rec_n = int(opts.get("recipes", 0))  # type: ignore[reportArgumentType]
-        locale = opts.get("locale", "en-US")
-        dry = bool(opts.get("dry_run", False))
-        verbose = bool(opts.get("verbose", False))
+        cat_n = int(opts.get("categories") or 0)  # type: ignore[reportArgumentType]
+        ing_n = int(opts.get("ingredients") or 0)  # type: ignore[reportArgumentType]
+        rec_n = int(opts.get("recipes") or 0)  # type: ignore[reportArgumentType]
+        locale: str = opts.get("locale") or "es-NI"  # type: ignore[reportAssignmentType]
+        dry = bool(opts.get("dry_run"))
+        verbose = bool(opts.get("verbose"))
 
-        if not ing_n and not rec_n:
+        if not any([cat_n, ing_n, rec_n]):
             self.stdout.write(
-                self.style.WARNING("Nothing to do. Use --ingredients and/or --recipes.")
+                self.style.WARNING(
+                    "Nothing to do. Use --categories, --ingredients, and/or --recipes."
+                )
             )
             return
 
         client = GeminiClient()
 
-        if ing_n:
+        if cat_n:
             if dry:
-                data = client.generate_json(build_ingredient_prompt(ing_n, locale))  # type: ignore[reportArgumentType]
+                data = client.generate_json(build_category_prompt(cat_n, locale))
                 self.stdout.write(
-                    dumps({"ingredients": data.get("items", [])}, indent=2)
+                    dumps(
+                        {"categories": data.get("items", [])},
+                        indent=2,
+                        ensure_ascii=False,
+                    )
                 )
             else:
-                created, skipped = generate_and_seed_ingredients(ing_n, locale, client)  # type: ignore[reportArgumentType]
-                if verbose:
-                    self.stdout.write(
-                        f"Ingredients created: {created}, skipped: {skipped}"
+                created, skipped = generate_and_seed_categories(cat_n, locale, client)
+                msg = f"Categorías creadas: {created}, omitidas: {skipped}"
+                self.stdout.write(self.style.SUCCESS(msg) if verbose else msg)
+
+        if ing_n:
+            if dry:
+                data = client.generate_json(build_ingredient_prompt(ing_n, locale))
+                self.stdout.write(
+                    dumps(
+                        {"ingredients": data.get("items", [])},
+                        indent=2,
+                        ensure_ascii=False,
                     )
+                )
+            else:
+                created, skipped = generate_and_seed_ingredients(ing_n, client, locale)
+                msg = f"Ingredientes creados: {created}, omitidos: {skipped}"
+                self.stdout.write(self.style.SUCCESS(msg) if verbose else msg)
 
         if rec_n:
             if dry:
-                known = (i.name for i in Ingredient.objects.all())
-                data = client.generate_json(build_recipe_prompt(rec_n, locale, known))  # type: ignore[reportArgumentType]
-                self.stdout.write(dumps({"recipes": data.get("items", [])}, indent=2))
+                data = client.generate_json(build_recipe_prompt(rec_n, [], [], locale))
+                self.stdout.write(
+                    dumps(
+                        {"recipes": data.get("items", [])}, indent=2, ensure_ascii=False
+                    )
+                )
             else:
-                created, skipped = generate_and_seed_recipes(rec_n, locale, client)  # type: ignore[reportArgumentType]
-                if verbose:
-                    self.stdout.write(f"Recipes created: {created}, skipped: {skipped}")
+                created, skipped = generate_and_seed_recipes(client, rec_n, locale)
+                msg = f"Recetas creadas: {created}, omitidas: {skipped}"
+                self.stdout.write(self.style.SUCCESS(msg) if verbose else msg)
