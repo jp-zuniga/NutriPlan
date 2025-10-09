@@ -92,7 +92,7 @@ class Command(BaseCommand):
                     dumps({"ingredients": data.get("items", [])}, indent=2)
                 )
             else:
-                created, skipped = generate_and_seed_ingredients(ing_n, locale, client)  # type: ignore[reportArgumentType]
+                created, skipped = generate_and_seed_ingredients(ing_n, client, locale)  # type: ignore[reportArgumentType]
                 if verbose:
                     self.stdout.write(
                         f"Ingredients created: {created}, skipped: {skipped}"
@@ -104,6 +104,6 @@ class Command(BaseCommand):
                 data = client.generate_json(build_recipe_prompt(rec_n, locale, known))  # type: ignore[reportArgumentType]
                 self.stdout.write(dumps({"recipes": data.get("items", [])}, indent=2))
             else:
-                created, skipped = generate_and_seed_recipes(rec_n, locale, client)  # type: ignore[reportArgumentType]
+                created, skipped = generate_and_seed_recipes(client, rec_n, locale)  # type: ignore[reportArgumentType]
                 if verbose:
                     self.stdout.write(f"Recipes created: {created}, skipped: {skipped}")
