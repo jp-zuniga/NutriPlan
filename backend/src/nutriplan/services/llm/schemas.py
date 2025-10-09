@@ -4,6 +4,16 @@ JSON schemas for validating LLM responses.
 
 from typing import Any
 
+CATEGORY_SCHEMA: dict[str, list[dict[str, Any]]] = {
+    "items": [
+        {
+            "name": "Ensaladas",
+            "friendly_name": "Ensaladas",
+            "description": "Platos fríos o templados a base de vegetales.",
+        }
+    ]
+}
+
 INGREDIENT_SCHEMA: dict[str, list[dict[str, Any]]] = {
     "items": [
         {
@@ -25,11 +35,6 @@ RECIPE_SCHEMA: dict[str, list[dict[str, Any]]] = {
         {
             "name": "Ensalada de Tomate Sencilla",
             "description": "Ensalada fresca con tomates maduros.",
-            "instructions": [
-                "Lava y rebana los tomates.",
-                "Mezcla con sal, pimienta y aceite de oliva.",
-                "Sirve con hojas de albahaca.",
-            ],
             "category_name": "Ensaladas",
             "servings": 2,
             "prep_time": 10,
