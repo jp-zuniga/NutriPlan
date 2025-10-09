@@ -1,5 +1,3 @@
-
-
 """
 Authentication utilities for NutriPlan.
 """
