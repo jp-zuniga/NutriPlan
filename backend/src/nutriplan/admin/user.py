@@ -1,31 +1,23 @@
 """
-Register models with admin interface and customizes their admin options.
+Register admin interface for `CustomUser` model.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import ClassVar
 
-from django.contrib.admin import ModelAdmin, site
+from django.contrib.admin import register
 from django.contrib.auth.admin import UserAdmin
 from django.forms import ModelForm
+from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
-from rest_framework.request import HttpRequest
 
-from nutriplan.models import (
-    Category,
-    CollectionItem,
-    CustomUser,
-    DietaryRestriction,
-    Ingredient,
-    Recipe,
-    RecipeCollection,
-    RecipeIngredient,
-)
+from nutriplan.models import CustomUser
 
 
-class CustomAdmin(UserAdmin):
+@register(CustomUser)
+class CustomUserAdmin(UserAdmin):
     """
-    Admin interface options for the CustomUser model.
+    Admin interface options for `CustomUser` model.
     """
 
     add_fieldsets = (
@@ -75,12 +67,8 @@ class CustomAdmin(UserAdmin):
         "is_staff",
     ]
 
-    ordering: tuple[str] = ("email",)  # type: ignore[reportIncompatibleVariableOverride]
-    search_fields: ClassVar[Sequence[str]] = [  # type: ignore[reportIncompatibleVariableOverride]
-        "email",
-        "first_name",
-        "last_name",
-    ]
+    ordering: tuple[str, ...] = ("email",)  # type: ignore[reportIncompatibleVariableOverride]
+    search_fields: ClassVar[Sequence[str]] = ["email", "first_name", "last_name"]  # type: ignore[reportIncompatibleVariableOverride]
 
     def get_form(  # type: ignore[reportIncompatibleMethodOverride]
         self,
@@ -106,59 +94,8 @@ class CustomAdmin(UserAdmin):
         """
 
         form = super().get_form(request, obj, **kwargs)
+
         if "username" in form.base_fields:  # type: ignore[reportAttributeAccessIssue]
             form.base_fields.pop("username")  # type: ignore[reportAttributeAccessIssue]
 
         return form
-
-
-class CategoryAdmin(ModelAdmin):
-    """
-    Admin interface options for the Category model.
-    """
-
-    list_display = ("name", "friendly_name", "description")
-    readonly_fields = ("name",)
-
-
-class CollectionItemAdmin(ModelAdmin):
-    """
-    Admin interface options for the CollectionItem model.
-    """
-
-    list_display = ("collection", "recipe", "order", "added_at")
-    search_fields = ("collection__name", "recipe__name", "collection__owner__email")
-    list_filter = ("collection__is_public",)
-    autocomplete_fields = ("collection", "recipe")
-
-
-class RecipeAdmin(ModelAdmin):
-    """
-    Admin interface options for the Recipe model.
-    """
-
-    prepopulated_fields: ClassVar[Mapping[str, Sequence[str]]] = {"slug": ("name",)}  # type: ignore[reportIncompatibleVariableOverride]
-    list_display = ("name", "slug", "category", "created_at")
-    search_fields = ("name", "slug")
-
-
-class RecipeCollectionAdmin(ModelAdmin):
-    """
-    Admin interface options for the RecipeCollection model.
-    """
-
-    list_display = ("name", "owner", "is_public", "created_at")
-    search_fields = ("name", "owner__email")
-    list_filter = ("is_public",)
-    readonly_fields = ("created_at", "updated_at")
-    autocomplete_fields = ("owner",)
-
-
-site.register(Category, CategoryAdmin)
-site.register(CollectionItem, CollectionItemAdmin)
-site.register(CustomUser, CustomAdmin)
-site.register(DietaryRestriction)
-site.register(Ingredient)
-site.register(Recipe, RecipeAdmin)
-site.register(RecipeIngredient)
-site.register(RecipeCollection, RecipeCollectionAdmin)
