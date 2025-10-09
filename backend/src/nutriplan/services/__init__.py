@@ -2,8 +2,8 @@
 Services package with service classes for handling recipes and users.
 """
 
-from .recipe_service import RecipeService
-from .user_service import UserService
+from .recipe import RecipeService
+from .user import UserService
 
 __all__: list[str] = [
     "RecipeService",
