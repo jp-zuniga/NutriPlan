@@ -1,18 +1,14 @@
-name: lint-backend
+name: backend-lint
 
 on:
   push:
     branches:
-      - main
       - backend-dev
-      - test-prod
     paths:
       - "backend/**"
   pull_request:
     branches:
-      - main
       - backend-dev
-      - test-prod
     paths:
       - "backend/**"
 
@@ -29,25 +25,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: run ruff check
+      - name: ruff check
         uses: astral-sh/ruff-action@v3
         with:
           version: "latest"
 
-  format:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: run ruff format
+      - name: ruff format
         uses: astral-sh/ruff-action@v3
         with:
           args: "format --check --diff"
           version: "latest"
+
