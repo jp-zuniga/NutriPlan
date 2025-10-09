@@ -15,32 +15,9 @@ from rest_framework.viewsets import ModelViewSet
 from nutriplan.serializers import ChangePasswordSerializer, UserProfileSerializer
 from nutriplan.services import UserService
 
+from .permissions import IsSelfOrAdmin
+
 User = get_user_model()
-
-
-class IsSelfOrAdmin(BasePermission):
-    """
-    Admins can access any user; regular users can only access their own object.
-    """
-
-    def has_object_permission(self, request: Request, obj: User) -> bool:  # type: ignore[incompatibleMethodOverride]
-        """
-        Determine whether the requesting user has permission to access the given object.
-
-        Args:
-            request: HTTP request containing user information.
-            obj:     Object for which permission is being checked.
-
-        Returns:
-            bool: True if user is authenticated and owns the object; False otherwise.
-
-        """
-
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and (request.user.is_staff or obj.pk == request.user.pk)
-        )
 
 
 class UserViewSet(ModelViewSet):

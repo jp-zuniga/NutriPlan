@@ -26,42 +26,11 @@ from nutriplan.serializers import (
     ReorderItemsSerializer,
 )
 
+from .permissions import IsOwnerOrAdmin
+
 if TYPE_CHECKING:
     from django.db.models import QuerySet
     from rest_framework.request import Request
-
-
-class IsOwnerOrAdmin(BasePermission):
-    """
-    Only owners (or admins) can read/modify their collections.
-    """
-
-    def has_object_permission(  # type: ignore[reportIncompatibleMethodOverride]
-        self,
-        request: Request,
-        view: RecipeCollectionViewSet,  # noqa: ARG002
-        obj: RecipeCollection,
-    ) -> bool:
-        """
-        Verify ownership of requesting user.
-
-        Args:
-            request: HTTP request object.
-            view:    View being accessed.
-            obj:     RecipeCollection instance being accessed.
-
-        Returns:
-            bool: True if permission is granted, False otherwise.
-
-        """
-
-        user = request.user
-
-        return (
-            False
-            if not user or not user.is_authenticated
-            else bool(user.is_staff or obj.owner_id == user.id)  # type: ignore[reportAttributeAccessIssue]
-        )
 
 
 class RecipeCollectionViewSet(ModelViewSet):
