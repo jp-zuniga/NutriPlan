@@ -4,14 +4,21 @@ Read-only viewset for recipes, including search and filter capabilities.
 
 from typing import ClassVar
 
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Avg, Count, Prefetch, Q
 from django.db.models.manager import BaseManager
+from rest_framework.decorators import action
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
-from rest_framework.permissions import AllowAny, BasePermission
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from nutriplan.models import Ingredient, Recipe, RecipeImage, RecipeIngredient
-from nutriplan.serializers import RecipeSerializer
+from nutriplan.models import Ingredient, Recipe, RecipeImage, RecipeIngredient, Review
+from nutriplan.serializers import (
+    RecipeSerializer,
+    ReviewReadSerializer,
+    ReviewSerializer,
+)
 
 
 def _parse_int_list(value: str | None) -> list[int]:
@@ -132,4 +139,61 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
-        return qs
+        return qs.annotate(
+            rating_avg=Avg("reviews__rating"),
+            rating_count=Count("reviews", distinct=True),
+        )
+
+    @action(detail=True, methods=["get"], permission_classes=[AllowAny])
+    def reviews(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
+        """
+        Return serialized reviews for the current recipe.
+
+        Args:
+            request: Incoming DRF request.
+            slug:    Optional slug captured from URL; accepted for routing but not used.
+
+        Returns:
+            Response: 200 OK with JSON array of serialized reviews (newest first).
+
+        Raises:
+            Http404: If recipe does not exist.
+
+        """
+
+        recipe: Recipe = self.get_object()
+        qs = (
+            Review.objects.filter(recipe=recipe)
+            .select_related("user")
+            .order_by("-created_at")
+        )
+
+        return Response(ReviewReadSerializer(qs, many=True).data)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def rate(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
+        """
+        Create a new review for the current recipe and return its serialized data.
+
+        Args:
+            request: Incoming DRF request.
+            slug:    Optional slug captured from URL; accepted for routing but not used.
+
+        Returns:
+            Response: HTTP 201 with serialized review data.
+
+        Raises:
+            ValidationError:      If provided review data is invalid.
+            Http404:              If recipe does not exist.
+            PermissionDenied:     If user lacks permission to create review.
+            AuthenticationFailed: If authentication is required and fails.
+
+        """
+
+        recipe: Recipe = self.get_object()
+        payload = request.data.copy()
+        payload["recipe_id"] = str(recipe.id)
+        ser = ReviewSerializer(data=payload, context={"request": request})
+        ser.is_valid(raise_exception=True)
+        review = ser.save()
+        return Response(ReviewReadSerializer(review).data, status=201)

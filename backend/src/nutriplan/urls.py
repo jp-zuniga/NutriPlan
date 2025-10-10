@@ -12,6 +12,7 @@ from nutriplan.views import (
     IngredientViewSet,
     RecipeCollectionViewSet,
     RecipeViewSet,
+    ReviewViewSet,
     UserViewSet,
 )
 from nutriplan.views.auth import google_sign_in, login_user, register_user
@@ -21,6 +22,7 @@ router.register("categories", CategoryViewSet, basename="category")
 router.register("collections", RecipeCollectionViewSet, basename="collection")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("recipes", RecipeViewSet, basename="recipe")
+router.register("reviews", ReviewViewSet, basename="reviews")
 router.register("users", UserViewSet, basename="user")
 
 urlpatterns: list[URLResolver | URLPattern] = [

@@ -9,7 +9,7 @@ from rest_framework.request import Request
 CustomUser = get_user_model()
 
 
-class IsSelfOrAdmin(BasePermission):
+class UserAccessPermission(BasePermission):
     """
     Admins can access any user; regular users can only access their own object.
     """

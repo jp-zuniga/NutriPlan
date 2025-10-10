@@ -1,5 +1,5 @@
 """
-Permission classes for ownership verification.
+Permission classes for collection-related views.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from nutriplan.views import RecipeCollectionViewSet
 
 
-class IsOwnerOrAdmin(BasePermission):
+class CollectionAccessPermission(BasePermission):
     """
     Only owners (or admins) can read/modify their collections.
     """
