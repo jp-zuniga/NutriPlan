@@ -4,7 +4,6 @@ Models for recipes, their ingredient relations, and images.
 
 from decimal import Decimal
 from typing import ClassVar
-from uuid import uuid4
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models import (
@@ -25,7 +24,6 @@ from django.db.models import (
     SlugField,
     TextField,
     URLField,
-    UUIDField,
     UniqueConstraint,
 )
 from django.db.models.fields.generated import GeneratedField
@@ -44,7 +42,6 @@ class Recipe(BaseModel):
     A cookable recipe with times, nutrition, category, ingredients and images.
     """
 
-    id = UUIDField(primary_key=True, default=uuid4, editable=False)
     slug = SlugField(max_length=120, unique=True, db_index=True)
     name = CharField(max_length=100)
     description = TextField(help_text="Short description shown prominently.")
