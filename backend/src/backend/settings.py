@@ -60,13 +60,18 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
     "http://127.0.0.1",
-    "https://*.up.railway.app",
-    "https://*.railway.app",
+    "https://nutri-plan.net"
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.railway\.app$",
+    r"^https://.*\.up\.railway\.app$",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app",
     "https://*.railway.app",
+    "https://nutri-plan.net"
 ]
 
 DATABASES = {
