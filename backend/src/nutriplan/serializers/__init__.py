@@ -11,6 +11,7 @@ from .collection import (
 )
 from .ingredient import IngredientSerializer
 from .recipe import RecipeSerializer
+from .review import ReviewReadSerializer, ReviewSerializer
 from .user import (
     ChangePasswordSerializer,
     UserProfileSerializer,
@@ -26,6 +27,8 @@ __all__: list[str] = [
     "RecipeCollectionSerializer",
     "RecipeSerializer",
     "ReorderItemsSerializer",
+    "ReviewReadSerializer",
+    "ReviewSerializer",
     "UserProfileSerializer",
     "UserRegistrationSerializer",
 ]
