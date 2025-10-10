@@ -3,6 +3,7 @@ Read-only viewset for recipes, including search and filter capabilities.
 """
 
 from typing import ClassVar
+from uuid import UUID
 
 from django.db.models import Avg, Count, Prefetch, Q
 from django.db.models.manager import BaseManager
@@ -21,21 +22,18 @@ from nutriplan.serializers import (
 )
 
 
-def _parse_int_list(value: str | None) -> list[int]:
+def _parse_uuid_list(value: str | None) -> list[UUID]:
     if not value:
         return []
-
-    out: list[int] = []
-
+    out: list[UUID] = []
     for part in value.split(","):
-        stripped_part = part.strip()
-        if not stripped_part:
+        s = part.strip()
+        if not s:
             continue
         try:
-            out.append(int(stripped_part))
-        except ValueError:
+            out.append(UUID(s))
+        except (ValueError, TypeError):
             continue
-
     return out
 
 
@@ -68,7 +66,7 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         "updated_at",
     ]
 
-    permission_classes: ClassVar[BasePermission] = [AllowAny]  # type: ignore[reportAssignmentType]
+    permission_classes: ClassVar[list[type[BasePermission]]] = [AllowAny]
     search_fields: ClassVar[list[str]] = ["name", "description"]
     serializer_class = RecipeSerializer
 
@@ -126,16 +124,14 @@ class RecipeViewSet(ReadOnlyModelViewSet):
             if vmax:
                 qs = qs.filter(**{f"{field}__lte": vmax})
 
-        include_ids = _parse_int_list(params.get("include_ingredients"))
+        include_ids = _parse_uuid_list(params.get("include_ingredients"))
         if include_ids:
             qs = qs.filter(recipe_ingredients__ingredient_id__in=include_ids)
             qs = qs.annotate(
                 match_count=Count("recipe_ingredients__ingredient", distinct=True)
-            )
+            ).filter(match_count__gte=len(set(include_ids)))
 
-            qs = qs.filter(match_count__gte=len(set(include_ids)))
-
-        exclude_ids = _parse_int_list(params.get("exclude_ingredients"))
+        exclude_ids = _parse_uuid_list(params.get("exclude_ingredients"))
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
