@@ -8,6 +8,7 @@ from typing import Any
 
 from rest_framework.serializers import (
     CharField,
+    FloatField,
     IntegerField,
     ModelSerializer,
     SerializerMethodField,
@@ -36,6 +37,9 @@ class RecipeSerializer(ModelSerializer):
         """
 
         model = Recipe
+        rating_avg = FloatField(read_only=True)
+        rating_count = IntegerField(read_only=True)
+
         fields = (
             "id",
             "slug",
@@ -53,6 +57,8 @@ class RecipeSerializer(ModelSerializer):
             "carbs_per_serving",
             "fat_per_serving",
             "sugar_per_serving",
+            "rating_avg",
+            "rating_count",
             "primary_image",
             "main_image_url",
             "created_at",
