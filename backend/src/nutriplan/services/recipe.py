@@ -27,7 +27,7 @@ class RecipeService:
 
         """
 
-        return Recipe.objects.filter(category__name=category_name)
+        return Recipe.objects.filter(category__name__iexact=category_name)
 
     @staticmethod
     def get_recipes_with_ingredients(
