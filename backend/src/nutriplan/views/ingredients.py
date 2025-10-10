@@ -23,7 +23,11 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
     """
 
-    filter_backends: ClassVar[BaseFilterBackend] = [SearchFilter, OrderingFilter]  # type: ignore[reportAssignmentType]
+    filter_backends: ClassVar[list[type[BaseFilterBackend]]] = [
+        SearchFilter,
+        OrderingFilter,
+    ]
+
     ordering_fields: ClassVar[list[str]] = [
         "name",
         "calories_per_100g",

@@ -30,6 +30,8 @@ class RecipeSerializer(ModelSerializer):
     images = SerializerMethodField()
     total_time = IntegerField(read_only=True)
     primary_image = CharField(read_only=True)
+    rating_avg = FloatField(read_only=True)
+    rating_count = IntegerField(read_only=True)
 
     class Meta:
         """
@@ -37,8 +39,6 @@ class RecipeSerializer(ModelSerializer):
         """
 
         model = Recipe
-        rating_avg = FloatField(read_only=True)
-        rating_count = IntegerField(read_only=True)
 
         fields = (
             "id",
