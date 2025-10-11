@@ -26,6 +26,11 @@ AUTH_USER_MODEL = "nutriplan.CustomUser"
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = getenv("DEBUG", "False").lower() == "true"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+GOOGLE_CLIENT_IDS = [
+    s for s in (getenv("GOOGLE_CLIENT_IDS", "") or "").split(",") if s.strip()
+]
+
+GOOGLE_HD = getenv("GOOGLE_HD", "")
 LANGUAGE_CODE = "en-us"
 ROOT_URLCONF = "backend.urls"
 SECRET_KEY = getenv("SECRET_KEY")
