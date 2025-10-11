@@ -18,6 +18,8 @@ ALLOWED_HOSTS = [
     "localhost:8000",
     "127.0.0.1",
     ".railway.app",
+    "nutri-plan.net",
+    "api.nutri-plan.net",
 ]
 
 APPEND_SLASH = False
@@ -65,7 +67,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
     "http://127.0.0.1",
-    "https://nutri-plan.net"
+    "https://nutri-plan.net",
+    "https://api.nutri-plan.net",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -76,7 +79,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app",
     "https://*.railway.app",
-    "https://nutri-plan.net"
+    "https://nutri-plan.net",
+    "https://api.nutri-plan.net",
 ]
 
 DATABASES = {
