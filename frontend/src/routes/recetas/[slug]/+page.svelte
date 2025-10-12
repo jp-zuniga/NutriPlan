@@ -32,8 +32,6 @@
 	<title>{recipe.title}</title>
 </svelte:head>
 
-<Banner />
-
 <main class="recipe-detail">
 	<section class="hero">
 		<div class="container hero-grid">

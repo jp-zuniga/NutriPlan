@@ -6,6 +6,11 @@
 	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
 	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+
+	$effect(() => {
+		if ($authUser === null) goto('/login');
+	});
 
 	const user = {
 		name: 'María Fernanda',
@@ -67,14 +72,12 @@
 	];
 </script>
 
-<Banner />
-
-{#if authUser}
+{#if authUser !== undefined && authUser !== null}
 	<main class="profile">
 		<section class="hero">
 			<div class="container hero-grid">
 				<article class="card profile-card">
-					<h1>{$authUser?.name ?? user.name}</h1>
+					<h1>{$authUser?.first_name ?? 'Sin Nombre'} {$authUser?.last_name ?? ''}</h1>
 					<p class="location">{user.location}</p>
 					<ul class="summary">
 						<li><strong>Edad:</strong> {$authUser?.age ?? user.age}</li>

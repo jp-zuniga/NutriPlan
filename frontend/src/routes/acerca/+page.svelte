@@ -26,7 +26,6 @@
 	];
 </script>
 
-<Banner />
 
 <main class="about">
 	<section class="intro">

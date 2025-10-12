@@ -78,7 +78,7 @@
 					</div>
 					<button type="button" onclick={handleLogout}>Salir</button>
 				</div>
-			{:else}
+			{:else if $authUser === null}
 				<a class="ghost" href="/login">Ingresar</a>
 				<a class="primary" href="/signup">Regístrate</a>
 			{/if}

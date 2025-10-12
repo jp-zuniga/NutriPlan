@@ -1,6 +1,7 @@
 <script>
 	import favicon from '$lib/assets/favicon.svg';
 	import { authUser } from '$lib/stores/auth.js';
+	import Banner from '$lib/components/Banner.svelte';
 
 	let { data, children } = $props();
 
@@ -21,4 +22,5 @@
 	<title>NutriPlan</title>
 </svelte:head>
 
+<Banner />
 {@render children?.()}

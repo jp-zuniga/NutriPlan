@@ -6,6 +6,7 @@
 	import { authUser } from '$lib/stores/auth';
 	import { load } from '../recetas/[slug]/+page';
 	import { json } from '@sveltejs/kit';
+	import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
 
 	const highlights = [
 		'Accede a tus planes y recetas guardadas',
@@ -18,10 +19,11 @@
 	let success = $state(false);
 
 	onMount(() => {
-		const user = get(authUser);
-		if (user) {
-			goto('/');
-		}
+		$effect(() => {
+			if ($authUser != null) {
+				goto('/');
+			}
+		});
 	});
 
 	const createFormRequest = () => {
@@ -47,25 +49,34 @@
 		let request = createFormRequest();
 
 		try {
-			const response = await fetch('/api/login/', {
+			const response = await fetch('/api/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(request)
 			});
 
 			const data = await response.json();
+			console.log('Data: ', data);
 
-			if (!response.ok) {
-				error = data?.error || `Error accediendo a tu cuenta (HTTP ${response.status})`;
-				loading = false;
-				return;
-			}
+			if (data)
+				if (!response.ok) {
+					error = data?.error ?? `Error accediendo a tu cuenta (HTTP ${response.status})`;
+					loading = false;
+					return;
+				}
 
 			success = true;
+			console.log('User: ', data.user);
+			$authUser = data.user;
+
 			setTimeout(() => {
 				goto('/');
 			}, 1000);
-		} catch (err) {}
+		} catch (err) {
+			error = err;
+		}
+
+		loading = false;
 	};
 
 	const questions = $state([
@@ -92,79 +103,79 @@
 	]);
 </script>
 
-<Banner />
-
-<main class="login">
-	<section class="hero">
-		<div class="container hero-grid">
-			<article class="copy">
-				<h1>Inicia sesión en NutriPlan</h1>
-				<p>
-					Retoma tus planes personalizados, sincroniza tus recetas favoritas y continúa tu camino
-					hacia un bienestar con sabor nicaragüense.
-				</p>
-				<ul>
-					{#each highlights as item}
-						<li>{item}</li>
+{#if $authUser !== undefined && $authUser === null}
+	<main class="login">
+		<section class="hero">
+			<div class="container hero-grid">
+				<article class="copy">
+					<h1>Inicia sesión en NutriPlan</h1>
+					<p>
+						Retoma tus planes personalizados, sincroniza tus recetas favoritas y continúa tu camino
+						hacia un bienestar con sabor nicaragüense.
+					</p>
+					<ul>
+						{#each highlights as item}
+							<li>{item}</li>
+						{/each}
+					</ul>
+				</article>
+				<form class="card form" onsubmit={handleSubmit}>
+					<h2>Bienvenido de vuelta</h2>
+					{#each questions as question}
+						<label for={question.id}
+							>{question.label}
+							{#if question.required}
+								<span style="color: red">*</span>
+							{/if}
+						</label>
+						<input
+							name={question.id}
+							type={question.type}
+							placeholder={question.placeholder}
+							required={question.required}
+							bind:value={question.value}
+							oninput={(event) => {
+								const error = question.validator ? question.validator(event.target.value) : '';
+								event.target.setCustomValidity(error || '');
+							}}
+							disabled={loading}
+						/>
 					{/each}
-				</ul>
-			</article>
-			<form class="card form" onsubmit={handleSubmit}>
-				<h2>Bienvenido de vuelta</h2>
-				{#each questions as question}
-					<label for={question.id}
-						>{question.label}
-						{#if question.required}
-							<span style="color: red">*</span>
+					<div class="form-row">
+						<label class="remember">
+							<input name="remember" type="checkbox" /> Recuérdame
+						</label>
+						<a href="#">¿Olvidaste tu contraseña?</a>
+					</div>
+					<button class="btn primary" type="submit" disabled={loading}>
+						{#if loading}
+							Cargando…
+						{:else}
+							Ingresar
 						{/if}
-					</label>
-					<input
-						name={question.id}
-						type={question.type}
-						placeholder={question.placeholder}
-						required={question.required}
-						bind:value={question.value}
-						oninput={(event) => {
-							const error = question.validator ? question.validator(event.target.value) : '';
-							event.target.setCustomValidity(error || '');
-						}}
-						disabled={loading}
-					/>
-				{/each}
-				<div class="form-row">
-					<label class="remember">
-						<input name="remember" type="checkbox" /> Recuérdame
-					</label>
-					<a href="#">¿Olvidaste tu contraseña?</a>
-				</div>
-				<button class="btn primary" type="submit" disabled={loading}>
-					{#if loading}
-						Cargando…
-					{:else}
-						Ingresar
-					{/if}
-				</button>
-				<!-- {#if error}
+					</button>
+					<!-- {#if error}
 					<p class="feedback error">{error}</p>
 				{/if}
 				{#if showSuccess}
 					<p class="feedback success">¡Bienvenido! Redirigiendo…</p>
 				{/if} -->
-				{#if error}
-					<p id="fb-error" class="feedback error">{error}</p>
-				{/if}
-				{#if success}
-					<p id="fb-success" class="feedback success">
-						¡Sesión Iniciada! Preparando tu experiencia…
+					{#if error}
+						<p id="fb-error" class="feedback error">{error}</p>
+					{/if}
+					{#if success}
+						<p id="fb-success" class="feedback success">
+							¡Sesión Iniciada! Preparando tu experiencia…
+						</p>
+					{/if}
+					<p class="signup">
+						¿Aún no tienes cuenta? <a href="/signup">Regístrate aquí</a>
 					</p>
-				{/if}
-				<p class="signup">
-					¿Aún no tienes cuenta? <a href="/signup">Regístrate aquí</a>
-				</p>
-			</form>
-		</div>
-	</section>
-</main>
+				</form>
+			</div>
+		</section>
+	</main>
+{/if}
 
 <style>
 	input {

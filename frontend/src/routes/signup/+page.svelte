@@ -122,8 +122,6 @@
 	]);
 </script>
 
-<Banner />
-
 <main class="signup-page">
 	<section class="hero">
 		<div class="container hero-grid">

@@ -1,65 +1,70 @@
-import { NODE_ENV } from "$env/static/private";
-import { SESSION_ACCESS_COOKIE, SESSION_REFRESH_COOKIE } from "$lib/cookies";
-import { API_LOGIN_ENDPOINT } from "$lib/endpoints";
+// import { NODE_ENV } from '$env/static/private';
+import { SESSION_ACCESS_COOKIE, SESSION_REFRESH_COOKIE } from '$lib/cookies';
+import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
 
-export const POST = async({ request, cookies }) => {
-    let payload
-    try {
-        payload = await request.json();
-        // console.log("Payload: ", payload)
-    } catch {
-        return new Response(JSON.stringify({ error: 'Body inválido' }), { status: 400 });
-    }
+export const POST = async ({ request, cookies }) => {
+	console.log('Using login endpoint');
 
-    try {
-        console.log("Request to " + API_LOGIN_ENDPOINT + " with body:", payload)
+	let payload;
+	try {
+		payload = await request.json();
+		// console.log("Payload: ", payload)
+	} catch {
+		return new Response(JSON.stringify({ error: 'Body inválido' }), { status: 400 });
+	}
 
-        const upstream = await fetch(API_LOGIN_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).catch((err) => {
-            console.log("Communication error: ", err)
-            return new Response(JSON.stringify({ errror: err }), { status: 500 })
-        })
+	try {
+		console.log('Request to ' + API_LOGIN_ENDPOINT + ' with body:', payload);
 
-        console.log("Upstream: ", upstream)
-        const data = await upstream.json();
+		const upstream = await fetch(API_LOGIN_ENDPOINT, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		}).catch((err) => {
+			console.log('Communication error: ', err);
+			return new Response(JSON.stringify({ errror: err }), { status: 500 });
+		});
 
-        if(!upstream.ok) {
-            const message = data?.message ?? `Error desconocido (HTTP ${upstream.status})`;
-            return new Response(JSON.stringify({ error: message }), { status: upstream.status })
-        }
+		console.log('Upstream: ', upstream);
+		const data = await upstream.json();
 
-        console.log("Data:", data)
-        const access = data.access;
-        const refresh = data.refresh;
-        console.log("Access:", access)
+		if (!upstream.ok) {
+			const message = data?.message ?? `Error desconocido (HTTP ${upstream.status})`;
+			return new Response(JSON.stringify({ error: message }), { status: upstream.status });
+		}
 
-        if(!access) {
-            return new Response(JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }), { status: 500 })
-        }
+		console.log('Data:', data);
+		const access = data.access;
+		const refresh = data.refresh;
+		console.log('Access:', access);
 
-        cookies.set(SESSION_ACCESS_COOKIE, access, {
-            path: '/',
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: NODE_ENV == 'production',
-            maxAge: 60 * 60 // 1h
-        });
+		if (!access) {
+			return new Response(
+				JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
+				{ status: 500 }
+			);
+		}
 
-        if (refresh) {
-            cookies.set(SESSION_REFRESH_COOKIE, refresh, {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'lax',
-                secure: NODE_ENV == 'production',
-                maxAge: 60 * 60 * 24 * 7 // 7d
-            });
-        }
+		cookies.set(SESSION_ACCESS_COOKIE, access, {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: true,
+			maxAge: 60 * 60 // 1h
+		});
 
-        return new Response(JSON.stringify({ok: true}), {status: 200})
-    } catch(err) {
-        return new Response(JSON.stringify({ error: err }), { status: 500 })
-    }
-}
+		if (refresh) {
+			cookies.set(SESSION_REFRESH_COOKIE, refresh, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: true,
+				maxAge: 60 * 60 * 24 * 7 // 7d
+			});
+		}
+
+		return new Response(JSON.stringify({ ok: true, user: data.user }), { status: 200 });
+	} catch (err) {
+		return new Response(JSON.stringify({ error: err }), { status: 500 });
+	}
+};

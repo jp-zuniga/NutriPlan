@@ -67,8 +67,6 @@
 	];
 </script>
 
-<Banner />
-
 <main class="plans">
 	<section class="hero">
 		<div class="container hero-inner">

@@ -37,8 +37,6 @@
 	];
 </script>
 
-<Banner />
-
 <main class="chef-ia">
 	<section class="hero">
 		<div class="container hero-grid">

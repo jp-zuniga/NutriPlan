@@ -85,8 +85,6 @@
 	});
 </script>
 
-<Banner />
-
 <main class="planner">
 	<section class="intro">
 		<div class="container intro-inner">

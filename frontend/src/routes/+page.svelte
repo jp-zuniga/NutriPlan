@@ -148,8 +148,6 @@
 	const firstName = (name = '') => name.trim().split(' ')[0] || 'NutriChef';
 </script>
 
-<Banner />
-
 <main class="home">
 	<section class="hero">
 		<div class="container hero-inner">

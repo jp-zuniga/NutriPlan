@@ -74,8 +74,6 @@
 	];
 </script>
 
-<Banner />
-
 <main class="recipes">
 	<section class="hero">
 		<div class="container">
