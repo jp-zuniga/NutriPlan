@@ -102,7 +102,7 @@
 			time: '20 min',
 			rating: 4.6,
 			tags: ['Baja en carbohidratos', 'Refrescante'],
-			image: PlatosTipicos
+			image: 'https://tipsparatuviaje.com/wp-content/uploads/2020/01/carne-en-vaho-2.jpg'
 		}
 	];
 
@@ -177,7 +177,7 @@
 	const firstName = (name = '') => name.trim().split(' ')[0] || 'NutriChef';
 </script>
 
-<div class="home flex direction-col items-center">
+<div class="home flex direction-col items-center no-overflow">
 	<section id="top" class="bg-cream flex justify-center" style="background-color: #C0C78C;">
 		<div class="container regrid-cols-2 pad-20">
 			<div class="content pad-20 bg-white">
@@ -215,10 +215,10 @@
 		</div>
 	</section>
 
-	<section id="star-recipes bg-soft">
-		<div class="container flex direction-col justify-center items-center pad-50">
+	<section id="star-recipes" class="bg-soft-gray">
+		<div class="container flex direction-col justify-center items-center pad-50 gap-16">
 			<p class="h3">Recetas Destacadas</p>
-			<div class="flex gap-16 ov-scroll-x">
+			<div class="flex gap-16 ov-auto-x pad-10 limit-width no-shrink">
 				{#each featuredRecipes as recipe}
 					<RecipeCard {recipe} />
 				{/each}
