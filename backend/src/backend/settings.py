@@ -5,6 +5,7 @@ Global Django settings for NutriPlan.
 from datetime import timedelta
 from os import getenv
 from pathlib import Path
+from sys import argv
 
 from dj_database_url import config as db_config
 from dotenv import load_dotenv
@@ -159,3 +160,19 @@ TEMPLATES = [
         },
     },
 ]
+
+#######################################################################################
+
+TESTING_DATABASE_URL = getenv("TESTING_DATABASE_URL")
+RUNNING_TESTS = bool(
+    getenv("PYTEST_CURRENT_TEST") or any("pytest" in arg for arg in argv)
+)
+
+if RUNNING_TESTS:
+    if TESTING_DATABASE_URL:
+        DATABASES["default"] = db_config(
+            default=TESTING_DATABASE_URL, conn_max_age=3, conn_health_checks=False
+        )
+    else:
+        msg = "Define TEST_DATABASE_URL para tests."
+        raise RuntimeError(msg)

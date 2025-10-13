@@ -29,7 +29,7 @@
 
 [tool.pytest.ini_options]
     DJANGO_SETTINGS_MODULE = "backend.settings"
-    addopts                = "-q --reuse-db --nomigrations --cov=nutriplan --cov-report=term-missing"
+    addopts                = "-q --reuse-db --cov=nutriplan --cov-report=term-missing"
     console_output_style   = "count"
     testpaths              = ["nutriplan/tests", "src/nutriplan/tests", "tests"]
 
