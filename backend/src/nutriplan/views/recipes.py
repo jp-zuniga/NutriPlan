@@ -21,19 +21,31 @@ from nutriplan.serializers import (
     ReviewSerializer,
 )
 
+MACRO_FIELD_MAP: dict[str, str] = {
+    "calories": "calories_per_serving",
+    "protein": "protein_per_serving",
+    "carbs": "carbs_per_serving",
+    "fat": "fat_per_serving",
+    "sugar": "sugar_per_serving",
+}
+
 
 def _parse_uuid_list(value: str | None) -> list[UUID]:
     if not value:
         return []
+
     out: list[UUID] = []
+
     for part in value.split(","):
         s = part.strip()
         if not s:
             continue
+
         try:
             out.append(UUID(s))
         except (ValueError, TypeError):
             continue
+
     return out
 
 
@@ -95,6 +107,7 @@ class RecipeViewSet(ReadOnlyModelViewSet):
 
         params = self.request.GET
         category = params.get("category")
+
         if category:
             if category.isdigit():
                 qs = qs.filter(category_id=int(category))
@@ -108,15 +121,7 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if time_max and time_max.isdigit():
             qs = qs.filter(total_time__lte=int(time_max))
 
-        macro_map = {
-            "calories": "calories_per_serving",
-            "protein": "protein_per_serving",
-            "carbs": "carbs_per_serving",
-            "fat": "fat_per_serving",
-            "sugar": "sugar_per_serving",
-        }
-
-        for key, field in macro_map.items():
+        for key, field in MACRO_FIELD_MAP.items():
             vmin = params.get(f"{key}_min")
             vmax = params.get(f"{key}_max")
             if vmin:
@@ -135,10 +140,16 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
-        return qs.annotate(
+        qs = qs.annotate(
             rating_avg=Avg("reviews__rating"),
             rating_count=Count("reviews", distinct=True),
         )
+
+        sort_macro = (params.get("sort_macro") or "").strip().lower()
+        if sort_macro in MACRO_FIELD_MAP:
+            qs = qs.order_by(f"-{MACRO_FIELD_MAP[sort_macro]}", "-created_at", "name")
+
+        return qs
 
     @action(detail=True, methods=["get"], permission_classes=[AllowAny])
     def reviews(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
