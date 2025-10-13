@@ -18,13 +18,13 @@ pytestmark = mark.django_db
 
 
 def test_me_get_and_patch(auth_client: tuple[APIClient, UserFactory]) -> None:
-    client, _ = auth_client
+    client, user = auth_client
 
     url = reverse("user-me")
     res = client.get(url)
 
     assert res.status_code == HTTP_200_OK
-    assert client.user.email == res.data["email"]
+    assert user.email == res.data["email"]
 
     res2 = client.patch(url, {"first_name": "Nuevo"})
 

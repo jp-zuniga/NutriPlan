@@ -5,13 +5,7 @@ from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
-from factory.declarations import (
-    LazyAttribute,
-    LazyFunction,
-    PostGenerationMethodCall,
-    Sequence,
-    SubFactory,
-)
+from factory.declarations import LazyAttribute, LazyFunction, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker as FactoryFaker
 from faker import Faker
@@ -44,7 +38,6 @@ class UserFactory(DjangoModelFactory):
     is_active = True
     is_staff = False
     is_superuser = False
-    password = PostGenerationMethodCall("set_password", "secret1234")
 
 
 class DietaryRestrictionFactory(DjangoModelFactory):

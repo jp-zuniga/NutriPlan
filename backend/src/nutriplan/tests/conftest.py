@@ -46,6 +46,9 @@ def client() -> APIClient:
 @fixture
 def auth_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     user = UserFactory()
+    user.set_password("secret1234")
+    user.save(update_fields=["password"])
+
     refresh = RefreshToken.for_user(user)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token!s}")
     return client, user
@@ -54,6 +57,9 @@ def auth_client(client: APIClient) -> tuple[APIClient, UserFactory]:
 @fixture
 def staff_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     user = UserFactory(is_staff=True, is_superuser=True)
+    user.set_password("secret1234")
+    user.save(update_fields=["password"])
+
     refresh = RefreshToken.for_user(user)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token!s}")
     return client, user
