@@ -5,11 +5,9 @@ Service layer for handling operations related to Recipe objects.
 from collections.abc import Iterable
 
 from django.db.models.manager import BaseManager
-from rest_framework.exceptions import ValidationError
+from django.db.transaction import atomic
 
 from nutriplan.models import Category, Recipe
-
-from .llm.utils import ensure_category
 
 
 class RecipeService:
@@ -76,24 +74,25 @@ class RecipeService:
         """
 
         category = recipe_data.get("category")
+        category_obj: Category | None = None
+
         if isinstance(category, str):
-            category_obj = ensure_category(category)
+            category_obj = Category.objects.filter(name__iexact=category).first()
+            if not category_obj:
+                category_obj = Category.objects.create(
+                    name=category, friendly_name=category
+                )
         elif isinstance(category, Category):
             category_obj = category
-        else:
-            category_obj = None
 
-        if not category or not category_obj:
-            msg = "An existing category must be provided."
-            raise ValidationError(msg)
-
-        recipe = Recipe.objects.create(
-            name=str(recipe_data["name"]),
-            description=str(recipe_data["description"]),
-            category=category_obj,
-            prep_time=int(recipe_data.get("prep_time") or 0),
-            cook_time=int(recipe_data.get("cook_time") or 0),
-        )
+        with atomic():
+            recipe = Recipe.objects.create(
+                name=recipe_data["name"],
+                description=recipe_data["description"],
+                category=category_obj,
+                prep_time=recipe_data.get("prep_time", 0),
+                cook_time=recipe_data.get("cook_time", 0),
+            )
 
         for ingredient_data in ingredients_data:
             recipe.ingredients.add(
