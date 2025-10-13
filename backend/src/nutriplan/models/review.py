@@ -45,7 +45,9 @@ class Review(BaseModel):
         constraints: ClassVar[list[CheckConstraint | UniqueConstraint]] = [
             UniqueConstraint(fields=["user", "recipe"], name="uniq_review_user_recipe"),
             CheckConstraint(
-                check=Q(rating__gte=1) & Q(rating__lte=5), name="chk_rating_1_5"
+                check=None,
+                condition=Q(rating__gte=1) & Q(rating__lte=5),  # type: ignore[reportCallIssue]
+                name="chk_rating_1_5",
             ),
         ]
 

@@ -1,8 +1,15 @@
+# environments
 .env
 .venv
 
+# pytest
+.coverage
+.pytest_cache
+
+# dev stuff
 .vscode
 .ruff_cache
 
+# bytecode
 __pycache__
 

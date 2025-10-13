@@ -3,7 +3,6 @@ User service for managing user creation and dietary restrictions.
 """
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
 
 from nutriplan.models import CustomUser as User, DietaryRestriction
 
@@ -16,7 +15,7 @@ class UserService:
     """
 
     @staticmethod
-    def create_user(user_data: dict[str, str]) -> AbstractUser:
+    def create_user(user_data: dict[str, str]) -> User:
         """
         Creates a new user with the provided user data.
 
@@ -28,7 +27,7 @@ class UserService:
                 - "last_name":  last name of the user, defaults to empty string.
 
         Returns:
-            AbstractUser: created user instance.
+            CustomUser: created user instance.
 
         """
 
@@ -59,7 +58,7 @@ class UserService:
             restriction_name: Name of dietary restriction to add.
 
         Returns:
-            User: Updated user instance with new dietary restriction.
+            CustomUser: Updated user instance with new dietary restriction.
 
         """
 
@@ -68,7 +67,7 @@ class UserService:
         return user
 
     @staticmethod
-    def get_user_with_restrictions(user_id: int) -> AbstractUser:
+    def get_user_with_restrictions(user_id: int) -> User:
         """
         Retrieve a CustomUser instance along with its related dietary restrictions.
 
@@ -82,4 +81,4 @@ class UserService:
 
         return CustomUser.objects.prefetch_related("dietary_restrictions").get(
             id=user_id
-        )
+        )  # type: ignore[reportReturnType]

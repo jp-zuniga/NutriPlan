@@ -27,9 +27,9 @@ router.register("users", UserViewSet, basename="user")
 
 urlpatterns: list[URLResolver | URLPattern] = [
     path("", include(router.urls)),
-    re_path(r"^auth/google/?$", google_sign_in),
-    re_path(r"^auth/login/?$", login_user),
-    re_path(r"^auth/register/?$", register_user),
-    re_path(r"^auth/refresh/?$", TokenRefreshView.as_view()),
-    re_path(r"^auth/verify/?$", TokenVerifyView.as_view()),
+    re_path(r"^auth/google/?$", google_sign_in, name="google_sign_in"),
+    re_path(r"^auth/login/?$", login_user, name="login_user"),
+    re_path(r"^auth/register/?$", register_user, name="register_user"),
+    re_path(r"^auth/refresh/?$", TokenRefreshView.as_view(), name="token_refresh"),
+    re_path(r"^auth/verify/?$", TokenVerifyView.as_view(), name="token_verify"),
 ]

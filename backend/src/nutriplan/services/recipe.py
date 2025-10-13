@@ -5,8 +5,9 @@ Service layer for handling operations related to Recipe objects.
 from collections.abc import Iterable
 
 from django.db.models.manager import BaseManager
+from django.db.transaction import atomic
 
-from nutriplan.models import Recipe
+from nutriplan.models import Category, Recipe
 
 
 class RecipeService:
@@ -72,13 +73,26 @@ class RecipeService:
 
         """
 
-        recipe = Recipe.objects.create(
-            name=recipe_data["name"],
-            description=recipe_data["description"],
-            category=recipe_data.get("category"),
-            prep_time=recipe_data.get("prep_time", 0),
-            cook_time=recipe_data.get("cook_time", 0),
-        )
+        category = recipe_data.get("category")
+        category_obj: Category | None = None
+
+        if isinstance(category, str):
+            category_obj = Category.objects.filter(name__iexact=category).first()
+            if not category_obj:
+                category_obj = Category.objects.create(
+                    name=category, friendly_name=category
+                )
+        elif isinstance(category, Category):
+            category_obj = category
+
+        with atomic():
+            recipe = Recipe.objects.create(
+                name=recipe_data["name"],
+                description=recipe_data["description"],
+                category=category_obj,
+                prep_time=recipe_data.get("prep_time", 0),
+                cook_time=recipe_data.get("cook_time", 0),
+            )
 
         for ingredient_data in ingredients_data:
             recipe.ingredients.add(
