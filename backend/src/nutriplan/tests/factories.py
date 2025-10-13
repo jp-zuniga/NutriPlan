@@ -1,3 +1,5 @@
+# type: ignore[reportIncompatibleVariableOverride]
+
 from decimal import Decimal
 from uuid import uuid4
 
@@ -11,6 +13,7 @@ from factory.declarations import (
     SubFactory,
 )
 from factory.django import DjangoModelFactory
+from factory.faker import Faker as FactoryFaker
 from faker import Faker
 
 from nutriplan.models import (
@@ -25,13 +28,14 @@ from nutriplan.models import (
     Review,
 )
 
-fake = Faker("es_NI")
+fake = Faker("es")
 User = get_user_model()
 
 
 class UserFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = User
+        skip_postgeneration_save = True
 
     id = LazyFunction(uuid4)
     email = LazyAttribute(lambda _: fake.unique.email().lower())
@@ -44,7 +48,7 @@ class UserFactory(DjangoModelFactory):
 
 
 class DietaryRestrictionFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = DietaryRestriction
 
     id = LazyFunction(uuid4)
@@ -52,22 +56,22 @@ class DietaryRestrictionFactory(DjangoModelFactory):
 
 
 class CategoryFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = Category
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.word().capitalize())
     friendly_name = LazyAttribute(lambda obj: obj.name)
-    description = Faker("sentence")
+    description = FactoryFaker("sentence")
 
 
 class IngredientFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = Ingredient
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.word().capitalize())
-    description = Faker("sentence")
+    description = FactoryFaker("sentence")
     calories_per_100g = Decimal("100.00")
     protein_per_100g = Decimal("10.00")
     carbs_per_100g = Decimal("10.00")
@@ -76,24 +80,22 @@ class IngredientFactory(DjangoModelFactory):
 
 
 class ImageFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = Image
 
     id = LazyFunction(uuid4)
-    url = LazyAttribute(
-        lambda _: f"https://picsum.photos/seed/{uuid4()}/800/600"
-    )
-    alt_text = Faker("sentence")
+    url = LazyAttribute(lambda _: f"https://picsum.photos/seed/{uuid4()}/800/600")
+    alt_text = FactoryFaker("sentence")
 
 
 class RecipeFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = Recipe
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.sentence(nb_words=3).rstrip("."))
     slug = LazyAttribute(lambda obj: slugify(obj.name))
-    description = Faker("paragraph")
+    description = FactoryFaker("paragraph")
     category = SubFactory(CategoryFactory)
     prep_time = 10
     cook_time = 20
@@ -109,7 +111,7 @@ class RecipeFactory(DjangoModelFactory):
 
 
 class RecipeIngredientFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = RecipeIngredient
 
     id = LazyFunction(uuid4)
@@ -120,30 +122,30 @@ class RecipeIngredientFactory(DjangoModelFactory):
 
 
 class ReviewFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = Review
 
     id = LazyFunction(uuid4)
     user = SubFactory(UserFactory)
     recipe = SubFactory(RecipeFactory)
     rating = 4
-    comment = Faker("sentence")
+    comment = FactoryFaker("sentence")
 
 
 class RecipeCollectionFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = RecipeCollection
 
     id = LazyFunction(uuid4)
     owner = SubFactory(UserFactory)
     name = LazyAttribute(lambda _: f"Lista {fake.word().capitalize()}")
     slug = LazyAttribute(lambda obj: slugify(obj.name))
-    description = Faker("sentence")
+    description = FactoryFaker("sentence")
     is_public = False
 
 
 class CollectionItemFactory(DjangoModelFactory):
-    class Meta(DjangoModelFactory.Meta):
+    class Meta:
         model = CollectionItem
 
     id = LazyFunction(uuid4)

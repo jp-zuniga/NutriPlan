@@ -1,3 +1,5 @@
+# type: ignore[reportAttributeAccessIssue]
+
 from django.urls import reverse
 from pytest import mark
 from rest_framework.status import (
@@ -10,40 +12,50 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
+from .factories import UserFactory
+
 pytestmark = mark.django_db
 
 
-def test_me_get_and_patch(auth_client: APIClient) -> None:
+def test_me_get_and_patch(auth_client: tuple[APIClient, UserFactory]) -> None:
+    client, _ = auth_client
+
     url = reverse("user-me")
-    res = auth_client.get(url)
+    res = client.get(url)
 
     assert res.status_code == HTTP_200_OK
-    assert res.json()["email"] == auth_client.user.email
+    assert client.user.email == res.data["email"]
 
-    res2 = auth_client.patch(url, {"first_name": "Nuevo"})
+    res2 = client.patch(url, {"first_name": "Nuevo"})
 
     assert res2.status_code == HTTP_200_OK
-    assert res2.json()["first_name"] == "Nuevo"
+    assert res2.data["first_name"] == "Nuevo"
 
 
-def test_change_password(auth_client: APIClient) -> None:
+def test_change_password(auth_client: tuple[APIClient, UserFactory]) -> None:
+    client, _ = auth_client
+
     url = reverse("user-change-password")
-    res_bad = auth_client.post(url, {"current_password": "mal", "new_password": "xx"})
+    res_bad = client.post(url, {"current_password": "mal", "new_password": "xx"})
 
     assert res_bad.status_code in (HTTP_400_BAD_REQUEST, HTTP_422_UNPROCESSABLE_ENTITY)
 
-    res_ok = auth_client.post(
+    res_ok = client.post(
         url, {"current_password": "secret1234", "new_password": "otra_clave_123"}
     )
 
     assert res_ok.status_code == HTTP_204_NO_CONTENT
 
 
-def test_user_list_requires_admin(auth_client: APIClient, client: APIClient) -> None:
+def test_user_list_requires_admin(
+    auth_client: tuple[APIClient, UserFactory], client: APIClient
+) -> None:
+    a_client, _ = auth_client
+
     url = reverse("user-list")
 
     assert client.get(url).status_code in (HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN)
-    assert auth_client.get(url).status_code in (
+    assert a_client.get(url).status_code in (
         HTTP_401_UNAUTHORIZED,
         HTTP_403_FORBIDDEN,
     )
