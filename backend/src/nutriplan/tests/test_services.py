@@ -6,7 +6,7 @@ from pytest import mark
 
 from nutriplan.services import RecipeService, UserService
 
-from .factories import IngredientFactory
+from .factories import CategoryFactory, IngredientFactory, RecipeFactory
 
 if TYPE_CHECKING:
     from nutriplan.models import CustomUser
@@ -34,6 +34,15 @@ def test_user_service_create_and_restriction() -> None:
     user.refresh_from_db()
 
     assert user.dietary_restrictions.filter(name__iexact=TEST_DIET_RESTRICTION).exists()
+
+
+def test_get_recipes_by_category() -> None:
+    cat = CategoryFactory(name="Desayuno", friendly_name="Desayuno")
+    r1 = RecipeFactory(category=cat)
+    _ = RecipeFactory()
+
+    qs = RecipeService.get_recipes_by_category("Desayuno")
+    assert list(qs) == [r1]
 
 
 def test_recipe_service_get_with_ingredients() -> None:

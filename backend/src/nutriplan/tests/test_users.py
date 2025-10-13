@@ -8,6 +8,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
+    HTTP_405_METHOD_NOT_ALLOWED,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 from rest_framework.test import APIClient
@@ -59,3 +60,21 @@ def test_user_list_requires_admin(
         HTTP_401_UNAUTHORIZED,
         HTTP_403_FORBIDDEN,
     )
+
+
+def test_user_list_as_admin(staff_client: tuple[APIClient, UserFactory]) -> None:
+    client, _ = staff_client
+
+    url = reverse("user-list")
+    res = client.get(url)
+
+    assert res.status_code == HTTP_200_OK
+
+
+def test_user_create_is_blocked(staff_client: tuple[APIClient, UserFactory]) -> None:
+    client, _ = staff_client
+
+    url = reverse("user-list")
+    res = client.post(url, {})
+
+    assert res.status_code == HTTP_405_METHOD_NOT_ALLOWED
