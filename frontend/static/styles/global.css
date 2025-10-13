@@ -319,6 +319,14 @@ hr {
   text-align: center;
 }
 
+.txt-left {
+  text-align: left;
+}
+
+.txt-right {
+  text-align: right;
+}
+
 .p-emphasis {
   color: var(--color-emphasis);
   text-decoration: underline;
@@ -395,4 +403,12 @@ hr {
 
 .soft-outline {
   outline: 1px solid rgba(0,0,0,0.1);
+}
+
+.no-border {
+  border: none;
+}
+
+.no-pad {
+  padding: 0px;
 }

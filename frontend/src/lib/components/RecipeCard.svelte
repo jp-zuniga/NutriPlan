@@ -8,7 +8,11 @@
 	}
 </script>
 
-<div class="recipe-card grid no-gap bg-white soft-outline">
+<button
+	class="recipe-card grid no-gap bg-white soft-outline no-border no-pad"
+	onclick={gotoRecipe}
+	aria-roledescription="Open Recipe"
+>
 	<div class="image-container no-overflow rel-pos">
 		<img class="fit-cover full-size" src={recipe.image} alt={recipe.title} />
 		<div
@@ -20,7 +24,7 @@
 		</div>
 	</div>
 
-	<div class="recipe-info pad-20 flex direction-col gap-8">
+	<div class="recipe-info pad-20 flex direction-col gap-8 txt-left">
 		<div class="recipe-title bold md-p">{recipe.title}</div>
 		<div class="attributes flex gap-16">
 			<div class="recipe-time p-ghost sm-p">{recipe.time}</div>
@@ -35,7 +39,7 @@
 			{/each}
 		</div>
 	</div>
-</div>
+</button>
 
 <style>
 	:root {
@@ -52,6 +56,8 @@
 
 		grid-template-rows: 3fr 2fr;
 		cursor: pointer;
+
+		transition: 0.25s ease;
 	}
 
 	.recipe-card:hover,
