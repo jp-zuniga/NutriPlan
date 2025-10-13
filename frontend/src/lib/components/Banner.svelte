@@ -79,8 +79,8 @@
 					<button type="button" onclick={handleLogout}>Salir</button>
 				</div>
 			{:else if $authUser === null}
-				<a class="ghost" href="/login">Ingresar</a>
-				<a class="primary" href="/signup">Regístrate</a>
+				<a class="btn ghost" href="/login">Ingresar</a>
+				<a class="btn primary" href="/signup">Regístrate</a>
 			{/if}
 		</div>
 	</div>
@@ -94,6 +94,7 @@
 		backdrop-filter: blur(16px);
 		background: rgba(255, 255, 255, 0.82);
 		border-bottom: 1px solid rgba(8, 44, 36, 0.08);
+		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 	}
 
 	.nav-inner {
@@ -201,20 +202,19 @@
 		gap: 0.9rem;
 	}
 
-	.nav-cta a {
+	/* .nav-cta a {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		padding: 0.55rem 1.2rem;
-		border-radius: 999px;
 		text-decoration: none;
 		font-weight: 600;
 		font-size: 0.95rem;
 		transition:
 			transform 0.2s ease,
 			box-shadow 0.2s ease;
-	}
-
+	} */
+	/* 
 	.nav-cta .ghost {
 		background: rgba(8, 44, 36, 0.05);
 		color: var(--color-forest, #05463a);
@@ -228,12 +228,12 @@
 		background: var(--gradient-leaf, linear-gradient(135deg, #0fb872 0%, #53d5a5 100%));
 		color: white;
 		box-shadow: 0 12px 24px rgba(15, 184, 114, 0.28);
-	}
+	} */
 
-	.nav-cta .primary:hover {
+	/* .nav-cta .primary:hover {
 		transform: translateY(-2px);
 		box-shadow: 0 18px 28px rgba(15, 184, 114, 0.32);
-	}
+	} */
 
 	.user-pill {
 		display: flex;

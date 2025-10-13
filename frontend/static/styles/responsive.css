@@ -1,0 +1,146 @@
+/* =======================
+   Breakpoints (px)
+   ======================= */
+:root{
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /* Tipografía fluida base */
+  --fs-body: clamp(0.95rem, 0.35vw + 0.85rem, 1.05rem);
+  --fs-h1: clamp(1.9rem, 2.8vw + 1rem, 3rem);
+  --fs-h2: clamp(1.6rem, 2.2vw + .9rem, 2.4rem);
+  --fs-h3: clamp(1.25rem, 1.2vw + .9rem, 1.6rem);
+}
+
+/* Tipografía fluida aplicada */
+body{ font-size: var(--fs-body); }
+h1{ font-size: var(--fs-h1); }
+h2{ font-size: var(--fs-h2); }
+h3{ font-size: var(--fs-h3); }
+
+/* =======================
+   Container & Sections
+   ======================= */
+.container{
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+.section{ padding-block: clamp(40px, 6vw, 84px); }
+
+/* =======================
+   Grid Responsive
+   ======================= */
+.grid{ display: grid; gap: clamp(12px, 2.2vw, 28px); }
+.grid-cols-1{ grid-template-columns: 1fr; }
+.grid-cols-2{ grid-template-columns: repeat(auto-fit, minmax(0,1fr)); }
+.grid-cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+.grid-cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+
+/* Modificadores por breakpoint */
+@media (min-width: 768px){
+  .md-grid-cols-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .md-grid-cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .md-grid-cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+}
+@media (min-width: 1024px){
+  .lg-grid-cols-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .lg-grid-cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .lg-grid-cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+}
+
+.regrid, .regrid-cols-2, .regrid-cols-3, .regrid-cols-4 {
+    display: grid;
+}
+
+@media (min-width: 600px) {
+    .regrid, .regrid-cols-2, .regrid-cols-3, .regrid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 900px) {
+    .regrid, .regrid-cols-3, .regrid-cols-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .regrid, .regrid-cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Col-span sencillos (útiles en tarjetas) */
+.col-span-2{ grid-column: span 2 / span 2; }
+@media (max-width: 767.98px){ .col-span-2{ grid-column: auto; } }
+
+/* =======================
+   Flex Helpers
+   ======================= */
+.flex{ display:flex; }
+.inline-flex{ display:inline-flex; }
+.wrap{ flex-wrap: wrap; }
+.direction-col{ flex-direction: column; }
+.items-center{ align-items: center; }
+.items-start{ align-items: flex-start; }
+.items-end{ align-items: flex-end; }
+.justify-between{ justify-content: space-between; }
+.justify-center{ justify-content: center; }
+.gap-8{ gap: 8px; } .gap-12{ gap: 12px; } .gap-16{ gap: 16px; } .gap-24{ gap: 24px; }
+
+/* Stacks verticales reutilizables */
+.stack > * + *{ margin-top: var(--stack, 1rem); }
+
+/* =======================
+   Imágenes / Media
+   ======================= */
+.img-fluid{ max-width: 100%; height: auto; display:block; }
+.cover{ object-fit: cover; width:100%; height:100%; border-radius: inherit; }
+.ratio-16x9{ aspect-ratio: 16/9; }
+.ratio-4x5{ aspect-ratio: 4/5; }
+.ratio-1x1{ aspect-ratio: 1/1; }
+
+/* =======================
+   Visibilidad
+   ======================= */
+.hide-sm{ display:none; }
+@media (min-width: 768px){ .hide-sm{ display: initial; } }
+
+.show-sm{ display: initial; }
+@media (min-width: 768px){ .show-sm{ display: none; } }
+
+.hidden{ display:none !important; }
+
+/* =======================
+   Espaciados utilitarios
+   ======================= */
+.px-16{ padding-inline:16px; } .px-24{ padding-inline:24px; }
+.py-16{ padding-block:16px; } .py-24{ padding-block:24px; }
+.mt-8{ margin-top:8px; } .mt-16{ margin-top:16px; } .mt-24{ margin-top:24px; }
+.mb-8{ margin-bottom:8px; } .mb-16{ margin-bottom:16px; } .mb-24{ margin-bottom:24px; }
+
+/* =======================
+   Cards responsivas
+   ======================= */
+.card--responsive{
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px){
+  .card--responsive{
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+  }
+}
+
+/* =======================
+   Contenedores anchos según breakpoint
+   ======================= */
+@media (min-width: 640px){  .container{ max-width: 640px; } }
+@media (min-width: 768px){  .container{ max-width: 768px; } }
+@media (min-width: 1024px){ .container{ max-width: 1024px; } }
+@media (min-width: 1280px){ .container{ max-width: 1200px; } } /* tu tope */
