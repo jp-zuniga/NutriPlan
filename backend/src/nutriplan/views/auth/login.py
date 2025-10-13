@@ -30,7 +30,7 @@ def login_user(request: Request) -> Response:
 
     """
 
-    email = request.data.get("email").strip().lower() or ""  # type: ignore[reportAttributeAccessIssue]
+    email = request.data.get("email", "").strip().lower() or ""  # type: ignore[reportAttributeAccessIssue]
     password = request.data.get("password")  # type: ignore[reportAttributeAccessIssue]
 
     if not email or not password:
