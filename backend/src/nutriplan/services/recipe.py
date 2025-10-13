@@ -5,8 +5,11 @@ Service layer for handling operations related to Recipe objects.
 from collections.abc import Iterable
 
 from django.db.models.manager import BaseManager
+from rest_framework.exceptions import ValidationError
 
-from nutriplan.models import Recipe
+from nutriplan.models import Category, Recipe
+
+from .llm.utils import ensure_category
 
 
 class RecipeService:
@@ -72,12 +75,24 @@ class RecipeService:
 
         """
 
+        category = recipe_data.get("category")
+        if isinstance(category, str):
+            category_obj = ensure_category(category)
+        elif isinstance(category, Category):
+            category_obj = category
+        else:
+            category_obj = None
+
+        if not category or not category_obj:
+            msg = "An existing category must be provided."
+            raise ValidationError(msg)
+
         recipe = Recipe.objects.create(
-            name=recipe_data["name"],
-            description=recipe_data["description"],
-            category=recipe_data.get("category"),
-            prep_time=recipe_data.get("prep_time", 0),
-            cook_time=recipe_data.get("cook_time", 0),
+            name=str(recipe_data["name"]),
+            description=str(recipe_data["description"]),
+            category=category_obj,
+            prep_time=int(recipe_data.get("prep_time") or 0),
+            cook_time=int(recipe_data.get("cook_time") or 0),
         )
 
         for ingredient_data in ingredients_data:
