@@ -137,9 +137,21 @@ class Recipe(BaseModel):
         """
 
         constraints: ClassVar[list[CheckConstraint | UniqueConstraint]] = [
-            CheckConstraint(check=Q(prep_time__gte=0), name="chk_rec_prep_ge_0"),
-            CheckConstraint(check=Q(cook_time__gte=0), name="chk_rec_cook_ge_0"),
-            CheckConstraint(check=Q(servings__gte=0), name="chk_rec_serv_ge_0"),
+            CheckConstraint(
+                check=None,
+                condition=Q(prep_time__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_rec_prep_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(cook_time__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_rec_cook_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(servings__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_rec_serv_ge_0",
+            ),
             UniqueConstraint(Lower("slug"), name="uniq_recipe_slug_ci"),
         ]
 
@@ -241,7 +253,11 @@ class RecipeIngredient(BaseModel):
         """
 
         constraints: tuple[CheckConstraint, UniqueConstraint] = (
-            CheckConstraint(check=Q(amount__gt=0), name="chk_ri_amount_gt_0"),
+            CheckConstraint(
+                check=None,
+                condition=Q(amount__gt=0),  # type: ignore[reportCallIssue]
+                name="chk_ri_amount_gt_0",
+            ),
             UniqueConstraint(
                 fields=["recipe", "ingredient"],
                 name="unique_recipe_ingredient",
