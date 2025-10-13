@@ -1,3 +1,5 @@
+# type: ignore[reportAttributeAccessIssue]
+
 from django.urls import reverse
 from pytest import MonkeyPatch, mark
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
@@ -21,20 +23,20 @@ def test_register_and_login(client: APIClient) -> None:
     res = client.post(reg, payload, format="json")
 
     assert res.status_code == HTTP_201_CREATED
-    assert "access" in res.json()
-    assert "refresh" in res.json()
+    assert "access" in res.data
+    assert "refresh" in res.data
 
     login = reverse("login_user")
     res2 = client.post(login, {"email": "ana@example.com", "password": "superclave123"})
 
     assert res2.status_code == HTTP_200_OK
-    assert "access" in res2.json()
+    assert "access" in res2.data
 
 
 def test_google_sign_in_creates_user(
     monkeypatch: MonkeyPatch, client: APIClient
 ) -> None:
-    def fake_verify(token: str) -> dict[str, str]:
+    def fake_verify(_token: str) -> dict[str, str]:
         return {
             "email": "gg@example.com",
             "sub": "google-sub-123",
@@ -50,7 +52,7 @@ def test_google_sign_in_creates_user(
 
     assert res.status_code in (HTTP_200_OK, HTTP_201_CREATED)
 
-    data = res.json()
+    data = res.data
 
     assert data["user"]["email"] == "gg@example.com"
     assert "access" in data
@@ -62,7 +64,7 @@ def test_google_sign_in_existing_sa_updates(
 ) -> None:
     test_google_sign_in_creates_user(monkeypatch, client)
 
-    def fake_verify2(token: str) -> dict[str, str]:
+    def fake_verify2(_token: str) -> dict[str, str]:
         return {
             "email": "gg@example.com",
             "sub": "google-sub-123",
@@ -77,4 +79,4 @@ def test_google_sign_in_existing_sa_updates(
     res = client.post(url, {"id_token": "fake"})
 
     assert res.status_code == HTTP_200_OK
-    assert res.json()["created"] is False
+    assert res.data["created"] is False

@@ -1,3 +1,5 @@
+# type: ignore[reportAttributeAccessIssue]
+
 from decimal import Decimal
 
 from django.urls import reverse
@@ -43,9 +45,9 @@ def test_filter_by_category_name(client: APIClient) -> None:
     assert res.status_code == HTTP_200_OK
 
     slugs = (
-        [row["slug"] for row in res.json()["results"]]
-        if "results" in res.json()
-        else [r["slug"] for r in res.json()]
+        [row["slug"] for row in res.data["results"]]
+        if "results" in res.data
+        else [r["slug"] for r in res.data]
     )
 
     assert r1.slug in slugs
@@ -66,8 +68,12 @@ def test_include_ingredients_match_all(client: APIClient) -> None:
 
     assert res.status_code == HTTP_200_OK
 
-    data = res.json()
-    rows = data.get("results", data)
+    rows = (
+        res.data["results"]
+        if isinstance(res.data, dict) and "results" in res.data
+        else res.data
+    )
+
     names = [r["name"] for r in rows]
 
     assert "Tiene A y B" in names
@@ -83,23 +89,33 @@ def test_exclude_ingredients(client: APIClient) -> None:
 
     assert res.status_code == HTTP_200_OK
 
-    rows = res.json()["results"] if "results" in res.json() else res.json()
+    rows = (
+        res.data["results"]
+        if isinstance(res.data, dict) and "results" in res.data
+        else res.data
+    )
+
     names = [r["name"] for r in rows]
 
     assert "Sin excluir" not in names
 
 
 def test_sort_macro_desc(client: APIClient) -> None:
-    r_low = RecipeFactory(protein_per_serving=Decimal("5.0"))
-    r_mid = RecipeFactory(protein_per_serving=Decimal("15.0"))
-    r_hi = RecipeFactory(protein_per_serving=Decimal("25.0"))
+    _ = RecipeFactory(protein_per_serving=Decimal("5.0"))
+    _ = RecipeFactory(protein_per_serving=Decimal("15.0"))
+    _ = RecipeFactory(protein_per_serving=Decimal("25.0"))
 
     url = reverse("recipe-list") + "?sort_macro=protein"
     res = client.get(url)
 
     assert res.status_code == HTTP_200_OK
 
-    rows = res.json()["results"] if "results" in res.json() else res.json()
+    rows = (
+        res.data["results"]
+        if isinstance(res.data, dict) and "results" in res.data
+        else res.data
+    )
+
     proteins = [Decimal(str(r["protein_per_serving"])) for r in rows]
 
     assert proteins == sorted(proteins, reverse=True)
@@ -107,8 +123,8 @@ def test_sort_macro_desc(client: APIClient) -> None:
 
 def test_recipe_reviews_subendpoint(client: APIClient) -> None:
     r = RecipeFactory()
+    u1, u2 = users = UserFactory(), UserFactory()
 
-    u1, u2 = UserFactory(), UserFactory()
     Review.objects.create(user=u1, recipe=r, rating=5, comment="Top")
     Review.objects.create(user=u2, recipe=r, rating=3, comment="Ok")
     url = reverse("recipe-reviews", kwargs={"slug": r.slug})
@@ -116,19 +132,21 @@ def test_recipe_reviews_subendpoint(client: APIClient) -> None:
 
     assert res.status_code == HTTP_200_OK
 
-    body = res.json()
+    body = res.data
 
-    assert len(body) == 2
+    assert len(body) == len(users)
     assert {row["rating"] for row in body} == {3, 5}
 
 
-def test_recipe_rate_action(auth_client: APIClient) -> None:
+def test_recipe_rate_action(auth_client: tuple[APIClient, UserFactory]) -> None:
+    client, _ = auth_client
+
     r = RecipeFactory()
     url = reverse("recipe-rate", kwargs={"slug": r.slug})
-    res = auth_client.post(url, {"rating": 4, "comment": "rico"})
+    res = client.post(url, {"rating": 4, "comment": "rico"})
 
     assert res.status_code == HTTP_201_CREATED
 
-    res2 = auth_client.post(url, {"rating": 5})
+    res2 = client.post(url, {"rating": 5})
 
     assert res2.status_code in (HTTP_400_BAD_REQUEST, HTTP_402_PAYMENT_REQUIRED)

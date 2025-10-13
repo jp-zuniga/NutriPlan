@@ -59,7 +59,7 @@ def test_recipe_ingredient_unique_per_recipe() -> None:
         RecipeIngredient.objects.create(
             recipe=r,
             ingredient=ing,
-            amount=TEST_INGREDIENT_UNIT * 2,
+            amount=TEST_INGREDIENT_AMOUNT * 2,
             unit=TEST_INGREDIENT_UNIT,
         )
 
