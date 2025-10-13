@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.models import Provider, SocialAccount
 from nutriplan.serializers import UserProfileSerializer
-from nutriplan.services.auth import GoogleTokenError, verify_google_id_token
+from nutriplan.services.auth import google as google_service
 
 CustomUser = get_user_model()
 
@@ -43,8 +43,8 @@ def google_sign_in(request: Request) -> Response:
         return Response({"error": "id_token requerido."}, status=HTTP_400_BAD_REQUEST)
 
     try:
-        data = verify_google_id_token(raw)
-    except GoogleTokenError as e:
+        data = google_service.verify_google_id_token(raw)
+    except google_service.GoogleTokenError as e:
         return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
     email = data["email"]

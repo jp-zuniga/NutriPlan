@@ -38,13 +38,13 @@ def test_add_and_remove_recipe(auth_client: tuple[APIClient, UserFactory]) -> No
     c = RecipeCollectionFactory(owner=user)
     r = RecipeFactory()
 
-    add = reverse("collection-add-recipe", kwargs={"pk": c.id})
-    rem = reverse("collection-remove-recipe", kwargs={"pk": c.id})
+    add = reverse("collection-add-recipe", kwargs={"id": c.id})
+    rem = reverse("collection-remove-recipe", kwargs={"id": c.id})
 
     res = client.post(add, {"recipe_id": str(r.id)})
 
     assert res.status_code == HTTP_200_OK
-    assert any(it["recipe"]["id"] == str(r.id) for it in ["items"])
+    assert any(it["recipe"]["id"] == str(r.id) for it in res.data["items"])
 
     res2 = client.post(rem, {"recipe_id": str(r.id)})
 
@@ -58,11 +58,11 @@ def test_reorder_items(auth_client: tuple[APIClient, UserFactory]) -> None:
     c = RecipeCollectionFactory(owner=user)
     r1, r2 = RecipeFactory(), RecipeFactory()
 
-    add = reverse("collection-add-recipe", kwargs={"pk": c.id})
+    add = reverse("collection-add-recipe", kwargs={"id": c.id})
     client.post(add, {"recipe_id": str(r1.id)})
     client.post(add, {"recipe_id": str(r2.id)})
 
-    reorder = reverse("collection-reorder", kwargs={"pk": c.id})
+    reorder = reverse("collection-reorder", kwargs={"id": c.id})
     res = client.post(
         reorder,
         {
@@ -76,6 +76,6 @@ def test_reorder_items(auth_client: tuple[APIClient, UserFactory]) -> None:
 
     assert res.status_code == HTTP_200_OK
 
-    orders = [it["order"] for it in ["items"]]
+    orders = [it["order"] for it in res.data["items"]]
 
     assert orders == sorted(orders)
