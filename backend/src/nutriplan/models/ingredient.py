@@ -41,11 +41,31 @@ class Ingredient(BaseModel):
         """
 
         constraints: ClassVar[list[CheckConstraint]] = [
-            CheckConstraint(check=Q(calories_per_100g__gte=0), name="chk_ing_cal_ge_0"),
-            CheckConstraint(check=Q(protein_per_100g__gte=0), name="chk_ing_pro_ge_0"),
-            CheckConstraint(check=Q(carbs_per_100g__gte=0), name="chk_ing_carb_ge_0"),
-            CheckConstraint(check=Q(fat_per_100g__gte=0), name="chk_ing_fat_ge_0"),
-            CheckConstraint(check=Q(sugar_per_100g__gte=0), name="chk_ing_sug_ge_0"),
+            CheckConstraint(
+                check=None,
+                condition=Q(calories_per_100g__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_ing_cal_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(protein_per_100g__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_ing_pro_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(carbs_per_100g__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_ing_carb_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(fat_per_100g__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_ing_fat_ge_0",
+            ),
+            CheckConstraint(
+                check=None,
+                condition=Q(sugar_per_100g__gte=0),  # type: ignore[reportCallIssue]
+                name="chk_ing_sug_ge_0",
+            ),
         ]
 
         indexes: ClassVar[list[Index]] = [

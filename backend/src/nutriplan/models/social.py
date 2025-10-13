@@ -63,7 +63,8 @@ class SocialAccount(BaseModel):
                 name="uniq_provider_uid",
             ),
             CheckConstraint(
-                check=Q(provider__in=[c for c, _ in Provider.choices]),
+                check=None,
+                condition=Q(provider__in=[c for c, _ in Provider.choices]),  # type: ignore[reportCallIssue]
                 name="chk_valid_provider",
             ),
         ]
