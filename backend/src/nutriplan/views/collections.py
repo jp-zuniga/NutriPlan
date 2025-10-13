@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, ClassVar
 from django.db.models import Max, Prefetch
 from django.db.transaction import atomic
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 from rest_framework.status import HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 
@@ -130,7 +130,7 @@ class RecipeCollectionViewSet(ModelViewSet):
         count = qs.count()
         if count == 0:
             msg = "Colección no encontrada."
-            raise RecipeCollection.DoesNotExist(msg)
+            raise NotFound(msg)
 
         if count > 1:
             raise ValidationError(
