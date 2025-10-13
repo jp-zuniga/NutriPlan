@@ -1,0 +1,49 @@
+from django.urls import reverse
+from pytest import mark
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_403_FORBIDDEN,
+    HTTP_422_UNPROCESSABLE_ENTITY,
+)
+from rest_framework.test import APIClient
+
+pytestmark = mark.django_db
+
+
+def test_me_get_and_patch(auth_client: APIClient) -> None:
+    url = reverse("user-me")
+    res = auth_client.get(url)
+
+    assert res.status_code == HTTP_200_OK
+    assert res.json()["email"] == auth_client.user.email
+
+    res2 = auth_client.patch(url, {"first_name": "Nuevo"})
+
+    assert res2.status_code == HTTP_200_OK
+    assert res2.json()["first_name"] == "Nuevo"
+
+
+def test_change_password(auth_client: APIClient) -> None:
+    url = reverse("user-change-password")
+    res_bad = auth_client.post(url, {"current_password": "mal", "new_password": "xx"})
+
+    assert res_bad.status_code in (HTTP_400_BAD_REQUEST, HTTP_422_UNPROCESSABLE_ENTITY)
+
+    res_ok = auth_client.post(
+        url, {"current_password": "secret1234", "new_password": "otra_clave_123"}
+    )
+
+    assert res_ok.status_code == HTTP_204_NO_CONTENT
+
+
+def test_user_list_requires_admin(auth_client: APIClient, client: APIClient) -> None:
+    url = reverse("user-list")
+
+    assert client.get(url).status_code in (HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN)
+    assert auth_client.get(url).status_code in (
+        HTTP_401_UNAUTHORIZED,
+        HTTP_403_FORBIDDEN,
+    )
