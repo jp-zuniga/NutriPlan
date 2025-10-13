@@ -27,6 +27,12 @@
         "ruff>=0.12.12",
     ]
 
+[tool.pytest.ini_options]
+    DJANGO_SETTINGS_MODULE = "backend.settings"
+    addopts                = "-q --reuse-db --nomigrations --cov=nutriplan --cov-report=term-missing"
+    console_output_style   = "count"
+    testpaths              = ["nutriplan/tests", "src/nutriplan/tests", "tests"]
+
 [tool.ruff.lint]
     ignore = [
         "COM812",
