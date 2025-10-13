@@ -20,6 +20,7 @@ ALLOWED_HOSTS = [
     ".railway.app",
     "nutri-plan.net",
     "api.nutri-plan.net",
+    "nightly-api.nutri-plan.net",
     "nightly.nutri-plan.net",
     "www.nutri-plan.net",
 ]
@@ -72,6 +73,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1",
     "https://nutri-plan.net",
     "https://api.nutri-plan.net",
+    "https://nightly-api.nutri-plan.net",
     "https://nightly.nutri-plan.net",
     "https://www.nutri-plan.net",
 ]
@@ -86,6 +88,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.railway.app",
     "https://nutri-plan.net",
     "https://api.nutri-plan.net",
+    "https://nightly-api.nutri-plan.net",
     "https://nightly.nutri-plan.net",
     "https://www.nutri-plan.net",
 ]
