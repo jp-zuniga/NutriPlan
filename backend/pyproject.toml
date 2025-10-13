@@ -27,11 +27,42 @@
         "ruff>=0.12.12",
     ]
 
+[tool.coverage.run]
+    branch = true
+    omit = [
+        "**/__init__.py",
+        "**/admin/*",
+        "**/apps.py",
+        "**/management/*",
+        "**/migrations/*",
+        "**/services/llm/*",
+        "**/tests/*",
+    ]
+    source = ["nutriplan"]
+
+[tool.coverage.report]
+    exclude_lines = [
+        "if TYPE_CHECKING:",
+        "pass",
+        "raise NotImplementedError",
+    ]
+    omit = [
+        "**/__init__.py",
+        "**/admin/*",
+        "**/apps.py",
+        "**/management/*",
+        "**/migrations/*",
+        "**/services/llm/*",
+        "**/tests/*",
+    ]
+    show_missing = true
+    skip_covered = true
+
 [tool.pytest.ini_options]
     DJANGO_SETTINGS_MODULE = "backend.settings"
-    addopts                = "-q --reuse-db --cov=nutriplan --cov-report=term-missing"
+    addopts                = "-q --reuse-db --cov=nutriplan --cov-config=pyproject.toml --cov-report=term-missing"
     console_output_style   = "count"
-    testpaths              = ["nutriplan/tests", "src/nutriplan/tests", "tests"]
+    pythonpath             = "src"
 
 [tool.ruff.lint]
     ignore = [
@@ -53,8 +84,8 @@
         split-on-trailing-comma    = false
 
     [tool.ruff.lint.per-file-ignores]
-        "**/admin/__init__.py" = ["F401"]
-        "**/migrations/**.py"  = ["D100", "D101", "D104", "E501", "RUF012"]
-        "**/prompts.py"        = ["E501"]
-        "**/settings.py"       = ["E501"]
-        "**/tests/*"           = ["D100", "D101", "D103", "D104", "D106", "PT013", "S101"]
+        "**/admin/__init__.py"    = ["F401"]
+        "**/llm/prompts.py"       = ["E501"]
+        "**/migrations/*"         = ["D100", "D101", "D104", "E501", "RUF012"]
+        "**/tests/*"              = ["D100", "D101", "D103", "D104", "D106", "PT013", "S101"]
+        "src/backend/settings.py" = ["E501"]
