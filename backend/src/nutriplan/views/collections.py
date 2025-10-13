@@ -1,16 +1,18 @@
 """
-CRUD + custom actions for user recipe collections.
+CRUD custom actions for user recipe collections.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from django.db.models import Prefetch
+from django.db.models import Max, Prefetch
+from django.db.transaction import atomic
 from rest_framework.decorators import action
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
+from rest_framework.status import HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 
 from nutriplan.models import (
@@ -20,15 +22,13 @@ from nutriplan.models import (
     RecipeImage,
     RecipeIngredient,
 )
-from nutriplan.serializers import (
-    AddRemoveRecipeSerializer,
-    RecipeCollectionSerializer,
-    ReorderItemsSerializer,
-)
+from nutriplan.serializers import RecipeCollectionSerializer
 
 from .permissions import CollectionAccessPermission
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from django.db.models import QuerySet
     from rest_framework.request import Request
 
@@ -116,6 +116,8 @@ class RecipeCollectionViewSet(ModelViewSet):
         Args:
             request: HTTP request object.
             slug:    Identifier for collection.
+            *args:   Optional positional arguments.
+            **kwargs: Optional keyword arguments.
 
         Returns:
             Response: Object containing serialized collection data if found,
@@ -131,7 +133,6 @@ class RecipeCollectionViewSet(ModelViewSet):
             raise RecipeCollection.DoesNotExist(msg)
 
         if count > 1:
-            # si el requester es staff
             raise ValidationError(
                 {"slug": "Slug no es único. Usa el ID de la colección."}
             )
@@ -141,13 +142,21 @@ class RecipeCollectionViewSet(ModelViewSet):
         return Response(self.get_serializer(collection).data)
 
     @action(detail=True, methods=["post"], url_path="add-recipe")
-    def add_recipe(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
+    def add_recipe(
+        self,
+        request: Request,
+        slug: str | None = None,  # noqa: ARG002
+        *args: Sequence,  # noqa: ARG002
+        **kwargs: dict,  # noqa: ARG002
+    ) -> Response:
         """
         Adds a recipe to the specified recipe collection.
 
         Args:
             request: HTTP request object containing the recipe ID in its data.
             slug:    Identifier for the collection.
+            *args:   Optional positional arguments.
+            **kwargs: Optional keyword arguments.
 
         Returns:
             Response: Object containing serialized collection data if successful,
@@ -155,43 +164,45 @@ class RecipeCollectionViewSet(ModelViewSet):
 
         """
 
-        collection: RecipeCollection = self.get_object()
-        payload = AddRemoveRecipeSerializer(data=request.data)
-        payload.is_valid(raise_exception=True)
+        collection = self.get_object()
+        recipe_id = request.data.get("recipe_id")
+        if not recipe_id:
+            msg = "Se necesita el ID de receta."
+            raise ValidationError(msg)
 
-        recipe_id = payload.validated_data["recipe_id"]
         try:
-            recipe = Recipe.objects.get(pk=recipe_id)
+            recipe = Recipe.objects.get(id=recipe_id)
         except Recipe.DoesNotExist as e:
-            msg = "Receta no encontrada."
-            raise Recipe.DoesNotExist(msg) from e
+            msg = "Receta no encontrada en la colección."
+            raise ValidationError(msg) from e
 
-        item, created = CollectionItem.objects.get_or_create(
-            collection=collection, recipe=recipe
+        next_order = (collection.items.aggregate(m=Max("order"))["m"] or 0) + 1
+        CollectionItem.objects.get_or_create(
+            collection=collection, recipe=recipe, defaults={"order": next_order}
         )
 
-        if created:
-            # Set order = max + 1
-            max_order = (
-                CollectionItem.objects.filter(collection=collection)
-                .exclude(pk=item.pk)
-                .order_by("-order")
-                .values_list("order", flat=True)
-                .first()
-            ) or 0
-            item.order = max_order + 1
-            item.save(update_fields=["order"])
+        # limpiar prefetched cache para que el serializer vea el ítem recién agregado
+        if hasattr(collection, "_prefetched_objects_cache"):
+            collection._prefetched_objects_cache.clear()  # noqa: SLF001
 
-        return Response(self.get_serializer(collection).data, status=200)
+        return Response(self.get_serializer(collection).data, status=HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="remove-recipe")
-    def remove_recipe(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
+    def remove_recipe(
+        self,
+        request: Request,
+        slug: str | None = None,  # noqa: ARG002
+        *args: Sequence,  # noqa: ARG002
+        **kwargs: dict,  # noqa: ARG002
+    ) -> Response:
         """
         Removes a recipe from the current recipe collection.
 
         Args:
             request: HTTP request object containing data.
             slug:    Identifier for collection.
+            *args:   Optional positional arguments.
+            **kwargs: Optional keyword arguments.
 
         Returns:
             Response: Object containing updated collection data if recipe was removed,
@@ -202,29 +213,37 @@ class RecipeCollectionViewSet(ModelViewSet):
 
         """
 
-        collection: RecipeCollection = self.get_object()
-        payload = AddRemoveRecipeSerializer(data=request.data)
-        payload.is_valid(raise_exception=True)
+        collection = self.get_object()
+        recipe_id = request.data.get("recipe_id")
+        if not recipe_id:
+            msg = "Se necesita el ID de receta."
+            raise ValidationError(msg)
 
-        recipe_id = payload.validated_data["recipe_id"]
-        deleted, _ = CollectionItem.objects.filter(
+        CollectionItem.objects.filter(
             collection=collection, recipe_id=recipe_id
         ).delete()
 
-        if not deleted:
-            msg = "Receta no encontrada en la colección."
-            raise Recipe.DoesNotExist(msg)
+        if hasattr(collection, "_prefetched_objects_cache"):
+            collection._prefetched_objects_cache.clear()  # noqa: SLF001
 
-        return Response(self.get_serializer(collection).data, status=200)
+        return Response(self.get_serializer(collection).data, status=HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="reorder")
-    def reorder(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
+    def reorder(
+        self,
+        request: Request,
+        slug: str | None = None,  # noqa: ARG002
+        *args: Sequence,  # noqa: ARG002
+        **kwargs: dict,  # noqa: ARG002
+    ) -> Response:
         """
         Reorders the items in a recipe collection based on the provided order.
 
         Args:
             request: HTTP request object containing the data.
             slug:    Optional slug identifying the collection.
+            *args:   Optional positional arguments.
+            **kwargs: Optional keyword arguments.
 
         Request data format:
         --------------------
@@ -248,25 +267,23 @@ class RecipeCollectionViewSet(ModelViewSet):
 
         """
 
-        collection: RecipeCollection = self.get_object()
+        collection = self.get_object()
+        items = request.data.get("items")
+        if not isinstance(items, list):
+            raise ValidationError({"items": "Lista de items es requerida."})
 
-        payload = ReorderItemsSerializer(data=request.data)
-        payload.is_valid(raise_exception=True)
-        items = payload.validated_data["items"]
-        mapping = {str(row["recipe_id"]): row["order"] for row in items}
+        with atomic():
+            for it in items:
+                rid = it.get("recipe_id")
+                order = it.get("order")
+                if rid is None or order is None:
+                    continue
 
-        qs = CollectionItem.objects.filter(
-            collection=collection, recipe_id__in=mapping.keys()
-        )
+                CollectionItem.objects.filter(
+                    collection=collection, recipe_id=rid
+                ).update(order=order)
 
-        if qs.count() != len(mapping):
-            msg = "Una o más recetas no pertenecen a la colección."
-            raise Recipe.DoesNotExist(msg)
+        if hasattr(collection, "_prefetched_objects_cache"):
+            collection._prefetched_objects_cache.clear()  # noqa: SLF001
 
-        for ci in qs:
-            new_order = mapping[str(ci.recipe_id)]
-            if ci.order != new_order:
-                ci.order = new_order
-                ci.save(update_fields=["order"])
-
-        return Response(self.get_serializer(collection).data, status=200)
+        return Response(self.get_serializer(collection).data, status=HTTP_200_OK)
