@@ -15,7 +15,7 @@ on:
       - "backend/**"
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,9 +33,20 @@ jobs:
           args: "check --diff --unsafe-fixes"
           version: "latest"
 
+  format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - name: ruff format
         uses: astral-sh/ruff-action@v3
         with:
           args: "format --check --diff"
           version: "latest"
-
