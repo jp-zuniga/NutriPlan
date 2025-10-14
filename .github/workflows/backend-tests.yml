@@ -44,5 +44,6 @@ jobs:
 
       - name: run tests
         env:
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
           TESTING_DATABASE_URL: ${{ secrets.TESTING_DATABASE_URL }}
         run: uv run pytest --maxfail=1
