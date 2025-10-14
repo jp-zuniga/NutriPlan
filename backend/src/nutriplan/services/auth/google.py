@@ -51,7 +51,7 @@ def verify_google_id_token(raw_id_token: str) -> dict[str, Any]:
     req = google_requests.Request()
     try:
         payload = id_token.verify_oauth2_token(raw_id_token, req)
-    except Exception as e:  # errores de firma/validez
+    except Exception as e:
         msg = f"Token inválido: {e}"
         raise GoogleTokenError(msg) from e
 
@@ -62,7 +62,7 @@ def verify_google_id_token(raw_id_token: str) -> dict[str, Any]:
     sub = payload.get("sub")
     hd = (payload.get("hd") or "").strip()
 
-    if not settings.GOOGLE_CLIENT_IDS or aud not in settings.GOOGLE_CLIENT_IDS:
+    if not settings.GOOGLE_CLIENT_ID or aud != settings.GOOGLE_CLIENT_ID:
         msg = "aud no corresponde a este proyecto."
         raise GoogleTokenError(msg)
     if iss not in ("https://accounts.google.com", "accounts.google.com"):
