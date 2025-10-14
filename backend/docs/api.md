@@ -18,10 +18,10 @@ Esta guía documenta todos los endpoints existentes del backend actual, su forma
 
 ## Convenciones Generales
 
-- Base URL: `https://nutri-plan.net/api/`
+- Base URL: `https://api.nutri-plan.net/`
 - El router está configurado con `trailing_slash=r"/?"`.
   - Todos los endpoints del router aceptan con o sin slash al final.
-  - Ej.: `GET /api/recipes` y `GET /api/recipes/` son válidos.
+  - Ej.: `GET /recipes` y `GET /recipes/` son válidos.
 - Formato por defecto: `application/json`.
 - Autenticación: **JWT (SimpleJWT)**.
   - Se debe enviar el encabezado `Authorization: Bearer <access-token>` para endpoints protegidos.
@@ -516,7 +516,7 @@ Reordena ítems de la colección (solo los incluidos en el payload).
 ### Login
 
 ```bash
-curl -X POST https://nutri-plan.net/api/auth/login \
+curl -X POST https://api.nutri-plan.net/auth/login \
 -H "Content-Type: application/json" \
 -d '{"email":"ada@example.com","password":"supersegura123"}'
 ```
@@ -524,7 +524,7 @@ curl -X POST https://nutri-plan.net/api/auth/login \
 ### Crear Colección
 
 ```bash
-curl -X POST https://nutri-plan.net/api/collections \
+curl -X POST https://api.nutri-plan.net/collections \
 -H "Authorization: Bearer $ACCESS" \
 -H "Content-Type: application/json" \
 -d '{"name":"Favoritas","description":"Mis recetas favoritas"}'
@@ -533,7 +533,7 @@ curl -X POST https://nutri-plan.net/api/collections \
 ### Agregar Receta a Colección
 
 ```bash
-curl -X POST https://nutri-plan.net/api/collections/favoritas/add-recipe \
+curl -X POST https://api.nutri-plan.net/collections/favoritas/add-recipe \
 -H "Authorization: Bearer $ACCESS" \
 -H "Content-Type: application/json" \
 -d '{"recipe_id":"c8c67c8c-..."}'
@@ -542,7 +542,7 @@ curl -X POST https://nutri-plan.net/api/collections/favoritas/add-recipe \
 ### Reordenar
 
 ```bash
-curl -X POST https://nutri-plan.net/api/collections/favoritas/reorder \
+curl -X POST https://api.nutri-plan.net/collections/favoritas/reorder \
 -H "Authorization: Bearer $ACCESS" \
 -H "Content-Type: application/json" \
 -d '{"items":[{"recipe_id":"c8c67c8c-...","order":1},{"recipe_id":"2b1a-...","order":2}]}'

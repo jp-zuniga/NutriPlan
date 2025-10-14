@@ -54,8 +54,8 @@ class RecipeViewSet(ReadOnlyModelViewSet):
     Read-only API for recipes with search and filters.
 
     Routes:
-      - GET /api/recipes
-      - GET /api/recipes/{name}
+      - GET /recipes
+      - GET /recipes/{name}
 
     """
 

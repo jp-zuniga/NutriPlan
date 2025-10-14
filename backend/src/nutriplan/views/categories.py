@@ -16,8 +16,8 @@ class CategoryViewSet(ReadOnlyModelViewSet):
     Read-only API for categories.
 
     Routes:
-      - GET /api/categories
-      - GET /api/categories/{id}
+      - GET /categories
+      - GET /categories/{id}
 
     """
 

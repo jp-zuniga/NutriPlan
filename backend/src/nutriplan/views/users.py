@@ -25,17 +25,17 @@ class UserViewSet(ModelViewSet):
     Viewset for managing user profiles.
 
     Routes:
-      - GET /api/users
+      - GET /users
 
-      - GET /api/users/{id}
-      - PUT /api/users/{id}
-      - PATCH /api/users/{id}
-      - DELETE /api/users/{id}
+      - GET /users/{id}
+      - PUT /users/{id}
+      - PATCH /users/{id}
+      - DELETE /users/{id}
 
-      - GET /api/users/me
-      - PUT /api/users/me
-      - PATCH /api/users/me
-      - POST /api/users/me/change-password
+      - GET /users/me
+      - PUT /users/me
+      - PATCH /users/me
+      - POST /users/me/change-password
 
     """
 
