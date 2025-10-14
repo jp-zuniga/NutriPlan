@@ -18,8 +18,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     Read-only API for listing/retrieving ingredients.
 
     Routes:
-      - GET /api/ingredients
-      - GET /api/ingredients/{id}.
+      - GET /ingredients
+      - GET /ingredients/{id}.
 
     """
 
