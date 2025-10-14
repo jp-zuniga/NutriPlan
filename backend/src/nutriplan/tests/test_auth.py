@@ -127,7 +127,7 @@ def test_google_sign_in_bad_token(monkeypatch: MonkeyPatch, client: Client) -> N
 def test_verify_google_id_token_happy_path(
     monkeypatch: MonkeyPatch, settings: SettingsWrapper
 ) -> None:
-    settings.GOOGLE_CLIENT_ID = ["client-123"]
+    settings.GOOGLE_CLIENT_ID = "client-123"
 
     def fake_verify(raw, req) -> dict[str, str | bool]:  # noqa: ANN001, ARG001
         return {
