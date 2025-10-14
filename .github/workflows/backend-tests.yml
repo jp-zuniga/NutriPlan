@@ -43,4 +43,6 @@ jobs:
         run: uv sync
 
       - name: run tests
+        env:
+          TESTING_DATABASE_URL: ${{ secrets.TESTING_DATABASE_URL }}
         run: uv run pytest --maxfail=1
