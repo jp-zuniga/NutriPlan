@@ -60,7 +60,6 @@ def verify_google_id_token(raw_id_token: str) -> dict[str, Any]:
     email = (payload.get("email") or "").strip().lower()
     email_verified = payload.get("email_verified") is True
     sub = payload.get("sub")
-    hd = (payload.get("hd") or "").strip()
 
     if not settings.GOOGLE_CLIENT_ID or aud != settings.GOOGLE_CLIENT_ID:
         msg = "aud no corresponde a este proyecto."
@@ -70,9 +69,6 @@ def verify_google_id_token(raw_id_token: str) -> dict[str, Any]:
         raise GoogleTokenError(msg)
     if not email or not email_verified:
         msg = "Email no verificado en Google."
-        raise GoogleTokenError(msg)
-    if settings.GOOGLE_HD and hd.lower() != settings.GOOGLE_HD.lower():
-        msg = "Dominio no autorizado."
         raise GoogleTokenError(msg)
 
     return {
