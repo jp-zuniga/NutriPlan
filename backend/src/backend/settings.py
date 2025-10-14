@@ -18,17 +18,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 1) env variables: ####################################################################
 
-DATABASE_URL = getenv("DATABASE_URL")
-DEBUG = getenv("DEBUG", "False").lower() == "true"
-GOOGLE_CLIENT_ID  = getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET  = getenv("GOOGLE_CLIENT_SECRET")
-SECRET_KEY = getenv("SECRET_KEY")
-TESTING_DATABASE_URL = getenv("TESTING_DATABASE_URL")
-
-for var in (DATABASE_URL, SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET):
-    if not var or var == "":
+for var in (
+    "DATABASE_URL",
+    "SECRET_KEY",
+    "GOOGLE_API_KEY",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+):
+    if not getenv(var):
         msg = f"Definir `{var}` en variables de entorno."
         raise RuntimeError(msg)
+
+DATABASE_URL = getenv("DATABASE_URL")
+DEBUG = getenv("DEBUG", "False").lower() == "true"
+GOOGLE_API_KEY = getenv("GOOGLE_API_KEY")
+GOOGLE_CLIENT_ID = getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
+SECRET_KEY = getenv("SECRET_KEY")
+TESTING_DATABASE_URL = getenv("TESTING_DATABASE_URL")
 
 # 2) general project config: ##########################################################
 
