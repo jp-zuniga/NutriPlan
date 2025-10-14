@@ -24,9 +24,8 @@ def _clean_media_root() -> Generator:
 
 @fixture(autouse=True, scope="session")
 def _settings_for_tests() -> None:
-    tmp = Path(mkdtemp())
-    settings.MEDIA_ROOT = tmp
-    settings.STATIC_ROOT = tmp
+    settings.MEDIA_ROOT = Path(mkdtemp())
+    settings.STATIC_ROOT = Path(mkdtemp())
 
     settings.ALLOWED_HOSTS = ["*"]
     settings.CORS_ALLOWED_ORIGIN_REGEXES = [r"^https?://.*$"]
