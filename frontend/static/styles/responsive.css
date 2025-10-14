@@ -89,6 +89,11 @@ h3{ font-size: var(--fs-h3); }
    Flex Helpers
    ======================= */
 .flex{ display:flex; }
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .inline-flex{ display:inline-flex; }
 .no-shrink { flex-shrink: 0; }
 .wrap{ flex-wrap: wrap; }
@@ -98,7 +103,7 @@ h3{ font-size: var(--fs-h3); }
 .items-end{ align-items: flex-end; }
 .justify-between{ justify-content: space-between; }
 .justify-center{ justify-content: center; }
-.gap-8{ gap: 8px; } .gap-12{ gap: 12px; } .gap-16{ gap: 16px; } .gap-24{ gap: 24px; }
+.gap-8{ gap: 8px; } .gap-12{ gap: 12px; } .gap-16{ gap: 16px; } .gap-24{ gap: 24px; } .gap-28 { gap: 28px; } .gap-32 { gap: 32px; }
 
 /* Stacks verticales reutilizables */
 .stack > * + *{ margin-top: var(--stack, 1rem); }

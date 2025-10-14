@@ -5,11 +5,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 /* UNAL Ancizar Serif */
 @import url('https://fonts.googleapis.com/css2?family=Ancizar+Serif:ital,wght@0,300..900;1,300..900&display=swap');
+/* Lora */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+/* Cormorant */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap');
 
 :root {
-  --font-base: 'Libre Baskerville', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Libre Baskerville', 'Work Sans', sans-serif;
-  --font-accent: 'Libre Baskerville', 'Alegreya Sans', cursive;
+  --font-base: 'Lora', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Lora', 'Work Sans', sans-serif;
+  --font-accent: 'Lora', 'Alegreya Sans', cursive;
 
   --color-primary: #98b43c;
   --color-primary-dark: #386641;
@@ -44,6 +48,7 @@
 
 * {
   box-sizing: border-box;
+  font-family: var(--font-display);
 }
 
 body {
@@ -56,6 +61,10 @@ body {
 
 .bg-white {
   background-color: white;
+}
+
+.bg-stone {
+  background-color: var(--color-stone);
 }
 
 .bg-soft {
@@ -145,7 +154,10 @@ button {
 .round-10 { border-radius: 10px; }
 .round-15 { border-radius: 15px; }
 .round-20 { border-radius: 20px; }
+.round-30 { border-radius: 30px; }
 .full-round { border-radius: 100%; }
+
+.pill { border-radius: 999px; }
 
 .full-width { width: 100%; }
 .full-height { height: 100%; }
@@ -411,4 +423,8 @@ hr {
 
 .no-pad {
   padding: 0px;
+}
+
+.no-margin {
+  margin: 0px;
 }

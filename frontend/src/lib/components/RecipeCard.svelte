@@ -16,7 +16,7 @@
 	<div class="image-container no-overflow rel-pos">
 		<img class="fit-cover full-size" src={recipe.image} alt={recipe.title} />
 		<div
-			class="star-rating abs-pos bg-white pad-5 sm-p flex"
+			class="star-rating abs-pos bg-white pad-5 sm-p flex items-center justify-center"
 			style="top: 5px; right: 5px; gap: 3px;"
 		>
 			<i class="las la-star p-emphasis no-ul"></i>
@@ -64,11 +64,5 @@
 	.recipe-card:focus {
 		background-color: var(--color-soft-white);
 		outline: 1px solid rgba(0, 0, 0, 0.5);
-	}
-
-	.recipe-time::before {
-		font-family: 'Line Awesome Free';
-		content: '\f017';
-		margin-right: 4px;
 	}
 </style>

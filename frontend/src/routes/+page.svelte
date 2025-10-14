@@ -47,6 +47,7 @@
 				'Explora platos típicos, saludables y fusiones creativas para cada momento del día.',
 			cta: 'Ver recetas',
 			accent: 'leaf',
+			background: 'rgb(119, 178, 84)',
 			icon: icon_SoupBowl
 		},
 		{
@@ -55,6 +56,7 @@
 				'Genera un plan semanal que respete tus metas, tu actividad física y tus preferencias.',
 			cta: 'Crear plan',
 			accent: 'mint',
+			background: 'rgb(133, 169, 143)',
 			icon: icon_Calendar
 		},
 		{
@@ -63,6 +65,7 @@
 				'Escribe lo que tienes en casa y deja que nuestra IA sugiera la mejor coincidencia.',
 			cta: 'Receta rápida',
 			accent: 'sunrise',
+			background: 'rgb(202, 115, 115)',
 			icon: icon_RabbitFast
 		}
 	];
@@ -182,8 +185,8 @@
 		<div class="container regrid-cols-2 pad-20">
 			<div class="content pad-20 bg-white">
 				<h2>
-					Descubre la <span class="p-emphasis">cocina</span>
-					nicaragüense
+					Descubre la cocina
+					<span class="p-emphasis">nicaragüense</span>
 				</h2>
 				<p class="md-p mb-l">
 					Tu plataforma para planear comidas nutritivas con el sabor de casa. Recibe recomendaciones
@@ -232,6 +235,25 @@
 		</div>
 	</section>
 
+	<section id="all-in-one">
+		<div class="container flex justify-center items-center direction-col pad-50">
+			<p class="mb-l h3">Todo en un solo lugar</p>
+			<div class="content flex wrap gap-24">
+				{#each quickActions as action}
+					<div
+						class="quick-action pad-20 round-5"
+						style="width: 300px; height: 200px; background-color: {action.background};"
+					>
+						<img src={action.icon} alt={action.title} style="width: 50px; height: 50px;" />
+						<p class="bold text-col-white">{action.title}</p>
+						<p class="sm-p text-col-white">{action.description}</p>
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<hr />
 	<section id="categories" class="bg-soft">
 		<div class="container flex direction-col justify-center items-center pad-50">
 			<p class="mb-l h3">Explora por categorias</p>
@@ -247,7 +269,7 @@
 						>
 							{@html category.icon}
 						</div>
-						<p class="mt-s bold">{category.title}</p>
+						<p class="mt-s">{category.title}</p>
 					</div>
 				{/each}
 			</div>
