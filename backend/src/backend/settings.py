@@ -174,5 +174,5 @@ if RUNNING_TESTS:
             default=TESTING_DATABASE_URL, conn_max_age=3, conn_health_checks=False
         )
     else:
-        msg = "Define TEST_DATABASE_URL para tests."
+        msg = "Define TESTING_DATABASE_URL para tests."
         raise RuntimeError(msg)
