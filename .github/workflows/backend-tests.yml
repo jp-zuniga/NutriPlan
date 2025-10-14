@@ -1,0 +1,46 @@
+name: backend-tests
+
+on:
+  push:
+    branches:
+      - "**backend**"
+      - "**impl**"
+    paths:
+      - "backend/**"
+  pull_request:
+    branches:
+      - "**backend**"
+      - "**impl**"
+    paths:
+      - "backend/**"
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v5
+        with:
+            fetch-depth: 0
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.24"
+          working-directory: backend
+          enable-cache: true
+          ignore-nothing-to-cache: true
+
+      - name: sync environment
+        run: uv sync
+
+      - name: run tests
+        run: uv run pytest --maxfail=1
