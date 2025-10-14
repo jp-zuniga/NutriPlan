@@ -44,6 +44,11 @@ jobs:
 
       - name: run tests
         env:
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DEBUG: ${{ secrets.DEBUG}}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           TESTING_DATABASE_URL: ${{ secrets.TESTING_DATABASE_URL }}
         run: uv run pytest --maxfail=1
