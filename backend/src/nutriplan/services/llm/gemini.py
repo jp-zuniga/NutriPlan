@@ -4,6 +4,7 @@ Gemini client helper for structured JSON generation.
 
 from json import JSONDecodeError, loads
 
+from django.conf import settings
 from google.genai import Client
 from google.genai.types import GenerateContentConfig
 
@@ -15,7 +16,7 @@ class GeminiClient:
 
     def __init__(
         self,
-        api_key: str | None = None,
+        api_key: str = settings.GOOGLE_API_KEY,
         model: str = "gemini-2.5-pro",
         temperature: float = 0.4,
     ) -> None:
@@ -32,7 +33,7 @@ class GeminiClient:
 
         """
 
-        self.client = Client(api_key=api_key) if api_key else Client()
+        self.client = Client(api_key=api_key)
         self.model = model
         self.temperature = temperature
 
