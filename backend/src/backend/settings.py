@@ -7,102 +7,53 @@ from os import getenv
 from pathlib import Path
 from sys import argv
 
-from dj_database_url import config as db_config
+from dj_database_url import DBConfig, config as db_config
 from dotenv import load_dotenv
+
+########################################################################################
 
 load_dotenv()
 
-#######################################################################################
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-ALLOWED_HOSTS = [
-    "localhost:5173",
-    "localhost:8000",
-    "127.0.0.1",
-    ".railway.app",
-    "nutri-plan.net",
-    "api.nutri-plan.net",
-    "nightly-api.nutri-plan.net",
-    "nightly.nutri-plan.net",
-    "www.nutri-plan.net",
-]
+# 1) env variables: ####################################################################
+
+DATABASE_URL = getenv("DATABASE_URL")
+DEBUG = getenv("DEBUG", "False").lower() == "true"
+GOOGLE_CLIENT_ID  = getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET  = getenv("GOOGLE_CLIENT_SECRET")
+SECRET_KEY = getenv("SECRET_KEY")
+TESTING_DATABASE_URL = getenv("TESTING_DATABASE_URL")
+
+for var in (DATABASE_URL, SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET):
+    if not var or var == "":
+        msg = f"Definir `{var}` en variables de entorno."
+        raise RuntimeError(msg)
+
+# 2) general project config: ##########################################################
 
 APPEND_SLASH = False
-AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 AUTH_USER_MODEL = "nutriplan.CustomUser"
-BASE_DIR = Path(__file__).resolve().parent.parent
-DEBUG = getenv("DEBUG", "False").lower() == "true"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-GOOGLE_CLIENT_IDS = [
-    s for s in (getenv("GOOGLE_CLIENT_IDS", "") or "").split(",") if s.strip()
-]
-
-GOOGLE_HD = getenv("GOOGLE_HD", "")
-LANGUAGE_CODE = "en-us"
 ROOT_URLCONF = "backend.urls"
-SECRET_KEY = getenv("SECRET_KEY")
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WSGI_APPLICATION = "backend.wsgi.application"
+USE_X_FORWARDED_HOST = True
+
+# 3) localization: ####################################################################
+
+LANGUAGE_CODE = "es-ni"
 TIME_ZONE = "America/Managua"
 USE_I18N = True
 USE_TZ = True
-USE_X_FORWARDED_HOST = True
-WSGI_APPLICATION = "backend.wsgi.application"
 
-#######################################################################################
+# 4) static config: ####################################################################
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "static"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1",
-    "https://nutri-plan.net",
-    "https://api.nutri-plan.net",
-    "https://nightly-api.nutri-plan.net",
-    "https://nightly.nutri-plan.net",
-    "https://www.nutri-plan.net",
-]
+# 5) django env: ######################################################################
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.railway\.app$",
-    r"^https://.*\.up\.railway\.app$",
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.up.railway.app",
-    "https://*.railway.app",
-    "https://nutri-plan.net",
-    "https://api.nutri-plan.net",
-    "https://nightly-api.nutri-plan.net",
-    "https://nightly.nutri-plan.net",
-    "https://www.nutri-plan.net",
-]
-
-DATABASES = {
-    "default": db_config(
-        default=getenv("DATABASE_URL"),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
-
-INSTALLED_APPS = [
+INSTALLED_APPS: list[str] = [
     "nutriplan.apps.NutriPlanConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -115,10 +66,10 @@ INSTALLED_APPS = [
     "corsheaders",
 ]
 
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -127,13 +78,62 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-REST_FRAMEWORK = {
+# 6) networking: #######################################################################
+
+ALLOWED_HOSTS: list[str] = [
+    "localhost",
+    "127.0.0.1",
+    ".railway.app",
+    ".nutri-plan.net",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS: list[str] = [
+    "http://localhost:5173",
+    "http://localhost:8000",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES: list[str] = [
+    r"^https://([a-z0-9-]+\.)?nutri-plan\.net$",
+    r"^https://([a-z0-9-]+\.)?railway\.app$",
+    r"^https://([a-z0-9-]+\.)?up\.railway\.app$",
+]
+
+CSRF_TRUSTED_ORIGINS: list[str] = [
+    "https://nutri-plan.net",
+    "https://*.nutri-plan.net",
+    "https://*.railway.app",
+    "https://*.up.railway.app",
+]
+
+# 7) db config: ########################################################################
+
+DATABASES: dict[str, DBConfig] = {
+    "default": db_config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
+
+if any("pytest" in arg for arg in argv):
+    if TESTING_DATABASE_URL:
+        DATABASES["default"] = db_config(
+            default=TESTING_DATABASE_URL, conn_max_age=3, conn_health_checks=False
+        )
+    else:
+        msg = "Definir `TESTING_DATABASE_URL` para correr tests."
+        raise RuntimeError(msg)
+
+# 8) API config: #######################################################################
+
+REST_FRAMEWORK: dict[str, tuple[str] | list[str] | str] = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
+        "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
@@ -141,16 +141,33 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "backend.middleware.custom_exception_handler.custom_exception_handler",
 }
 
-SIMPLE_JWT = {
+SIMPLE_JWT: dict[str, timedelta] = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-TEMPLATES = [
+# 9) misc: #############################################################################
+
+AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = [
     {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+]
+
+TEMPLATES: list[dict] = [
+    {
+        "APP_DIRS": True,
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
-        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -162,17 +179,3 @@ TEMPLATES = [
 ]
 
 #######################################################################################
-
-TESTING_DATABASE_URL = getenv("TESTING_DATABASE_URL")
-RUNNING_TESTS = bool(
-    getenv("PYTEST_CURRENT_TEST") or any("pytest" in arg for arg in argv)
-)
-
-if RUNNING_TESTS:
-    if TESTING_DATABASE_URL:
-        DATABASES["default"] = db_config(
-            default=TESTING_DATABASE_URL, conn_max_age=3, conn_health_checks=False
-        )
-    else:
-        msg = "Define TESTING_DATABASE_URL para tests."
-        raise RuntimeError(msg)
