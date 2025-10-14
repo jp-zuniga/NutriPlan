@@ -3,12 +3,14 @@ name: backend-lint
 on:
   push:
     branches:
-      - backend-dev
+      - "**backend**"
+      - "**impl**"
     paths:
       - "backend/**"
   pull_request:
     branches:
-      - backend-dev
+      - "**backend**"
+      - "**impl**"
     paths:
       - "backend/**"
 
@@ -28,8 +30,8 @@ jobs:
       - name: ruff check
         uses: astral-sh/ruff-action@v3
         with:
-          version: "latest"
           args: "check --diff --unsafe-fixes"
+          version: "latest"
 
       - name: ruff format
         uses: astral-sh/ruff-action@v3
