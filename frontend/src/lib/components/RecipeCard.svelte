@@ -9,7 +9,7 @@
 </script>
 
 <button
-	class="recipe-card grid no-gap bg-white soft-outline no-border no-pad"
+	class="recipe-card grid no-gap bg-white soft-outline no-border no-pad hoverable"
 	onclick={gotoRecipe}
 	aria-roledescription="Open Recipe"
 >

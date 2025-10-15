@@ -46,6 +46,7 @@
 			description:
 				'Explora platos típicos, saludables y fusiones creativas para cada momento del día.',
 			cta: 'Ver recetas',
+			cta_link: '/recetas',
 			accent: 'leaf',
 			background: 'rgb(119, 178, 84)',
 			icon: icon_SoupBowl
@@ -55,6 +56,7 @@
 			description:
 				'Genera un plan semanal que respete tus metas, tu actividad física y tus preferencias.',
 			cta: 'Crear plan',
+			cta_link: '/planes',
 			accent: 'mint',
 			background: 'rgb(133, 169, 143)',
 			icon: icon_Calendar
@@ -64,6 +66,7 @@
 			description:
 				'Escribe lo que tienes en casa y deja que nuestra IA sugiera la mejor coincidencia.',
 			cta: 'Receta rápida',
+			cta_link: '/receta-rapida',
 			accent: 'sunrise',
 			background: 'rgb(202, 115, 115)',
 			icon: icon_RabbitFast
@@ -193,8 +196,8 @@
 					personalizadas, recetas auténticas y acompañamiento inteligente en cada etapa.
 				</p>
 				<div class="button-group flex gap-24">
-					<button class="btn primary">Crear mi plan nutricional</button>
-					<button class="btn ghost">Explorar recetas</button>
+					<a class="btn primary" href="/planes">Crear mi plan nutricional</a>
+					<a class="btn ghost" href="/recetas">Explorar recetas</a>
 				</div>
 			</div>
 
@@ -219,8 +222,11 @@
 	</section>
 
 	<section id="star-recipes" class="bg-soft-gray">
-		<div class="container flex direction-col justify-center items-center pad-50 gap-16">
-			<p class="h3">Recetas Destacadas</p>
+		<div class="container flex-center direction-col pad-50 gap-16">
+			<div class="flex-center direction-col">
+				<p class="h2 bold">Recetas Destacadas</p>
+				<p class="p-ghost">Las favoritas de nuestra comunidad</p>
+			</div>
 			<div class="flex gap-16 ov-auto-x pad-10 limit-width no-shrink">
 				{#each featuredRecipes as recipe}
 					<RecipeCard {recipe} />
@@ -230,41 +236,45 @@
 	</section>
 
 	<section id="why-us" style="background-color: #798645;">
-		<div class="container flex justify-center items-center">
+		<div class="container flex-center">
 			<p class="h1 text-col-white bold pad-20 txt-center">¿Por qué elegir NutriPlan?</p>
 		</div>
 	</section>
 
 	<section id="all-in-one">
-		<div class="container flex justify-center items-center direction-col pad-50">
-			<p class="mb-l h3">Todo en un solo lugar</p>
-			<div class="content flex wrap gap-24">
+		<div class="container flex-center direction-col pad-50">
+			<p class="h3 bold">Todo en un solo lugar</p>
+			<p class="mb-l p-ghost md-p">
+				Accede rápido a lo que necesitas: inspiración, planificación o una solución express.
+			</p>
+			<div class="content flex-center wrap gap-24">
 				{#each quickActions as action}
 					<div
 						class="quick-action pad-20 round-5"
 						style="width: 300px; height: 200px; background-color: {action.background};"
 					>
 						<img src={action.icon} alt={action.title} style="width: 50px; height: 50px;" />
-						<p class="bold text-col-white">{action.title}</p>
-						<p class="sm-p text-col-white">{action.description}</p>
+						<p class="lg-p bold text-col-white">{action.title}</p>
+						<p class="md-p text-col-white mb">{action.description}</p>
+
+						<!-- <a href={action.cta_link} class="no-ul text-col-white">{action.cta}</a> -->
 					</div>
 				{/each}
 			</div>
 		</div>
 	</section>
 
-	<hr />
-	<section id="categories" class="bg-soft">
-		<div class="container flex direction-col justify-center items-center pad-50">
+	<!-- <section id="categories" style="background-color: #FAF1E6">
+		<div class="container flex-center direction-col pad-50">
 			<p class="mb-l h3">Explora por categorias</p>
 			<div class="content flex wrap gap-16 justify-center items-center" id="category-roulette">
 				{#each categories as category}
 					<div
-						class="category flex direction-col justify-center items-center round-10"
+						class="category flex-center direction-col round-10"
 						style="background-color: {category.background_color};"
 					>
 						<div
-							class="icon flex justify-center items-center round-5 b-shadow"
+							class="icon flex-center round-5 b-shadow"
 							style="background: {category.gradient}; color: white;"
 						>
 							{@html category.icon}
@@ -273,6 +283,21 @@
 					</div>
 				{/each}
 			</div>
+		</div>
+	</section> -->
+
+	<section id="join">
+		<div class="container flex-center direction-col pad-50">
+			<p class="h1 text-col-white bold">Empieza tu viaje culinario hoy</p>
+			<p class="lg-p text-col-white mb-l">
+				Únete a miles de nicaragüenses que ya transformaron su forma de comer con recetas saludables
+				y deliciosas
+			</p>
+
+			<a href="/signup" class="btn ghost mb-l">Registrate!</a>
+			<p class="md-p text-col-white">
+				Ya tienes una cuenta? <a href="/login" class="bold text-col-white">Inicia Sesión</a>
+			</p>
 		</div>
 	</section>
 </div>
@@ -289,6 +314,7 @@
 		object-fit: cover;
 	}
 
+	/*
 	#category-roulette .category {
 		width: 200px;
 		height: 140px;
@@ -299,5 +325,35 @@
 		height: 65px;
 
 		font-size: 2rem;
+	}
+		*/
+
+	section#join {
+		background:
+			radial-gradient(
+				circle,
+				transparent 20%,
+				#626f47 20%,
+				#626f47 80%,
+				transparent 80%,
+				transparent
+			),
+			radial-gradient(
+					circle,
+					transparent 20%,
+					#626f47 20%,
+					#626f47 80%,
+					transparent 80%,
+					transparent
+				)
+				50px 50px,
+			linear-gradient(#708051 8px, transparent 8px) 0 -4px,
+			linear-gradient(90deg, #708051 8px, transparent 8px) -4px 0;
+		background-color: #626f47;
+		background-size:
+			100px 100px,
+			100px 100px,
+			50px 50px,
+			50px 50px;
 	}
 </style>
