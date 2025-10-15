@@ -198,12 +198,14 @@
 	.menu {
 		top: var(--navbar-height);
 		background: white;
+		display: none;
 		opacity: 0%;
 		transform: translateY(-10px);
 		transition: 0.2s ease;
 	}
 
 	.menu[data-open='true'] {
+		display: flex;
 		opacity: 90%;
 		transform: translateY(0px);
 	}

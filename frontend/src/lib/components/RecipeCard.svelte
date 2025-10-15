@@ -1,5 +1,4 @@
 <script lang="ts">
-	import HeartBox from './HeartBox.svelte';
 	import { goto } from '$app/navigation';
 
 	let { recipe } = $props();
@@ -27,10 +26,23 @@
 	<div class="recipe-info pad-20 flex direction-col gap-8 txt-left">
 		<div class="recipe-title bold md-p">{recipe.title}</div>
 		<div class="attributes flex gap-16">
-			<div class="recipe-time p-ghost sm-p">{recipe.time}</div>
-			<div class="recipe-calories p-ghost sm-p">
-				{recipe.kcal}
-			</div>
+			{#if recipe.time}
+				<div class="recipe-time p-ghost sm-p">
+					<i class="las la-stopwatch"></i>
+					{recipe.time}
+				</div>
+			{/if}
+			{#if recipe.kcal}
+				<div class="recipe-calories p-ghost sm-p">
+					{recipe.kcal}
+				</div>
+			{/if}
+			{#if recipe.portions}
+				<div class="recipe-portions p-ghost sm-p">
+					<i class="las la-user"></i>
+					{recipe.portions}
+				</div>
+			{/if}
 		</div>
 
 		<div class="tags flex wrap gap-8">
@@ -43,7 +55,7 @@
 
 <style>
 	:root {
-		--recipe-card-width: 300px;
+		--recipe-card-width: 250px;
 		--recipe-card-height: 350px;
 	}
 

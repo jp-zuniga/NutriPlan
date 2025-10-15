@@ -87,6 +87,10 @@ body {
   background-color: #FFFFFF;
 }
 
+.no-bg {
+  background: none;
+}
+
 h1,
 h2,
 h3,
@@ -204,7 +208,25 @@ label {
   color: var(--color-forest);
 }
 
-input,
+input, select {
+  font-family: var(--font-display);
+  border: 1px solid rgba(0,0,0,0.2);
+  padding: 0.75rem 1rem;
+  transition: 0.2s ease;
+  outline: 0px solid rgba(15, 184, 114, 0.3);
+  background-color: white;
+}
+
+input:hover, select:hover {
+  border: 1px solid rgba(0,0,0,0.5);
+}
+
+input:focus, select:focus {
+  border: 1px solid rgba(0,0,0,1);
+  outline: 2px solid rgba(15, 184, 114, 0.3)
+}
+
+/* input,
 select,
 textarea {
   font-family: var(--font-base);
@@ -221,7 +243,7 @@ textarea:focus {
   outline: none;
   border-color: rgba(15, 184, 114, 0.6);
   box-shadow: 0 0 0 3px rgba(15, 184, 114, 0.15);
-}
+} */
 
 .tag {
   display: inline-flex;
@@ -440,4 +462,16 @@ a.text-col-white:hover {
 @keyframes fade {
   from { opacity: 0.6; }
   to { opacity: 1; }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.no-bold {
+  font-weight: normal;
+}
+
+fieldset {
+  border: 1px solid rgba(0, 0, 0, 0.25);
 }
