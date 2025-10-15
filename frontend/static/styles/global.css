@@ -128,11 +128,11 @@ button {
   transition: 0.2s ease;
 }
 
-.hoverable:hover {
+.hoverable:not(:disabled):hover {
   transform: translateY(-3px);
 }
 
-.hoverable.b-shadow:hover {
+.hoverable:not(:disabled).b-shadow:hover {
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -267,8 +267,12 @@ textarea:focus {
   font-weight: 600;
   font-size: 0.98rem;
   text-decoration: none;
-  cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn:not(:disabled) {
+
+  cursor: pointer;
 }
 
 .btn:disabled {
@@ -283,7 +287,7 @@ textarea:focus {
   /* box-shadow: 0 18px 32px rgba(15, 184, 114, 0.28); */
 }
 
-.btn.primary:hover {
+.btn.primary:not(:disabled):hover {
   color: var(--color-primary-dark);
   outline: 2px solid var(--color-primary-dark);
   background-color: white;
@@ -302,9 +306,14 @@ textarea:focus {
   background-color: var(--color-soft-gray);
 }
 
-.btn.ghost:hover {
+.btn.ghost:not(:disabled):hover {
   transform: translateY(-2px);
   background-color: var(--color-soft-gray-darker);
+}
+
+.btn.ghost:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .chip {
@@ -466,6 +475,11 @@ a.text-col-white:hover {
 
 .clickable {
   cursor: pointer;
+}
+
+.clickable:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .no-bold {

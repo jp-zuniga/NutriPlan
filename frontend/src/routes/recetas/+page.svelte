@@ -80,7 +80,11 @@
 		}
 	];
 
-	const resolveResults = async () => {
+	$effect(() => {
+		resolveResults(page);
+	});
+
+	const resolveResults = async (page) => {
 		loading = true;
 		setTimeout(() => {
 			loading = false;
@@ -154,6 +158,7 @@
 	let selected_categories = $state([]);
 
 	let searchTerm = $state('');
+	let page = $state(1);
 </script>
 
 <div class="main flex-center direction-col">
@@ -186,7 +191,7 @@
 	</section>
 
 	<section id="results" class="flex-center direcion-col full-width pad-50">
-		<div class="container grid regrid-cols-2">
+		<div class="container grid regrid-cols-2" style="height: 900px;">
 			<div class="filters bg-white b-shadow pad-20 flex direction-col gap-16 ov-scroll">
 				{#each filter_groups as filter}
 					<fieldset>
@@ -207,7 +212,7 @@
 				{/each}
 				<button class="btn primary" onclick={resolveResults}>Actualizar</button>
 			</div>
-			<div class="results">
+			<div class="results flex direction-col justify-between">
 				<div class="top-line flex justify-between items-center">
 					<div class="titles">
 						<p class="h2 bold">Resultados</p>
@@ -232,6 +237,30 @@
 							<p class="h1">Cargando recetas...</p>
 						</div>
 					{/if}
+				</div>
+				<div class="flex justify-end items-center gap-24">
+					<button
+						class="btn ghost"
+						style="width: 15px; height: 15px;"
+						onclick={() => {
+							if (page > 1 && !loading) page--;
+						}}
+						disabled={page <= 1}
+						aria-label="previous"
+					>
+						<i class="las la-angle-left"></i>
+					</button>
+					<p class="md-p p-ghost">{page}</p>
+					<button
+						class="btn ghost"
+						style="width: 15px; height: 15px;"
+						onclick={() => {
+							if (!loading) page++;
+						}}
+						aria-label="next"
+					>
+						<i class="las la-angle-right"></i>
+					</button>
 				</div>
 			</div>
 		</div>
