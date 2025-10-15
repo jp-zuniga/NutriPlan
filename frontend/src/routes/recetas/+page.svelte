@@ -192,7 +192,7 @@
 
 	<section id="results" class="flex-center direcion-col full-width pad-50">
 		<div class="container grid regrid-cols-2" style="height: 900px;">
-			<div class="filters bg-white b-shadow pad-20 flex direction-col gap-16 ov-scroll">
+			<div class="filters bg-white b-shadow pad-20 flex direction-col gap-16">
 				{#each filter_groups as filter}
 					<fieldset>
 						<legend class="sm-p">{filter.name}</legend>
@@ -227,7 +227,7 @@
 						</select>
 					</div>
 				</div>
-				<div class="flex gap-16 wrap ov-scroll pad-20">
+				<div class="flex gap-16 wrap ov-scroll-y pad-20">
 					{#if !loading}
 						{#each recipeResults as recipe}
 							<RecipeCard {recipe} />
