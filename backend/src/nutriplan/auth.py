@@ -28,9 +28,6 @@ class CookieJWTAuthentication(JWTAuthentication):
 
         """
 
-        # if self.get_header(request) is not None:
-        #     return super().authenticate(request)
-
         raw_token = request.COOKIES.get(
             getattr(settings, "ACCESS_COOKIE_NAME", "access")
         )

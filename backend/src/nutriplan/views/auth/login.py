@@ -46,11 +46,6 @@ def login_user(request: Request) -> Response:
     if user is None:
         return Response({"error": "Credenciales inválidas."}, status=401)
 
-    # refresh = RefreshToken.for_user(user)
-    # res = Response({"user": UserProfileSerializer(user).data}, status=HTTP_200_OK)
-    # set_auth_cookies(res, refresh)
-    # return res
-
     refresh = RefreshToken.for_user(user)
     return Response(
         {
