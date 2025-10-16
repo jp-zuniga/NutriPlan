@@ -7,10 +7,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer, UserRegistrationSerializer
+
+from .cookies import set_refresh_cookie
 
 CustomUser = get_user_model()
 
@@ -34,13 +36,16 @@ def register_user(request: Request) -> Response:
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
         refresh = RefreshToken.for_user(user)  # type: ignore[reportArgumentType]
-        return Response(
+        resp = Response(
             {
                 "user": UserProfileSerializer(user).data,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             },
-            status=HTTP_201_CREATED,
+            status=HTTP_200_OK or HTTP_201_CREATED,
         )
+
+        set_refresh_cookie(resp, str(refresh))
+        return resp
 
     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
