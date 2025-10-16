@@ -9,7 +9,7 @@ from django.db.models import Avg, Count, F, Prefetch, Q
 from django.db.models.manager import BaseManager
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -23,6 +23,24 @@ from nutriplan.serializers import (
     ReviewSerializer,
 )
 
+ALLOWED_ORDER_FIELDS: set[str] = {
+    "name",
+    "prep_time",
+    "cook_time",
+    "total_time",
+    "servings",
+    "calories_per_serving",
+    "total_calories",
+    "protein_per_serving",
+    "carbs_per_serving",
+    "fat_per_serving",
+    "sugar_per_serving",
+    "created_at",
+    "updated_at",
+    "rating_avg",
+    "rating_count",
+}
+
 MACRO_FIELD_MAP: dict[str, str] = {
     "calories": "calories_per_serving",
     "protein": "protein_per_serving",
@@ -30,6 +48,26 @@ MACRO_FIELD_MAP: dict[str, str] = {
     "fat": "fat_per_serving",
     "sugar": "sugar_per_serving",
 }
+
+
+def _parse_ordering_param(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+
+    order_terms: list[str] = []
+    for term in raw.split(","):
+        t = term.strip()
+        if not t:
+            continue
+
+        desc = t.startswith("-")
+        key = t[1:] if desc else t
+        mapped = MACRO_FIELD_MAP.get(key, key)
+
+        if mapped in ALLOWED_ORDER_FIELDS:
+            order_terms.append(("-" if desc else "") + mapped)
+
+    return order_terms
 
 
 def _parse_uuid_list(value: str | None) -> list[UUID]:
@@ -65,25 +103,9 @@ class RecipeViewSet(ReadOnlyModelViewSet):
 
     """
 
-    filter_backends: ClassVar[list[BaseFilterBackend]] = [SearchFilter, OrderingFilter]  # type: ignore[reportAssignmentType]
+    filter_backends: ClassVar[list[SearchFilter]] = [SearchFilter]  # type: ignore[reportAssignmentType]
     lookup_field: ClassVar[str] = "slug"
-    ordering: ClassVar[list[str]] = ["-created_at", "name"]
-    ordering_fields: ClassVar[list[str]] = [
-        "name",
-        "prep_time",
-        "cook_time",
-        "total_time",
-        "servings",
-        "calories_per_serving",
-        "total_calories",
-        "protein_per_serving",
-        "carbs_per_serving",
-        "fat_per_serving",
-        "sugar_per_serving",
-        "created_at",
-        "updated_at",
-    ]
-
+    default_ordering: ClassVar[list[str]] = ["-created_at", "name"]
     permission_classes: ClassVar[list[type[BasePermission]]] = [AllowAny]
     search_fields: ClassVar[list[str]] = ["name", "description"]
     serializer_class = RecipeSerializer
@@ -142,18 +164,28 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
-        # ---- Ratings ----
+        # ---- Ratings (anotaciones necesarias si ordenamos por rating_*) ----
         qs = qs.annotate(
             rating_avg=Avg("reviews__rating"),
             rating_count=Count("reviews", distinct=True),
         )
 
-        # ---- Orden por macro/calorías (DESC). Sin min/max. ----
+        # ---- ORDENAMIENTO ----
+        # 1) Si viene ?ordering, lo respetamos (con alias y validación)
+        ordering_param = params.get("ordering")
+        parsed_order = _parse_ordering_param(ordering_param)
+
+        if parsed_order:
+            # añadimos un tie-breaker estable al final
+            return qs.order_by(*parsed_order, "-created_at", "name")
+
+        # 2) Si NO viene ?ordering pero sí sort_macro, aplicarlo descendente
         sort_macro = (params.get("sort_macro") or "").strip().lower()
         if sort_macro in MACRO_FIELD_MAP:
-            qs = qs.order_by(f"-{MACRO_FIELD_MAP[sort_macro]}", "-created_at", "name")
+            return qs.order_by(f"-{MACRO_FIELD_MAP[sort_macro]}", "-created_at", "name")
 
-        return qs
+        # 3) Fallback al orden por defecto
+        return qs.order_by(*self.default_ordering)
 
     @action(detail=True, methods=["get"], permission_classes=[AllowAny])
     def reviews(self, request: Request, slug: str | None = None) -> Response:  # noqa: ARG002
