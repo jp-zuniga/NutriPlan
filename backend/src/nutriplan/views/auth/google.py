@@ -113,7 +113,7 @@ def google_sign_in(request: Request) -> Response:
             "access": str(refresh.access_token),
             "created": created_user,
         },
-        status=HTTP_200_OK or HTTP_201_CREATED,
+        status=HTTP_201_CREATED if created_user else HTTP_200_OK,
     )
 
     set_refresh_cookie(resp, str(refresh))
