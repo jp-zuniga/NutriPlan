@@ -35,12 +35,21 @@ def register_user(request: Request) -> Response:
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)  # type: ignore[reportArgumentType]
-        res = Response(
-            {"user": UserProfileSerializer(user).data}, status=HTTP_201_CREATED
-        )
+        # refresh = RefreshToken.for_user(user)  # type: ignore[reportArgumentType]
+        # res = Response(
+        #     {"user": UserProfileSerializer(user).data}, status=HTTP_201_CREATED
+        # )
 
-        set_auth_cookies(res, refresh)
-        return res
+        # set_auth_cookies(res, refresh)
+        # return res
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "user": UserProfileSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=HTTP_201_CREATED,
+        )
 
     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
