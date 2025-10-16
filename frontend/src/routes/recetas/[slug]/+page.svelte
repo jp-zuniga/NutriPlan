@@ -45,6 +45,9 @@
 	];
 
 	let user_review = $state('');
+	let review_error = $state('');
+	let success = $state(false);
+	let review_loading = $state(false);
 
 	const fast_reviews = [
 		['No funcionó', 'Faltaban ingredientes'],
@@ -53,6 +56,38 @@
 		['Estaba bien', 'Necesita mas sabor', 'Talvez la intente de nuevo'],
 		['Me encantó!', 'Muy buen sabor', 'Facil de hacer', 'Valió la pena el esfuerzo']
 	];
+
+	const rate_recipe = async () => {
+		review_loading = true;
+
+		const response = await fetch('/api/rate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				rating: star_count,
+				comment: user_review,
+				slug: recipe_slug
+			})
+		});
+
+		console.log(response);
+
+		if (response.ok) {
+			success = true;
+			star_count = 0;
+			user_review = '';
+			// Refresh
+			const refresh = await getRecipe(recipe_slug);
+			reviews = refresh.reviews;
+		} else {
+			const data = await response.json();
+			review_error = data?.error ?? 'Error añadiendo la reseña';
+		}
+
+		review_loading = false;
+	};
 
 	get_recipe();
 </script>
@@ -245,10 +280,23 @@
 								>
 								<button
 									class="btn primary"
-									disabled={user_review == '' || star_count == 0 || $authUser == null}
-									>Enviar</button
+									disabled={user_review == '' ||
+										star_count == 0 ||
+										$authUser == null ||
+										review_loading}
+									onclick={rate_recipe}>Enviar</button
 								>
 							</div>
+
+							{#if review_error}
+								<p class="md-p p-emphasis no-ul mt">
+									{review_error}
+								</p>
+							{/if}
+
+							{#if success}
+								<p class="md-p no-ul mt">Tu reseña fue añadida con éxito!</p>
+							{/if}
 
 							{#if $authUser == null}
 								<p class="md-p p-emphasis no-ul mt">

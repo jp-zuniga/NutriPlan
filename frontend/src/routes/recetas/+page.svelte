@@ -254,10 +254,15 @@
 						</select>
 					</div>
 				</div>
-				<div class="flex-center justify-between gap-16 wrap ov-scroll-y pad-20 bg-white full-size">
+				<div
+					id="recipe-grid"
+					class="flex-center justify-between gap-16 wrap ov-scroll-y pad-20 bg-white full-size"
+				>
 					{#if !loading}
-						{#each recipeResults as recipe}
-							<RecipeCard {recipe} />
+						{#each recipeResults as recipe, i}
+							<div class="recipe" style="animation-delay: calc(0.1s * {i});">
+								<RecipeCard {recipe} />
+							</div>
 						{/each}
 						{#if recipeResults === null}
 							<div class="full-size flex-center">
@@ -317,5 +322,22 @@
 
 	#results .grid {
 		grid-template-columns: 1fr 3fr;
+	}
+
+	@keyframes FadeIn {
+		0% {
+			opacity: 0;
+			transform: translateY(-15px);
+		}
+
+		100% {
+			opacity: 1;
+			transform: translateY(0px);
+		}
+	}
+
+	#recipe-grid .recipe {
+		animation: FadeIn 1s ease;
+		animation-fill-mode: both;
 	}
 </style>
