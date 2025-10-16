@@ -86,6 +86,7 @@ def test_add_recipe_missing_recipe_id(
     c = RecipeCollectionFactory(owner=user)
     url = reverse("collection-add-recipe", kwargs={"id": c.id})
     res = client.post(url, {})
+
     assert res.status_code == HTTP_400_BAD_REQUEST
 
 

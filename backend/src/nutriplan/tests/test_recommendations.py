@@ -40,9 +40,9 @@ def test_recommend_requires_at_least_one_ingredient(
     url = reverse(RECOMMEND_URL_NAME)
 
     res = client.post(url, {"ingredients": []}, format="json")
-    assert res.status_code == HTTP_400_BAD_REQUEST
-
     res2 = client.post(url, {}, format="json")
+
+    assert res.status_code == HTTP_400_BAD_REQUEST
     assert res2.status_code == HTTP_400_BAD_REQUEST
 
 

@@ -1,13 +1,12 @@
 # type: ignore[reportAttributeAccessIssue]
 
+from django.conf import settings
 from django.urls import reverse
 from pytest import mark
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
 pytestmark = mark.django_db
-
-COOKIE_NAME = "nutriplan-refresh"
 
 
 def test_register_sets_access_cookie_and_me_allows_cookie_auth(
@@ -27,9 +26,9 @@ def test_register_sets_access_cookie_and_me_allows_cookie_auth(
     assert res.status_code == HTTP_201_CREATED
 
     # debe venir la cookie con el access token
-    assert COOKIE_NAME in res.cookies
+    assert settings.REFRESH_COOKIE_NAME in res.cookies
 
-    morsel = res.cookies[COOKIE_NAME]
+    morsel = res.cookies[settings.REFRESH_COOKIE_NAME]
 
     assert morsel["httponly"] is True
     assert morsel["samesite"] in ("Lax", "Strict", "None")
@@ -67,9 +66,9 @@ def test_login_sets_access_cookie_and_me_allows_cookie_auth(client: APIClient) -
     assert res_login.status_code == HTTP_200_OK
 
     # cookie presente y con flags seguros
-    assert COOKIE_NAME in res_login.cookies
+    assert settings.REFRESH_COOKIE_NAME in res_login.cookies
 
-    morsel = res_login.cookies[COOKIE_NAME]
+    morsel = res_login.cookies[settings.REFRESH_COOKIE_NAME]
 
     assert morsel["httponly"] is True
     assert morsel["samesite"] in ("Lax", "Strict", "None")

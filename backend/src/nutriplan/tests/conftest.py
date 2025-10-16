@@ -49,7 +49,9 @@ def auth_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     user.save(update_fields=["password"])
 
     refresh = RefreshToken.for_user(user)
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token!s}")
+    client.cookies[settings.ACCESS_COOKIE_NAME] = str(refresh.access_token)
+    client.cookies[settings.REFRESH_COOKIE_NAME] = str(refresh)
+
     return client, user
 
 
@@ -60,7 +62,9 @@ def staff_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     user.save(update_fields=["password"])
 
     refresh = RefreshToken.for_user(user)
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token!s}")
+    client.cookies[settings.ACCESS_COOKIE_NAME] = str(refresh.access_token)
+    client.cookies[settings.REFRESH_COOKIE_NAME] = str(refresh)
+
     return client, user
 
 

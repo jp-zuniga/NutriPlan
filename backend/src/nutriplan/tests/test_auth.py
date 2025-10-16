@@ -2,6 +2,7 @@
 
 from typing import NoReturn
 
+from django.conf import settings
 from django.test import Client
 from django.urls import reverse
 from pytest import MonkeyPatch, mark, raises
@@ -32,14 +33,14 @@ def test_register_and_login(client: APIClient) -> None:
     res = client.post(reg, payload, format="json")
 
     assert res.status_code == HTTP_201_CREATED
-    assert "access" in res.data
-    assert "refresh" in res.data
+    assert settings.ACCESS_COOKIE_NAME in res.data
+    assert settings.REFRESH_COOKIE_NAME in res.data
 
     login = reverse("login_user")
     res2 = client.post(login, {"email": "ana@example.com", "password": "superclave123"})
 
     assert res2.status_code == HTTP_200_OK
-    assert "access" in res2.data
+    assert settings.ACCESS_COOKIE_NAME in res2.data
 
 
 def test_login_requires_email_and_password(client: APIClient) -> None:
@@ -79,8 +80,8 @@ def test_google_sign_in_creates_user(
     data = res.data
 
     assert data["user"]["email"] == "gg@example.com"
-    assert "access" in data
-    assert "refresh" in data
+    assert settings.ACCESS_COOKIE_NAME in data
+    assert settings.REFRESH_COOKIE_NAME in data
 
 
 def test_google_sign_in_existing_sa_updates(
