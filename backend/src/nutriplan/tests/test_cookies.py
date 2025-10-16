@@ -6,78 +6,80 @@ from pytest import mark
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
+from .conftest import TokenApplier
+
+USER = settings.AUTH_USER_MODEL
+
 pytestmark = mark.django_db
 
 
-def test_register_sets_access_cookie_and_me_allows_cookie_auth(
-    client: APIClient,
+def test_register_tokens_then_me_via_cookie(
+    client: APIClient, apply_tokens_to_client: TokenApplier
 ) -> None:
-    url = reverse("register_user")
-    payload = {
-        "full_name": "Ana Gomez",
-        "email": "ana-cookie@example.com",
-        "phone_number": "",
-        "password": "superclave123",
-        "password_confirm": "superclave123",
-    }
-
-    res = client.post(url, payload, format="json")
+    url_register = reverse("register_user")
+    res = client.post(
+        url_register,
+        {
+            "full_name": "Ana Lopez",
+            "email": "ana@example.com",
+            "password": "pass12345",
+            "password_confirm": "pass12345",
+        },
+        format="json",
+    )
 
     assert res.status_code == HTTP_201_CREATED
 
-    # debe venir la cookie con el access token
-    assert settings.REFRESH_COOKIE_NAME in res.cookies
+    # Ya no esperamos cookies aquí
+    assert "np-refresh" not in res.cookies
+    assert "np-access" not in res.cookies
 
-    morsel = res.cookies[settings.REFRESH_COOKIE_NAME]
+    body = res.json()
 
-    assert morsel["httponly"] is True
-    assert morsel["samesite"] in ("Lax", "Strict", "None")
+    assert "access" in body
+    assert "refresh" in body
 
-    # usando el MISMO client (con cookie), /users/me debe funcionar sin header auth
-    me = client.get(reverse("user-me"))
+    # Simular frontend: escribir cookies en el client
+    api_client = apply_tokens_to_client(client, body["access"], body["refresh"])
 
-    assert me.status_code == HTTP_200_OK
-    assert me.data["email"] == payload["email"]
+    # Comprobar que /users/me acepta cookie-auth
+    res_me = api_client.get(reverse("user-me"))
+
+    assert res_me.status_code == HTTP_200_OK
+    assert res_me.json()["email"] == "ana@example.com"
 
 
-def test_login_sets_access_cookie_and_me_allows_cookie_auth(client: APIClient) -> None:
-    # primero registramos al usuario
-    reg = reverse("register_user")
-    payload = {
-        "full_name": "Carlos Perez",
-        "email": "carlos-cookie@example.com",
-        "phone_number": "",
-        "password": "otraclave123",
-        "password_confirm": "otraclave123",
-    }
-
-    res_reg = client.post(reg, payload, format="json")
-
-    assert res_reg.status_code == HTTP_201_CREATED
-
-    # limpiamos cookies para asegurar que el login es quien autentica por cookie
-    client.cookies.clear()
-
-    login = reverse("login_user")
-    res_login = client.post(
-        login, {"email": payload["email"], "password": payload["password"]}
+def test_login_tokens_then_me_via_cookie(
+    client: APIClient, django_user_model: USER, apply_tokens_to_client: TokenApplier
+) -> None:
+    _ = django_user_model.objects.create_user(
+        email="ana@example.com",
+        password="pass12345",  # noqa: S106
     )
 
-    assert res_login.status_code == HTTP_200_OK
+    url_login = reverse("login_user")
+    res = client.post(
+        url_login, {"email": "ana@example.com", "password": "pass12345"}, format="json"
+    )
 
-    # cookie presente y con flags seguros
-    assert settings.REFRESH_COOKIE_NAME in res_login.cookies
+    assert res.status_code == HTTP_200_OK
 
-    morsel = res_login.cookies[settings.REFRESH_COOKIE_NAME]
+    # Ya no esperamos cookies aquí
+    assert "np-refresh" not in res.cookies
+    assert "np-access" not in res.cookies
 
-    assert morsel["httponly"] is True
-    assert morsel["samesite"] in ("Lax", "Strict", "None")
+    body = res.json()
+    assert "access" in body
+    assert "refresh" in body
 
-    # /users/me debe responder OK sin Authorization (usa cookie)
-    me = client.get(reverse("user-me"))
+    # Simular frontend: escribir cookies en el client
+    api_client = apply_tokens_to_client(client, body["access"], body["refresh"])
 
-    assert me.status_code == HTTP_200_OK
-    assert me.data["email"] == payload["email"]
+    # Comprobar que /users/me acepta cookie-auth
+    res_me = api_client.get(reverse("user-me"))
+
+    assert res_me.status_code == HTTP_200_OK
+    assert res_me.json()["email"] == "ana@example.com"
 
 
 def test_login_requires_email_and_password_for_cookie(client: APIClient) -> None:

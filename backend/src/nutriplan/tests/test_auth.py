@@ -15,32 +15,60 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
+from nutriplan.models import Provider, SocialAccount
 from nutriplan.services.auth import google as google_service
+
+from .conftest import TokenApplier
+
+USER = settings.AUTH_USER_MODEL
 
 pytestmark = mark.django_db
 
 
-def test_register_and_login(client: APIClient) -> None:
-    reg = reverse("register_user")
+def test_register_and_login(
+    client: APIClient, apply_tokens_to_client: TokenApplier
+) -> None:
+    # REGISTER devuelve tokens en el body (no cookies)
+    url_register = reverse("register_user")
     payload = {
-        "full_name": "Ana Gomez",
+        "full_name": "Ana Lopez",
         "email": "ana@example.com",
-        "phone_number": "",
-        "password": "superclave123",
-        "password_confirm": "superclave123",
+        "password": "pass12345",
+        "password_confirm": "pass12345",
     }
-
-    res = client.post(reg, payload, format="json")
+    res = client.post(url_register, payload, format="json")
 
     assert res.status_code == HTTP_201_CREATED
-    assert settings.ACCESS_COOKIE_NAME in res.data
-    assert settings.REFRESH_COOKIE_NAME in res.data
 
-    login = reverse("login_user")
-    res2 = client.post(login, {"email": "ana@example.com", "password": "superclave123"})
+    body = res.json()
 
-    assert res2.status_code == HTTP_200_OK
-    assert settings.ACCESS_COOKIE_NAME in res2.data
+    assert "access" in body
+    assert "refresh" in body
+    assert "user" in body
+    assert body["user"]["email"] == "ana@example.com"
+
+    # Simular frontend: poner tokens en cookies del client
+    api_client = apply_tokens_to_client(client, body["access"], body["refresh"])
+
+    # Ahora sí: endpoints autenticados por cookie
+    url_me = reverse("user-me")
+    res_me = api_client.get(url_me)
+
+    assert res_me.status_code == HTTP_200_OK
+    assert res_me.json()["email"] == "ana@example.com"
+
+    # LOGIN también devuelve tokens en el body
+    url_login = reverse("login_user")
+    res_login = api_client.post(
+        url_login, {"email": "ana@example.com", "password": "pass12345"}, format="json"
+    )
+
+    assert res_login.status_code == HTTP_200_OK
+
+    body_login = res_login.json()
+
+    assert "access" in body_login
+    assert "refresh" in body_login
 
 
 def test_login_requires_email_and_password(client: APIClient) -> None:
@@ -61,50 +89,67 @@ def test_login_invalid_credentials(client: APIClient) -> None:
 def test_google_sign_in_creates_user(
     monkeypatch: MonkeyPatch, client: APIClient
 ) -> None:
-    def fake_verify(_token: str) -> dict[str, str]:
-        return {
+    monkeypatch.setattr(
+        google_service,
+        "verify_google_id_token",
+        lambda _: {
             "email": "gg@example.com",
             "sub": "google-sub-123",
             "name": "GG User",
-            "picture": "https://example.com/a.png",
+            "picture": "https://example.com/gg.png",
             "given_name": "GG",
             "family_name": "User",
-        }
+        },
+    )
 
-    monkeypatch.setattr(google_service, "verify_google_id_token", fake_verify)
     url = reverse("google_sign_in")
-    res = client.post(url, {"id_token": "fake"})
+    res = client.post(url, {"id_token": "FAKE"}, format="json")
 
     assert res.status_code in (HTTP_200_OK, HTTP_201_CREATED)
 
-    data = res.data
+    body = res.json()
 
-    assert data["user"]["email"] == "gg@example.com"
-    assert settings.ACCESS_COOKIE_NAME in data
-    assert settings.REFRESH_COOKIE_NAME in data
+    assert body["user"]["email"] == "gg@example.com"
+
+    # <- cookies seteadas por el backend
+    assert "np-access" in res.cookies
+    assert "np-refresh" in res.cookies
 
 
 def test_google_sign_in_existing_sa_updates(
-    monkeypatch: MonkeyPatch, client: APIClient
+    monkeypatch: MonkeyPatch, client: APIClient, django_user_model: USER
 ) -> None:
-    test_google_sign_in_creates_user(monkeypatch, client)
+    user = django_user_model.objects.create_user(email="gg@example.com", password=None)
+    SocialAccount.objects.create(
+        user=user,
+        provider=Provider.GOOGLE,
+        provider_user_id="google-sub-123",
+        email="gg@example.com",
+        display_name="GG User",
+        avatar_url="",
+    )
 
-    def fake_verify2(_token: str) -> dict[str, str]:
-        return {
+    monkeypatch.setattr(
+        google_service,
+        "verify_google_id_token",
+        lambda _: {
             "email": "gg@example.com",
             "sub": "google-sub-123",
-            "name": "GG User 2",
-            "picture": "https://example.com/b.png",
+            "name": "GG User",
+            "picture": "https://example.com/gg2.png",
             "given_name": "GG",
             "family_name": "User",
-        }
+        },
+    )
 
-    monkeypatch.setattr(google_service, "verify_google_id_token", fake_verify2)
     url = reverse("google_sign_in")
-    res = client.post(url, {"id_token": "fake"})
+    res = client.post(url, {"id_token": "FAKE"}, format="json")
 
     assert res.status_code == HTTP_200_OK
-    assert res.data["created"] is False
+
+    # <- cookies seteadas por el backend
+    assert "np-access" in res.cookies
+    assert "np-refresh" in res.cookies
 
 
 def test_google_sign_in_requires_token(client: APIClient) -> None:

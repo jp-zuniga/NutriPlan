@@ -1,4 +1,4 @@
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from datetime import timedelta
 from pathlib import Path
 from shutil import rmtree
@@ -11,6 +11,8 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .factories import UserFactory
+
+TokenApplier = Callable[[APIClient, str, str], APIClient]
 
 
 @fixture(autouse=True)
@@ -35,6 +37,16 @@ def _settings_for_tests() -> None:
     settings.STATICFILES_STORAGE = (
         "django.contrib.staticfiles.storage.StaticFilesStorage"
     )
+
+
+@fixture
+def apply_tokens_to_client() -> TokenApplier:
+    def _apply(client: APIClient, access: str, refresh: str) -> APIClient:
+        client.cookies[settings.ACCESS_COOKIE_NAME] = access
+        client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
+        return client
+
+    return _apply
 
 
 @fixture
