@@ -55,7 +55,6 @@ body {
   margin: 0;
   font-family: var(--font-base);
   background: var(--color-soft-white);
-  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -380,7 +379,7 @@ textarea:focus {
 }
 
 .p-ghost {
-  opacity: 75%;
+  opacity: 65%;
 }
 
 .no-ul {

@@ -6,6 +6,7 @@
 	import { authUser } from '$lib/stores/auth';
 	import { json } from '@sveltejs/kit';
 	import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	const highlights = [
 		'Accede a tus planes y recetas guardadas',
@@ -19,7 +20,7 @@
 
 	onMount(() => {
 		$effect(() => {
-			if ($authUser != null) {
+			if ($authUser !== null) {
 				goto('/');
 			}
 		});
@@ -103,22 +104,10 @@
 </script>
 
 {#if $authUser !== undefined && $authUser === null}
-	<main class="login">
-		<section class="hero">
-			<div class="container hero-grid">
-				<article class="copy">
-					<h1>Inicia sesión en NutriPlan</h1>
-					<p>
-						Retoma tus planes personalizados, sincroniza tus recetas favoritas y continúa tu camino
-						hacia un bienestar con sabor nicaragüense.
-					</p>
-					<ul>
-						{#each highlights as item}
-							<li>{item}</li>
-						{/each}
-					</ul>
-				</article>
-				<form class="card form" onsubmit={handleSubmit}>
+	<main class="login no-pad" style="height: calc(100vh - 75px);">
+		<section class="flex-center full-size no-pad">
+			<div class="container hero-grid" style="width: 550px;">
+				<form class="card form b-shadow" onsubmit={handleSubmit}>
 					<h2>Bienvenido de vuelta</h2>
 					{#each questions as question}
 						<label for={question.id}
@@ -148,17 +137,11 @@
 					</div>
 					<button class="btn primary" type="submit" disabled={loading}>
 						{#if loading}
-							Cargando…
+							Cargando...
 						{:else}
 							Ingresar
 						{/if}
 					</button>
-					<!-- {#if error}
-					<p class="feedback error">{error}</p>
-				{/if}
-				{#if showSuccess}
-					<p class="feedback success">¡Bienvenido! Redirigiendo…</p>
-				{/if} -->
 					{#if error}
 						<p id="fb-error" class="feedback error">{error}</p>
 					{/if}
@@ -174,9 +157,22 @@
 			</div>
 		</section>
 	</main>
+{:else}
+	<div class="flex-center" style="height: calc(100vh - 75px);">
+		<RotatingNutriplan />
+	</div>
 {/if}
 
 <style>
+	main {
+		background-image: url('$lib/assets/CarneTajadasHD.jpg');
+		background-size: cover;
+	}
+
+	section {
+		backdrop-filter: blur(15px);
+	}
+
 	input {
 		transition: 0.25s ease;
 	}
@@ -203,13 +199,6 @@
 	#fb-success {
 		border: 2px solid rgb(0, 255, 0);
 		background-color: rgba(0, 255, 0, 0.35);
-	}
-
-	.login {
-		display: flex;
-		flex-direction: column;
-		gap: 4rem;
-		padding-bottom: 4rem;
 	}
 
 	.container {

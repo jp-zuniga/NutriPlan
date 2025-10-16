@@ -6,6 +6,7 @@
 	import { authUser } from '$lib/stores/auth';
 	import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
 	import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	let loading = $state(false);
 	let error = $state('');
@@ -20,9 +21,8 @@
 
 	let errorfields = $state({});
 
-	onMount(() => {
-		const user = get(authUser);
-		if (user) {
+	$effect(() => {
+		if ($authUser !== null && $authUser !== undefined) {
 			goto('/');
 		}
 	});
@@ -124,63 +124,70 @@
 	]);
 </script>
 
-<main class="signup-page">
-	<section class="hero">
-		<div class="container hero-grid">
-			<article class="copy">
-				<h1>Crea tu cuenta NutriPlan</h1>
-				<p>
-					Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya tu
-					plan a partir de tu historia y cultura alimentaria.
-				</p>
-				<ul>
-					<li>✨ Planes ajustados a tu presupuesto y tiempo</li>
-					<li>🍲 Recetas con ingredientes nicaragüenses</li>
-					<li>📈 Seguimiento de metas y recordatorios</li>
-				</ul>
-			</article>
-			<form class="card form" method="POST" onsubmit={handleLogin}>
-				<h2>Regístrate</h2>
-				<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
+{#if $authUser !== undefined && $authUser === null}
+	<main class="signup-page">
+		<section class="hero">
+			<div class="container hero-grid">
+				<article class="copy">
+					<h1>Crea tu cuenta NutriPlan</h1>
+					<p>
+						Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya
+						tu plan a partir de tu historia y cultura alimentaria.
+					</p>
+					<ul>
+						<li>✨ Planes ajustados a tu presupuesto y tiempo</li>
+						<li>🍲 Recetas con ingredientes nicaragüenses</li>
+						<li>📈 Seguimiento de metas y recordatorios</li>
+					</ul>
+				</article>
+				<form class="card form" method="POST" onsubmit={handleLogin}>
+					<h2>Regístrate</h2>
+					<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
 
-				{#each questions as question}
-					<label for={question.id}
-						>{question.label}
-						{#if question.required}
-							<span style="color: red">*</span>
+					{#each questions as question}
+						<label for={question.id}
+							>{question.label}
+							{#if question.required}
+								<span style="color: red">*</span>
+							{/if}
+						</label>
+						<input
+							name={question.id}
+							type={question.type}
+							placeholder={question.placeholder}
+							required={question.required}
+							bind:value={question.value}
+							oninput={(event) => {
+								const error = question.validator ? question.validator(event.target.value) : '';
+								event.target.setCustomValidity(error || '');
+							}}
+						/>
+					{/each}
+					<button class="btn primary mt" type="submit" disabled={loading}>
+						{#if loading}
+							Creando cuenta…
+						{:else}
+							Crear cuenta
 						{/if}
-					</label>
-					<input
-						name={question.id}
-						type={question.type}
-						placeholder={question.placeholder}
-						required={question.required}
-						bind:value={question.value}
-						oninput={(event) => {
-							const error = question.validator ? question.validator(event.target.value) : '';
-							event.target.setCustomValidity(error || '');
-						}}
-					/>
-				{/each}
-				<hr style="width: 100%" />
-				<button class="btn primary" type="submit" disabled={loading}>
-					{#if loading}
-						Creando cuenta…
-					{:else}
-						Crear cuenta
+					</button>
+					{#if error}
+						<p id="fb-error" class="feedback error">{error}</p>
 					{/if}
-				</button>
-				{#if error}
-					<p id="fb-error" class="feedback error">{error}</p>
-				{/if}
-				{#if success}
-					<p id="fb-success" class="feedback success">¡Cuenta creada! Preparando tu experiencia…</p>
-				{/if}
-				<p class="login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
-			</form>
-		</div>
-	</section>
-</main>
+					{#if success}
+						<p id="fb-success" class="feedback success">
+							¡Cuenta creada! Preparando tu experiencia…
+						</p>
+					{/if}
+					<p class="login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+				</form>
+			</div>
+		</section>
+	</main>
+{:else}
+	<div class="flex-center" style="height: calc(100vh - 75px);">
+		<RotatingNutriplan />
+	</div>
+{/if}
 
 <style>
 	input {

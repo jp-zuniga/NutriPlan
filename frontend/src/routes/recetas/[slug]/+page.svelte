@@ -6,6 +6,8 @@
 	import { toReadableDate } from '$lib/utils/date';
 	import { extractDirectImage } from '$lib/utils/images';
 	import { authUser } from '$lib/stores/auth';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
+	import { marked } from 'marked';
 
 	const recipe_slug = $state($page.params.slug);
 
@@ -61,8 +63,8 @@
 	{/if}
 </svelte:head>
 
-<main id="recipe">
-	{#if !loading}
+{#if !loading}
+	<main id="recipe" class="mb">
 		{#if recipe}
 			<section class="full-width">
 				<div class="container md flex direction-col mt-l mb-l">
@@ -85,10 +87,10 @@
 							{#if recipe.rating_avg != null}
 								<StarRating count={recipe.rating_avg} />
 								<p class="md-p p-emphasis">{recipe.rating_avg}</p>
-								<p class="p-ghost md-p">
+								<a class="p-ghost md-p" href="#reviews">
 									({recipe.rating_count}
 									{recipe.rating_count == 1 ? 'reseña' : 'reseñas'})
-								</p>
+								</a>
 							{:else}
 								<StarRating count={recipe.rating_avg} />
 								<p class="md-p">Sin reseñas</p>
@@ -148,7 +150,18 @@
 				</div>
 			</section>
 
-			<section id="reviews">
+			<section id="instructions">
+				{#if recipe.instructions}
+					<div class="container md flex-begin direction-col mb">
+						<p class="h2 bold">Instrucciones</p>
+						<p class="instructions">
+							{@html marked(recipe.instructions)}
+						</p>
+					</div>
+				{/if}
+			</section>
+
+			<section id="review">
 				<div class="container md flex direction-col">
 					<p class="h2 bold">
 						Reseñas
@@ -246,14 +259,53 @@
 							{/if}
 						</div>
 					</div>
+				</div>
+			</section>
 
-					{#if reviews.length != 0}{:else}
-						<h1>No</h1>
-					{/if}
+			<section id="reviews">
+				<div class="container md flex direction-col reviews mt gap-16">
+					<div class="separator txt-center">
+						<hr class="soft" />
+						{#if reviews.length != 0}
+							<p class="p-ghost">{reviews.length} reseña(s)</p>
+						{:else}
+							<p class="p-ghost">No hay reseñas!</p>
+						{/if}
+
+						<hr class="soft" />
+					</div>
+
+					{#each reviews as review}
+						<div class="review flex direction-col gap-8 bg-soft-gray pad-20">
+							<div class="user flex items-center gap-8">
+								<div
+									class="pic flex-center"
+									style="width: 30px; height: 30px; background-color: gray; border-radius: 50%"
+								>
+									<i class="las la-user-alt text-col-white" style="font-size: 20px;"></i>
+								</div>
+
+								Anónimo
+							</div>
+							<div class="flex gap-16 items-center">
+								<StarRating count={review.rating} />
+								<p class="sm-p p-ghost">{toReadableDate(review.created_at)}</p>
+							</div>
+							{#if review.comment}
+								<p class="lg-p">{review.comment}</p>
+							{/if}
+						</div>
+					{/each}
 				</div>
 			</section>
 		{:else}
-			<h1>No existe la receta</h1>
+			<div class="flex-center full-size" style="height: calc(100vh - 75px);">
+				<p class="p-ghost lg-p">404, receta no encontrada</p>
+			</div>
 		{/if}
-	{/if}
-</main>
+	</main>
+{:else}
+	<div class="flex-center full-size" style="height: calc(100vh - 75px);">
+		<RotatingNutriplan />
+	</div>
+{/if}

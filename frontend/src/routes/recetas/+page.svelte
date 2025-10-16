@@ -10,6 +10,7 @@
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import { resolve } from '$app/paths';
 	import { API_RECIPES_ENDPOINT } from '$lib/endpoints';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	const categories = ['Tradicional', 'Saludable', 'Vegetariano', 'Sin gluten', 'Postres'];
 
@@ -21,7 +22,7 @@
 		{ label: 'IA recomendadas', value: 'ai' }
 	];
 
-	let loading = $state(false);
+	let loading = $state(true);
 
 	const max_page_count = 20;
 
@@ -102,7 +103,11 @@
 			const data = await response.json();
 			console.log(data);
 			recipeResults = data;
+			loading = false;
+			return;
 		}
+
+		recipeResults = null;
 
 		loading = false;
 	};
@@ -207,7 +212,7 @@
 	</section>
 
 	<section id="results" class="flex-center direcion-col full-width pad-50">
-		<div class="container grid regrid-cols-2" style="max-height: 900px;">
+		<div class="container grid regrid-cols-2" style="min-height: 900px; max-height: 900px;">
 			<div class="filters bg-white b-shadow pad-20 flex direction-col justify-between gap-16">
 				<div id="filter-groups" class="flex direction-col gap-16">
 					{#each filter_groups as filter}
@@ -234,7 +239,11 @@
 				<div class="top-line flex justify-between items-center">
 					<div class="titles">
 						<p class="h2 bold">Resultados</p>
-						<p class="md-p p-ghost">{recipeResults.length} resultado(s)</p>
+						{#if !loading}
+							<p class="md-p p-ghost">{recipeResults.length} resultado(s)</p>
+						{:else}
+							<p class="md-p p-ghost">Cargando...</p>
+						{/if}
 					</div>
 					<div class="order-by flex-center gap-8">
 						<p class="md-p p-ghost">Ordenar por</p>
@@ -245,14 +254,20 @@
 						</select>
 					</div>
 				</div>
-				<div class="flex-center justify-between gap-16 wrap ov-scroll-y pad-20">
+				<div class="flex-center justify-between gap-16 wrap ov-scroll-y pad-20 bg-white full-size">
 					{#if !loading}
 						{#each recipeResults as recipe}
 							<RecipeCard {recipe} />
 						{/each}
+						{#if recipeResults === null}
+							<div class="full-size flex-center">
+								<p class="lg-p p-ghost txt-center">Hubo un error obteniendo las recetas</p>
+							</div>
+						{/if}
 					{:else}
 						<div class="full-size flex-center">
-							<p class="h1">Cargando recetas...</p>
+							<!-- <p class="h3 p-ghost">Cargando recetas...</p> -->
+							<RotatingNutriplan />
 						</div>
 					{/if}
 				</div>

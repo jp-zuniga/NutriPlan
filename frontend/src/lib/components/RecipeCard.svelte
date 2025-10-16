@@ -59,9 +59,9 @@
 		</div>
 
 		<div class="tags flex wrap gap-8">
-			{#each recipe.tags as tag}
+			<!-- {#each recipe.tags as tag}
 				<span class="sm-p p-ghost bg-soft-gray-darker pad-5 round-5">{tag}</span>
-			{/each}
+			{/each} -->
 		</div>
 	</div>
 </button>

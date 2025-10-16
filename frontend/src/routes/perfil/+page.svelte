@@ -7,6 +7,7 @@
 	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	$effect(() => {
 		if ($authUser === null) goto('/login');
@@ -72,7 +73,7 @@
 	];
 </script>
 
-{#if authUser !== undefined && authUser !== null}
+{#if $authUser !== undefined && $authUser !== null}
 	<main class="profile">
 		<section class="hero">
 			<div class="container hero-grid">
@@ -253,7 +254,9 @@
 		</section>
 	</main>
 {:else}
-	<h2>Couldn't find your account</h2>
+	<div class="flex-center" style="height: calc(100vh - 75px);">
+		<RotatingNutriplan />
+	</div>
 {/if}
 
 <style>

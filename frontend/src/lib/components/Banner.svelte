@@ -2,19 +2,16 @@
 	import { authUser } from '$lib/stores/auth';
 	import LogoFavicon from '$lib/assets/favicon.svg';
 	import { goto } from '$app/navigation';
+	import RotatingNutriplan from './RotatingNutriplan.svelte';
 
-	$effect(() => {
-		console.log(`Auth user: ${JSON.stringify($authUser)}`);
-	});
-
-	const navLinks = [
+	let navLinks = $state([
 		{ text: 'Inicio', href: '/' },
 		{ text: 'Recetas', href: '/recetas' },
 		{ text: 'Planes', href: '/planes' },
 		{ text: 'Receta rápida', href: '/receta-rapida' },
 		{ text: 'Chef IA', href: '/chef-ia' },
-		{ text: 'Perfil', href: '/perfil' }
-	];
+		{ text: 'Perfil', href: $authUser !== undefined && $authUser !== null ? '/perfil' : '/login' }
+	]);
 
 	let menuOpen = $state(false);
 
@@ -63,7 +60,7 @@
 
 		<!-- Sign in -->
 		<div class="sign-in flex-center gap-16 high-res">
-			{#if $authUser}
+			{#if $authUser !== undefined && $authUser !== null}
 				<div class="user-pill flex-center gap-16 pill pad-10 bg-white b-shadow">
 					<span class="avatar full-round text-col-white flex-center"
 						>{initials($authUser.first_name || $authUser.email)}</span
