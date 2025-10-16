@@ -109,7 +109,7 @@ class RecipeCollectionSerializer(ModelSerializer):
         """
 
         return CollectionItemReadSerializer(
-            obj.items.select_related("recipe").order_by("order", "id"),  # type: ignore[reportAttributeAccessIssue]
+            obj.items.all().order_by("order", "id"),  # type: ignore[reportAttributeAccessIssue]
             many=True,
         ).data  # type: ignore[reportReturnType]
 

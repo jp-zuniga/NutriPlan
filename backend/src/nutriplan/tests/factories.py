@@ -1,10 +1,12 @@
 # type: ignore[reportIncompatibleVariableOverride]
 
+from collections.abc import Iterable
 from decimal import Decimal
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
+from factory import post_generation
 from factory.declarations import LazyAttribute, LazyFunction, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker as FactoryFaker
@@ -84,12 +86,12 @@ class ImageFactory(DjangoModelFactory):
 class RecipeFactory(DjangoModelFactory):
     class Meta:
         model = Recipe
+        skip_post_generation_save = True
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.sentence(nb_words=3).rstrip("."))
     slug = LazyAttribute(lambda obj: slugify(obj.name))
     description = FactoryFaker("paragraph")
-    category = SubFactory(CategoryFactory)
     prep_time = 10
     cook_time = 20
     servings = 2
@@ -101,6 +103,58 @@ class RecipeFactory(DjangoModelFactory):
     main_image_url = LazyAttribute(
         lambda _: f"https://picsum.photos/seed/{uuid4()}/400/300"
     )
+
+    @post_generation
+    def categories(
+        self,
+        create: bool,  # noqa: FBT001
+        extracted: Iterable[Category] | None,
+        **kwargs,  # noqa: ANN003, ARG002
+    ) -> None:
+        """
+        Post-generation hook that populates categories relation.
+
+        Args:
+            create:    Indicates whether parent object was actually created.
+            extracted: Optional iterable of Category instances to attach.
+            **kwargs:  Ignored; present for Factory Boy API compatibility.
+
+        """
+
+        if not create:
+            return
+
+        if extracted:
+            if isinstance(extracted, (list, tuple)):
+                for c in extracted:
+                    self.categories.add(c)
+            else:
+                self.categories.add(extracted)
+        else:
+            self.categories.add(CategoryFactory())
+
+    @post_generation
+    def category(
+        self,
+        create: bool,  # noqa: FBT001
+        extracted: Iterable[Category] | None,
+        **kwargs,  # noqa: ANN003, ARG002
+    ) -> None:
+        """
+        Post-generation hook that populates categories relation.
+
+        Args:
+            create:    Indicates whether parent object was actually created.
+            extracted: Optional iterable of Category instances to attach.
+            **kwargs:  Ignored; present for Factory Boy API compatibility.
+
+        """
+
+        if not create or not extracted:
+            return
+
+        self.categories.clear()
+        self.categories.add(extracted)
 
 
 class RecipeIngredientFactory(DjangoModelFactory):
