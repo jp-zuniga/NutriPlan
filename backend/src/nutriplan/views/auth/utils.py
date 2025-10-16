@@ -31,25 +31,25 @@ def set_auth_cookies(response: Response, refresh_token: RefreshToken) -> None:
     refresh_max = int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
 
     response.set_cookie(
-        "np-access",
+        settings.ACCESS_COOKIE_NAME,
         str(refresh_token.access_token),
-        domain=".nutri-plan.net",
-        path="/",
-        httponly=True,
-        secure=True,
-        samesite="Lax",
-        max_age=3600,
+        domain=settings.COOKIE_DOMAIN,
+        path=settings.COOKIE_PATH,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=access_max,
     )
 
     response.set_cookie(
-        "np-refresh",
+        settings.REFRESH_COOKIE_NAME,
         str(refresh_token),
-        domain=".nutri-plan.net",
-        path="/",
-        httponly=True,
-        secure=True,
-        samesite="Lax",
-        max_age=86400,
+        domain=settings.COOKIE_DOMAIN,
+        path=settings.COOKIE_PATH,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=refresh_max,
     )
 
 

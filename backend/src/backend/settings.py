@@ -134,8 +134,11 @@ if any("pytest" in arg for arg in argv):
 
 # 8) API config: #######################################################################
 
+COOKIE_DOMAIN = "nutri-plan.net"
+COOKIE_HTTPONLY = True
+COOKIE_PATH = "/"
 COOKIE_SAMESITE = "Lax"
-COOKIE_SECURE = not DEBUG
+COOKIE_SECURE = True
 
 ACCESS_COOKIE_NAME = "np-access"
 REFRESH_COOKIE_NAME = "np-refresh"
