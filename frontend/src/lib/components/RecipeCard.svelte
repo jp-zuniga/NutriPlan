@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { extractDirectImage } from '$lib/utils/images';
 
 	let { recipe } = $props();
 	function gotoRecipe() {
-		goto(`/recipes/${recipe.id}`);
+		goto(`/receta	s/${recipe.slug}`);
 	}
 </script>
 
@@ -13,34 +14,46 @@
 	aria-roledescription="Open Recipe"
 >
 	<div class="image-container no-overflow rel-pos">
-		<img class="fit-cover full-size" src={recipe.image} alt={recipe.title} />
+		<img
+			class="fit-cover full-size"
+			src={extractDirectImage(recipe.primary_image)}
+			alt={recipe.name}
+		/>
 		<div
 			class="star-rating abs-pos bg-white pad-5 sm-p flex items-center justify-center"
 			style="top: 5px; right: 5px; gap: 3px;"
 		>
 			<i class="las la-star p-emphasis no-ul"></i>
-			{recipe.rating}
+			{recipe.rating_avg}
 		</div>
 	</div>
 
 	<div class="recipe-info pad-20 flex direction-col gap-8 txt-left">
-		<div class="recipe-title bold md-p">{recipe.title}</div>
-		<div class="attributes flex gap-16">
-			{#if recipe.time}
+		<div class="recipe-title bold md-p">{recipe.name}</div>
+		<div class="attributes flex gap-8 wrap">
+			{#if recipe.total_time}
 				<div class="recipe-time p-ghost sm-p">
 					<i class="las la-stopwatch"></i>
-					{recipe.time}
+					{recipe.total_time} minutos
 				</div>
 			{/if}
-			{#if recipe.kcal}
-				<div class="recipe-calories p-ghost sm-p">
-					{recipe.kcal}
-				</div>
-			{/if}
-			{#if recipe.portions}
+			{#if recipe.servings}
 				<div class="recipe-portions p-ghost sm-p">
-					<i class="las la-user"></i>
-					{recipe.portions}
+					{#if recipe.servings == 1}
+						<i class="las la-user"></i>
+					{:else if recipe.servings <= 3}
+						<i class="las la-user-friends"></i>
+					{:else}
+						<i class="las la-users"></i>
+					{/if}
+					{recipe.servings} porciones
+				</div>
+			{/if}
+
+			{#if recipe.calories_per_serving}
+				<div class="recipe-calories p-ghost sm-p">
+					<i class="las la-fire-alt"></i>
+					{recipe.calories_per_serving * 1} calorías (por porción)
 				</div>
 			{/if}
 		</div>

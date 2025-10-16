@@ -6,7 +6,6 @@
 	import { authUser } from '$lib/stores/auth';
 	import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
 	import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
-	import { load } from '../recetas/[slug]/+page';
 
 	let loading = $state(false);
 	let error = $state('');
@@ -54,12 +53,15 @@
 
 			const data = await response.json();
 
-			if (!response.ok) {
-				error = data?.error || `Error creando tu cuenta (HTTP ${response.status})`;
-				loading = false;
-				return;
-			}
+			if (data)
+				if (!response.ok) {
+					error = data?.error ?? `Error accediendo a tu cuenta (HTTP ${response.status})`;
+					loading = false;
+					return;
+				}
 
+			console.log('User: ', data.user);
+			$authUser = data.user;
 			success = true;
 			setTimeout(() => {
 				goto('/');

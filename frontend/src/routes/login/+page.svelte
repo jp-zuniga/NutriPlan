@@ -4,7 +4,6 @@
 	import { goto } from '$app/navigation';
 	import Banner from '$lib/components/Banner.svelte';
 	import { authUser } from '$lib/stores/auth';
-	import { load } from '../recetas/[slug]/+page';
 	import { json } from '@sveltejs/kit';
 	import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
 

@@ -9,6 +9,7 @@
 	import RecipeCard from '$lib/components/RecipeCard.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import { resolve } from '$app/paths';
+	import { API_RECIPES_ENDPOINT } from '$lib/endpoints';
 
 	const categories = ['Tradicional', 'Saludable', 'Vegetariano', 'Sin gluten', 'Postres'];
 
@@ -22,48 +23,50 @@
 
 	let loading = $state(false);
 
-	const recipeResults = [
-		{
-			id: 'vigoron-saludable',
-			title: 'Vigorón saludable',
-			calories: '430 kcal',
-			time: '35 min',
-			portions: '2 porciones',
-			tags: ['Top nica', 'Alto en fibra'],
-			rating: 4.8,
-			image: ImagenVigoron
-		},
-		{
-			id: 'gallo-pinto-energizante',
-			title: 'Gallo pinto energizante',
-			calories: '380 kcal',
-			time: '25 min',
-			portions: '4 porciones',
-			tags: ['Desayuno', 'Vegetariano'],
-			rating: 4.9,
-			image: GalloPinto
-		},
-		{
-			id: 'sopa-queso-liviana',
-			title: 'Sopa de queso liviana',
-			calories: '320 kcal',
-			time: '40 min',
-			portions: '4 porciones',
-			tags: ['Reconfortante', 'Sin gluten'],
-			rating: 4.7,
-			image: PlatosTipicos
-		},
-		{
-			id: 'ensalada-chayote-verde',
-			title: 'Ensalada de chayote verde',
-			calories: '280 kcal',
-			time: '20 min',
-			portions: '3 porciones',
-			tags: ['Refrescante', 'Baja en carbohidratos'],
-			rating: 4.6,
-			image: PlatosTipicos
-		}
-	];
+	const max_page_count = 20;
+
+	// const recipeResults = [
+	// 	{
+	// 		id: 'vigoron-saludable',
+	// 		title: 'Vigorón saludable',
+	// 		calories: '430 kcal',
+	// 		time: '35 min',
+	// 		portions: '2 porciones',
+	// 		tags: ['Top nica', 'Alto en fibra'],
+	// 		rating: 4.8,
+	// 		image: ImagenVigoron
+	// 	},
+	// 	{
+	// 		id: 'gallo-pinto-energizante',
+	// 		title: 'Gallo pinto energizante',
+	// 		calories: '380 kcal',
+	// 		time: '25 min',
+	// 		portions: '4 porciones',
+	// 		tags: ['Desayuno', 'Vegetariano'],
+	// 		rating: 4.9,
+	// 		image: GalloPinto
+	// 	},
+	// 	{
+	// 		id: 'sopa-queso-liviana',
+	// 		title: 'Sopa de queso liviana',
+	// 		calories: '320 kcal',
+	// 		time: '40 min',
+	// 		portions: '4 porciones',
+	// 		tags: ['Reconfortante', 'Sin gluten'],
+	// 		rating: 4.7,
+	// 		image: PlatosTipicos
+	// 	},
+	// 	{
+	// 		id: 'ensalada-chayote-verde',
+	// 		title: 'Ensalada de chayote verde',
+	// 		calories: '280 kcal',
+	// 		time: '20 min',
+	// 		portions: '3 porciones',
+	// 		tags: ['Refrescante', 'Baja en carbohidratos'],
+	// 		rating: 4.6,
+	// 		image: PlatosTipicos
+	// 	}
+	// ];
 
 	const spotlight = [
 		{
@@ -80,15 +83,28 @@
 		}
 	];
 
+	let recipeResults = $state([]);
+
 	$effect(() => {
 		resolveResults(page);
 	});
 
 	const resolveResults = async (page) => {
 		loading = true;
-		setTimeout(() => {
-			loading = false;
-		}, 1000);
+
+		recipeResults = [];
+
+		const response = await fetch(API_RECIPES_ENDPOINT, {
+			method: 'GET'
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			console.log(data);
+			recipeResults = data;
+		}
+
+		loading = false;
 	};
 
 	const filter_groups = $state([
@@ -191,28 +207,30 @@
 	</section>
 
 	<section id="results" class="flex-center direcion-col full-width pad-50">
-		<div class="container grid regrid-cols-2" style="height: 900px;">
-			<div class="filters bg-white b-shadow pad-20 flex direction-col gap-16">
-				{#each filter_groups as filter}
-					<fieldset>
-						<legend class="sm-p">{filter.name}</legend>
-						{#if filter.type == 'select'}
-							<select name={filter.name} bind:value={filter.value} class="full-width">
-								<option value="">Cualquiera</option>
+		<div class="container grid regrid-cols-2" style="max-height: 900px;">
+			<div class="filters bg-white b-shadow pad-20 flex direction-col justify-between gap-16">
+				<div id="filter-groups" class="flex direction-col gap-16">
+					{#each filter_groups as filter}
+						<fieldset>
+							<legend class="sm-p">{filter.name}</legend>
+							{#if filter.type == 'select'}
+								<select name={filter.name} bind:value={filter.value} class="full-width">
+									<option value="">Cualquiera</option>
+									{#each filter.options as option}
+										<option value={option}>{option}</option>
+									{/each}
+								</select>
+							{:else if filter.type == 'checkbox'}
 								{#each filter.options as option}
-									<option value={option}>{option}</option>
+									<Checkbox label={option.name} bind:value={option.checked} />
 								{/each}
-							</select>
-						{:else if filter.type == 'checkbox'}
-							{#each filter.options as option}
-								<Checkbox label={option.name} bind:value={option.checked} />
-							{/each}
-						{/if}
-					</fieldset>
-				{/each}
+							{/if}
+						</fieldset>
+					{/each}
+				</div>
 				<button class="btn primary" onclick={resolveResults}>Actualizar</button>
 			</div>
-			<div class="results flex direction-col justify-between">
+			<div class="results flex direction-col justify-between" style="max-height: 900px;">
 				<div class="top-line flex justify-between items-center">
 					<div class="titles">
 						<p class="h2 bold">Resultados</p>
@@ -227,7 +245,7 @@
 						</select>
 					</div>
 				</div>
-				<div class="flex gap-16 wrap ov-scroll-y pad-20">
+				<div class="flex-center justify-between gap-16 wrap ov-scroll-y pad-20">
 					{#if !loading}
 						{#each recipeResults as recipe}
 							<RecipeCard {recipe} />
@@ -238,7 +256,7 @@
 						</div>
 					{/if}
 				</div>
-				<div class="flex justify-end items-center gap-24">
+				<div class="flex justify-end items-center gap-24 mt">
 					<button
 						class="btn ghost"
 						style="width: 15px; height: 15px;"

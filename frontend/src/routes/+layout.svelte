@@ -2,7 +2,6 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { authUser } from '$lib/stores/auth.js';
 	import Banner from '$lib/components/Banner.svelte';
-	import { NIGHTLY_BUILD } from '$lib/endpoints.js';
 
 	let { data, children } = $props();
 

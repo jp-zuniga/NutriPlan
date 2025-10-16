@@ -29,6 +29,10 @@ h3{ font-size: var(--fs-h3); }
   margin-inline: auto;
   padding-inline: 20px;
 }
+
+.container.md {
+  max-width: 920px;
+}
 .section{ padding-block: clamp(40px, 6vw, 84px); }
 
 /* =======================
@@ -61,6 +65,12 @@ h3{ font-size: var(--fs-h3); }
 
 .regrid, .regrid-cols-2, .regrid-cols-3, .regrid-cols-4 {
     display: grid;
+}
+
+@media (max-width: 600px) {
+  .regrid, .regrid-cols-2, .regrid-cols-3, .regrid-cols-4 {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 600px) {

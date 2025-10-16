@@ -1,431 +1,259 @@
 <script>
-	import { onMount } from 'svelte';
-	import Banner from '$lib/components/Banner.svelte';
+	import { page } from '$app/stores';
+	import StarRating from '$lib/components/StarRating.svelte';
+	import { API_RECIPES_ENDPOINT } from '$lib/endpoints';
+	import { getRecipe } from '$lib/utils/recipes';
+	import { toReadableDate } from '$lib/utils/date';
+	import { extractDirectImage } from '$lib/utils/images';
+	import { authUser } from '$lib/stores/auth';
 
-	import ImagenVigoron from '$lib/assets/vigoron.jpg';
-	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
-	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
+	const recipe_slug = $state($page.params.slug);
 
-	const coverMap = {
-		vigoron: ImagenVigoron,
-		'gallo-pinto': GalloPinto,
-		'sopa-queso': PlatosTipicos,
-		chayote: PlatosTipicos
+	let loading = $state(true);
+	let recipe = $state(null);
+	let reviews = $state(null);
+
+	const get_recipe = async () => {
+		loading = true;
+
+		const data = await getRecipe(recipe_slug);
+		if (data != null) {
+			recipe = data.recipe;
+			reviews = data.reviews;
+
+			console.log('Recipe data: ', recipe);
+		}
+
+		loading = false;
 	};
 
-	export let data;
+	// Star rating functionality
+	let star_preview = $state(0);
+	let star_count = $state(0);
 
-	let { recipe, recommended, notFound } = data;
+	const fill_color = '#C86F56';
+	const unfill_color = 'gray';
 
-	$: heroImage = coverMap[recipe.cover] ?? PlatosTipicos;
-	$: recommendedWithImages = recommended.map((item) => ({
-		...item,
-		image: coverMap[item.cover] ?? PlatosTipicos
-	}));
+	const star_meanings = [
+		'No me lo pude comer',
+		'No me gustó',
+		'Estaba OK',
+		'Me gustó',
+		'Me encantó'
+	];
 
-	onMount(() => {
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	});
+	let user_review = $state('');
+
+	const fast_reviews = [
+		['No funcionó', 'Faltaban ingredientes'],
+		['Las instrucciones no son claras', 'Necesita mejorar', 'No sabía rico'],
+		['Faltaba un paso', 'Demasiado dificil'],
+		['Estaba bien', 'Necesita mas sabor', 'Talvez la intente de nuevo'],
+		['Me encantó!', 'Muy buen sabor', 'Facil de hacer', 'Valió la pena el esfuerzo']
+	];
+
+	get_recipe();
 </script>
 
 <svelte:head>
-	<title>{recipe.title}</title>
+	{#if recipe}
+		<title>{recipe.name}</title>
+	{/if}
 </svelte:head>
 
-<main class="recipe-detail">
-	<section class="hero">
-		<div class="container hero-grid">
-			<div class="copy">
-				{#if notFound}
-					<span class="badge warning">Receta sugerida</span>
-				{/if}
-				<h1>{recipe.title}</h1>
-				<p>{recipe.tagline}</p>
-				<div class="meta">
-					<span class="tag">{recipe.origin}</span>
-					<span>{recipe.time}</span>
-					<span>{recipe.difficulty}</span>
-					<span>{recipe.calories} kcal</span>
-				</div>
-				<div class="tag-row">
-					{#each recipe.tags as tag}
-						<span class="chip">{tag}</span>
-					{/each}
-				</div>
-				<div class="cta">
-					<a class="btn primary" href="/planes">Añadir a mi plan</a>
-					<a class="btn ghost" href="/recetas">Volver al catálogo</a>
-				</div>
-			</div>
-			<div class="media">
-				<img src={heroImage} alt={recipe.title} />
-				<div class="overlay-card">
-					<h3>Información nutricional</h3>
-					<ul>
-						<li><strong>Proteína:</strong> {recipe.macros.protein}</li>
-						<li><strong>Carbohidratos:</strong> {recipe.macros.carbs}</li>
-						<li><strong>Grasas:</strong> {recipe.macros.fats}</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="content">
-		<div class="container content-grid">
-			<article class="card ingredients">
-				<h2>Ingredientes</h2>
-				<ul>
-					{#each recipe.ingredients as ingredient}
-						<li>{ingredient}</li>
-					{/each}
-				</ul>
-			</article>
-			<article class="card steps">
-				<h2>Preparación</h2>
-				<ol>
-					{#each recipe.steps as step, index}
-						<li>
-							<span class="step-index">{index + 1}</span>
-							<p>{step}</p>
-						</li>
-					{/each}
-				</ol>
-			</article>
-		</div>
-	</section>
-
-	<section class="extras">
-		<div class="container extras-grid">
-			<article class="card tips">
-				<h2>Trucos de la comunidad</h2>
-				<ul>
-					{#each recipe.tips as tip}
-						<li>{tip}</li>
-					{/each}
-				</ul>
-			</article>
-			<article class="card comments">
-				<h2>Comentarios destacados</h2>
-				{#each recipe.comments as comment}
-					<div class="comment">
-						<strong>{comment.user}</strong>
-						<span>{comment.city}</span>
-						<p>{comment.comment}</p>
+<main id="recipe">
+	{#if !loading}
+		{#if recipe}
+			<section class="full-width">
+				<div class="container md flex direction-col mt-l mb-l">
+					<div id="trail" class="flex full-width items-center gap-8">
+						<a href="/recetas" class="no-ul p-ghost">Recetas</a>
+						<i class="las la-angle-right"></i>
+						<a href="/recetas/{recipe.slug}" class="no-ul p-emphasis">{recipe.name}</a>
 					</div>
-				{/each}
-			</article>
-		</div>
-	</section>
+				</div>
+			</section>
 
-	<section class="recommended">
-		<div class="container">
-			<header class="section-head">
-				<h2>También te puede gustar</h2>
-				<p>Recetas con perfiles nutricionales similares para mantener tu plan variado.</p>
-			</header>
-			<div class="carousel">
-				{#each recommendedWithImages as item}
-					<a class="card" href={`/recetas/${item.slug}`}>
-						<img src={item.image} alt={item.title} />
-						<div class="card-body">
-							<h3>{item.title}</h3>
-							<p>{item.time} • {item.calories} kcal</p>
-							<div class="tags">
-								{#each item.tags as tag}
-									<span>{tag}</span>
-								{/each}
-							</div>
+			<section>
+				<div class="container md flex direction-col">
+					<p class="h2 bold">{recipe.name}</p>
+					<p class="md-p p-ghost mb">{recipe.description}</p>
+
+					<hr class="full-width soft" />
+					<div id="rating-info" class="flex items-center justify-between pad-10">
+						<div id="star-rating" class="flex-center gap-8">
+							{#if recipe.rating_avg != null}
+								<StarRating count={recipe.rating_avg} />
+								<p class="md-p p-emphasis">{recipe.rating_avg}</p>
+								<p class="p-ghost md-p">
+									({recipe.rating_count}
+									{recipe.rating_count == 1 ? 'reseña' : 'reseñas'})
+								</p>
+							{:else}
+								<StarRating count={recipe.rating_avg} />
+								<p class="md-p">Sin reseñas</p>
+							{/if}
 						</div>
-					</a>
-				{/each}
-			</div>
-		</div>
-	</section>
+
+						<div id="time-to-cook" class="flex-center gap-8">
+							<i class="las la-stopwatch"></i>
+							{recipe.total_time} minutos
+						</div>
+
+						<div id="portions" class="flex-center gap-8">
+							{#if recipe.servings == 1}
+								<i class="las la-user"></i>
+							{:else if recipe.servings <= 3}
+								<i class="las la-user-friends"></i>
+							{:else}
+								<i class="las la-users"></i>
+							{/if}
+
+							{recipe.servings}
+							{recipe.servings == 1 ? 'porción' : 'porciones'}
+						</div>
+					</div>
+					<hr class="full-width soft" />
+
+					<div class="time-info flex items-center mb">
+						<p class="md-p p-ghost">Ultima Actualización:&nbsp;</p>
+						<p class="md-p p-emphasis no-ul">{toReadableDate(recipe.updated_at)}</p>
+					</div>
+
+					<div class="pad-50">
+						<img
+							src={extractDirectImage(recipe.main_image_url)}
+							class="full-size no-overflow"
+							alt={recipe.name}
+						/>
+					</div>
+				</div>
+			</section>
+
+			<section id="ingredients">
+				<div class="container md flex-begin direction-col">
+					<p class="h2 bold">Ingredientes</p>
+					<div class="container md flex direction-col">
+						<ul>
+							{#each recipe.ingredients as amount}
+								<li>
+									{amount.amount}
+									{amount.unit}
+									de
+									{amount.ingredient.name}
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+			</section>
+
+			<section id="reviews">
+				<div class="container md flex direction-col">
+					<p class="h2 bold">
+						Reseñas
+						{#if recipe.rating_count}
+							({recipe.rating_count})
+						{/if}
+					</p>
+					<p class="md-p p-ghost mb-l">
+						Revisa nuestras <a href="#" class="ul-emphasis bold">normas de comunidad</a> acerca de las
+						reseñas.
+					</p>
+
+					<div class="pad-20" style="background-color: #9EBC8A">
+						<div class="flex direction-col bg-white b-shadow pad-20">
+							<p class="h3 bold mb">{recipe.name}</p>
+
+							<div class="flex items-center gap-16 mb">
+								<div class="flex direction-col border-right" style="padding-right: 20px;">
+									<p class="lg-p">Mi puntuación</p>
+									<div class="flex">
+										{#each { length: 5 } as _, i}
+											<!-- svelte-ignore a11y_click_events_have_key_events -->
+											<i
+												class="las la-star clickable"
+												onmouseenter={() => {
+													star_preview = i + 1;
+												}}
+												onmouseleave={() => {
+													star_preview = 0;
+												}}
+												onclick={() => {
+													star_count = i + 1;
+												}}
+												role="button"
+												tabindex="0"
+												style="color: {star_preview >= i + 1 || star_count >= i + 1
+													? fill_color
+													: unfill_color}; font-size: 30px;"
+											></i>
+										{/each}
+									</div>
+								</div>
+
+								<p class="lg-p p-ghost">
+									{#if star_preview != 0}
+										{star_meanings[star_preview - 1]}
+									{:else if star_count != 0}
+										{star_meanings[star_count - 1]}
+									{/if}
+								</p>
+							</div>
+
+							<p class="lg-p">Mi reseña</p>
+							<div class="fast-reviews flex wrap gap-8 pad-5">
+								{#if star_count != 0}
+									{#each fast_reviews[star_count - 1] as fast_review}
+										<button
+											class="bg-soft-gray clickable hoverable pad-10 md-p no-border"
+											onclick={() => {
+												user_review = fast_review;
+											}}
+										>
+											{fast_review}
+										</button>
+									{/each}
+								{/if}
+							</div>
+							<textarea
+								placeholder="¿Que pensaste de esta receta?"
+								class="pad-10 mb"
+								bind:value={user_review}
+							></textarea>
+
+							<div class="flex items-center gap-16">
+								<button
+									class="btn ghost"
+									onclick={() => {
+										star_count = 0;
+										user_review = '';
+									}}>Cancelar</button
+								>
+								<button
+									class="btn primary"
+									disabled={user_review == '' || star_count == 0 || $authUser == null}
+									>Enviar</button
+								>
+							</div>
+
+							{#if $authUser == null}
+								<p class="md-p p-emphasis no-ul mt">
+									Debes crear una cuenta para poder escribir una reseña. <a href="/signup"
+										>Hazlo aqui</a
+									>
+								</p>
+							{/if}
+						</div>
+					</div>
+
+					{#if reviews.length != 0}{:else}
+						<h1>No</h1>
+					{/if}
+				</div>
+			</section>
+		{:else}
+			<h1>No existe la receta</h1>
+		{/if}
+	{/if}
 </main>
-
-<style>
-	.recipe-detail {
-		display: flex;
-		flex-direction: column;
-		gap: 4.5rem;
-		padding-bottom: 5rem;
-	}
-
-	.container {
-		max-width: 1100px;
-		margin: 0 auto;
-		padding: 0 1.5rem;
-	}
-
-	.hero {
-		padding-top: 2.5rem;
-	}
-
-	.hero-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 3rem;
-		align-items: center;
-	}
-
-	.copy h1 {
-		margin: 0 0 0.75rem;
-		font-size: clamp(2.2rem, 3vw, 3.1rem);
-	}
-
-	.copy p {
-		margin: 0;
-		color: var(--color-soft);
-		font-size: 1.05rem;
-	}
-
-	.meta {
-		margin-top: 1.5rem;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.8rem;
-		color: var(--color-soft);
-		font-weight: 600;
-	}
-
-	.tag-row {
-		margin-top: 1.2rem;
-		display: flex;
-		gap: 0.6rem;
-		flex-wrap: wrap;
-	}
-
-	.cta {
-		margin-top: 2rem;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.media {
-		position: relative;
-	}
-
-	.media img {
-		width: 100%;
-		border-radius: var(--radius-lg);
-		height: 360px;
-		object-fit: cover;
-		box-shadow: var(--shadow-soft);
-	}
-
-	.overlay-card {
-		position: absolute;
-		bottom: -30px;
-		right: 20px;
-		background: rgba(255, 255, 255, 0.9);
-		backdrop-filter: blur(10px);
-		border-radius: var(--radius-md);
-		padding: 1.4rem;
-		box-shadow: 0 20px 40px rgba(8, 44, 36, 0.18);
-		width: min(260px, 80%);
-	}
-
-	.overlay-card h3 {
-		margin: 0 0 1rem;
-		font-size: 1.1rem;
-	}
-
-	.overlay-card ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		color: var(--color-soft);
-	}
-
-	.content-grid {
-		display: grid;
-		grid-template-columns: 320px 1fr;
-		gap: 2rem;
-	}
-
-	.ingredients ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.steps ol {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 1.4rem;
-	}
-
-	.steps li {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
-		align-items: start;
-	}
-
-	.step-index {
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		background: var(--gradient-leaf);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: 700;
-	}
-
-	.steps p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.extras-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2rem;
-	}
-
-	.tips ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
-	}
-
-	.comments {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.comment {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-		padding-bottom: 1rem;
-		border-bottom: 1px solid rgba(8, 44, 36, 0.08);
-	}
-
-	.comment p {
-		margin: 0;
-		color: var(--color-soft);
-	}
-
-	.recommended .carousel {
-		display: grid;
-		grid-auto-flow: column;
-		grid-auto-columns: minmax(240px, 1fr);
-		gap: 1.5rem;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		padding-bottom: 0.5rem;
-	}
-
-	.recommended .carousel::-webkit-scrollbar {
-		height: 6px;
-	}
-
-	.recommended .carousel::-webkit-scrollbar-thumb {
-		background: rgba(8, 44, 36, 0.15);
-		border-radius: 999px;
-	}
-
-	.recommended .card {
-		text-decoration: none;
-		color: inherit;
-		border-radius: var(--radius-md);
-		box-shadow: 0 18px 32px rgba(8, 44, 36, 0.1);
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		scroll-snap-align: start;
-		background: var(--color-card);
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
-	}
-
-	.recommended .card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 24px 38px rgba(8, 44, 36, 0.14);
-	}
-
-	.recommended img {
-		height: 160px;
-		object-fit: cover;
-		width: 100%;
-	}
-
-	.card-body {
-		padding: 1.4rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.8rem;
-	}
-
-	.card-body h3 {
-		margin: 0;
-		font-size: 1.1rem;
-	}
-
-	.card-body p {
-		margin: 0;
-		color: var(--color-soft);
-	}
-
-	.tags {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.tags span {
-		background: rgba(15, 184, 114, 0.12);
-		color: var(--color-forest);
-		padding: 0.25rem 0.6rem;
-		border-radius: 999px;
-		font-size: 0.8rem;
-		font-weight: 600;
-	}
-
-	.badge.warning {
-		background: rgba(255, 178, 90, 0.2);
-		color: #b36b05;
-		padding: 0.4rem 0.9rem;
-		border-radius: 999px;
-		font-weight: 600;
-		font-size: 0.85rem;
-	}
-
-	@media (max-width: 880px) {
-		.content-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.overlay-card {
-			position: static;
-			margin-top: 1.5rem;
-			width: 100%;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.cta {
-			flex-direction: column;
-		}
-
-		.media img {
-			height: 260px;
-		}
-	}
-</style>
