@@ -18,6 +18,15 @@ def _cookie_kwargs(max_age: int, path: str = "/") -> dict:
 
 
 def set_auth_cookies(response: Response, refresh_token: RefreshToken) -> None:
+    """
+    Set HTTP cookies for JWT authentication using a Simple JWT refresh token.
+
+    Args:
+        response:      DRF Response to which cookies will be added or overwritten.
+        refresh_token: JWT refresh token used to generate the access cookie.
+
+    """
+
     access_max = int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds())
     refresh_max = int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
 
@@ -35,6 +44,14 @@ def set_auth_cookies(response: Response, refresh_token: RefreshToken) -> None:
 
 
 def update_cookies_from_refresh_response(response: Response) -> None:
+    """
+    Update a DRF Response by moving JWT tokens from the body into cookies.
+
+    Args:
+        response: DRF Response object to mutate in place.
+
+    """
+
     access = response.data.get("access")  # type: ignore[reportOptionalMemberAccess]
     refresh = response.data.get("refresh")  # type: ignore[reportOptionalMemberAccess]
 
@@ -61,5 +78,13 @@ def update_cookies_from_refresh_response(response: Response) -> None:
 
 
 def clear_auth_cookies(response: Response) -> None:
+    """
+    Clear authentication cookies from an HTTP response.
+
+    Args:
+        response: HTTP response object to mutate in place.
+
+    """
+
     response.delete_cookie(settings.ACCESS_COOKIE_NAME, path="/")
     response.delete_cookie(settings.REFRESH_COOKIE_NAME, path="/auth/refresh")

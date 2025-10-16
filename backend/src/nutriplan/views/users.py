@@ -11,10 +11,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import ChangePasswordSerializer, UserProfileSerializer
 from nutriplan.services import UserService
 
+from .auth.utils import set_auth_cookies
 from .permissions import UserAccessPermission
 
 User = get_user_model()
@@ -124,12 +126,15 @@ class UserViewSet(ModelViewSet):
                 data=request.data,
                 partial=(request.method == "PATCH"),
             )
-
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
 
         user = UserService.get_user_with_restrictions(request.user.id)
-        return Response(self.get_serializer(user).data)
+        res = Response(self.get_serializer(user).data)
+        refresh = RefreshToken.for_user(user)
+        set_auth_cookies(res, refresh)
+
+        return res
 
     @action(
         detail=False,
