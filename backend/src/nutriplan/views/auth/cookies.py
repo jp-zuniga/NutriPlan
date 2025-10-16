@@ -2,55 +2,19 @@
 Helpers for managing refresh-token cookies.
 """
 
-from typing import ClassVar, NoReturn
+from typing import ClassVar
 
 from django.conf import settings
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.status import HTTP_200_OK
 from rest_framework_simplejwt.views import TokenRefreshView
 
-
-def set_refresh_cookie(response: Response, refresh_token: str) -> None:
-    """
-    Set an HTTP-only refresh token cookie on the provided HTTP response.
-
-    Args:
-        response:      Response object to mutate by setting a cookie.
-        refresh_token: Token string to set as the cookie value.
-
-    """
-
-    response.set_cookie(
-        key=settings.JWT_REFRESH_COOKIE_NAME,
-        value=refresh_token,
-        max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
-        httponly=True,
-        secure=settings.JWT_COOKIE_SECURE,
-        samesite=settings.JWT_COOKIE_SAMESITE,
-        domain=getattr(settings, "JWT_COOKIE_DOMAIN", None),
-        path=getattr(settings, "JWT_COOKIE_PATH", "/"),
-    )
+from .utils import update_cookies_from_refresh_response
 
 
-def clear_refresh_cookie(response: Response) -> None:
-    """
-    Remove the refresh-token cookie from the provided HTTP response.
-
-    Args:
-        response: HTTP response object to mutate.
-
-    """
-
-    response.delete_cookie(
-        key=settings.JWT_REFRESH_COOKIE_NAME,
-        domain=getattr(settings, "JWT_COOKIE_DOMAIN", None),
-        path=getattr(settings, "JWT_COOKIE_PATH", "/"),
-    )
-
-
-class CookieTokenRefreshView(TokenRefreshView):
+class RefreshCookieView(TokenRefreshView):
     """
     Token refresh view that supports cookie-based refresh tokens.
     """
@@ -60,9 +24,9 @@ class CookieTokenRefreshView(TokenRefreshView):
     def post(
         self,
         request: Request,
-        *args,  # noqa: ANN002, ARG002
-        **kwargs,  # noqa: ANN003, ARG002
-    ) -> NoReturn:
+        *args,  # noqa: ANN002
+        **kwargs,  # noqa: ANN003
+    ) -> Response:
         """
         Handle POST requests to obtain or refresh tokens using a serializer.
 
@@ -80,20 +44,21 @@ class CookieTokenRefreshView(TokenRefreshView):
 
         """
 
-        data = request.data.copy()  # type: ignore[reportAttributeAccessIssue]
-        if "refresh" not in data or not data["refresh"]:
-            data["refresh"] = request.COOKIES.get(settings.JWT_REFRESH_COOKIE_NAME, "")
+        data = (
+            request.data.copy()  # type: ignore[reportCallIssue]
+            if hasattr(request.data, "copy")
+            else dict(request.data)  # type: ignore[reportCallIssue]
+        )
 
-        serializer = self.get_serializer(data=data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0]) from e
+        if not data.get("refresh"):  # type: ignore[reportArgumentType]
+            cookie_refresh = request.COOKIES.get(settings.REFRESH_COOKIE_NAME)
+            if cookie_refresh:
+                data["refresh"] = cookie_refresh  # type: ignore[reportArgumentType]
 
-        resp = Response(serializer.validated_data, status=200)
+        request._full_data = data  # noqa: SLF001
 
-        new_refresh = serializer.validated_data.get("refresh")
-        if new_refresh:
-            set_refresh_cookie(resp, new_refresh)
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == HTTP_200_OK and isinstance(response.data, dict):
+            update_cookies_from_refresh_response(response)
 
-        return resp
+        return response
