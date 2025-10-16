@@ -134,7 +134,7 @@ if any("pytest" in arg for arg in argv):
 
 # 8) API config: #######################################################################
 
-COOKIE_SAMESITE = "None"
+COOKIE_SAMESITE = "Lax"
 COOKIE_SECURE = not DEBUG
 
 ACCESS_COOKIE_NAME = "np-access"
