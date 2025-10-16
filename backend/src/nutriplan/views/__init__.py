@@ -3,6 +3,7 @@ Views package with viewsets and authentication endpoints.
 """
 
 from .categories import CategoryViewSet
+from .chat import ChatThreadViewSet
 from .chefcito import chefcito_chat
 from .collections import RecipeCollectionViewSet
 from .ingredients import IngredientViewSet
@@ -12,6 +13,7 @@ from .users import UserViewSet
 
 __all__: list[str] = [
     "CategoryViewSet",
+    "ChatThreadViewSet",
     "IngredientViewSet",
     "RecipeCollectionViewSet",
     "RecipeViewSet",

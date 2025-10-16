@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from backend.custom_router import CustomRouter
 from nutriplan.views import (
     CategoryViewSet,
+    ChatThreadViewSet,
     IngredientViewSet,
     RecipeCollectionViewSet,
     RecipeViewSet,
@@ -26,6 +27,7 @@ from nutriplan.views.auth import (
 
 router = CustomRouter()
 router.register("categories", CategoryViewSet, basename="category")
+router.register("conversations", ChatThreadViewSet, basename="conversation")
 router.register("collections", RecipeCollectionViewSet, basename="collection")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("recipes", RecipeViewSet, basename="recipe")

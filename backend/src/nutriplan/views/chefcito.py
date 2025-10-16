@@ -10,6 +10,18 @@ from nutriplan.services.llm.chefcito import ChefcitoAgent
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def chefcito_chat(request: Request) -> Response:
+    """
+    Handle chat interactions with the Chefcito agent.
+
+    Expects a JSON body with:
+        - `message`: Required. User's message to the agent. Whitespace is trimmed.
+        - `history`: Optional. Prior conversation turns to provide context to the agent.
+
+    Return:
+        Response: JSON payload from the agent.
+
+    """
+
     data = request.data or {}
     message = (data.get("message") or "").strip()  # type: ignore[reportAttributeAccessIssue]
 
