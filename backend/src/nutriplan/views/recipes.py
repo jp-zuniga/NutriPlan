@@ -5,9 +5,10 @@ Read-only viewset for recipes, including search and filter capabilities.
 from typing import ClassVar
 from uuid import UUID
 
-from django.db.models import Avg, Count, Prefetch, Q
+from django.db.models import Avg, Count, F, Prefetch, Q
 from django.db.models.manager import BaseManager
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import BaseFilterBackend, OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.request import Request
@@ -17,6 +18,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from nutriplan.models import Ingredient, Recipe, RecipeImage, RecipeIngredient, Review
 from nutriplan.serializers import (
     RecipeSerializer,
+    RecommendationRecipeSerializer,
     ReviewReadSerializer,
     ReviewSerializer,
 )
@@ -46,6 +48,27 @@ def _parse_uuid_list(value: str | None) -> list[UUID]:
         except (ValueError, TypeError):
             continue
 
+    return out
+
+
+def _to_any_list(value: str | list | tuple | None) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(x).strip() for x in value if str(x).strip()]
+
+    return [s.strip() for s in str(value).split(",") if s.strip()]
+
+
+def _to_uuid_list(value: str | list | tuple | None) -> list[UUID]:
+    raw = _to_any_list(value)
+    out: list[UUID] = []
+
+    for x in raw:
+        try:
+            out.append(UUID(x))
+        except Exception:  # noqa: BLE001, S112
+            continue
     return out
 
 
@@ -204,3 +227,108 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         ser.is_valid(raise_exception=True)
         review = ser.save()
         return Response(ReviewReadSerializer(review).data, status=201)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated],
+        url_path="recommend",
+    )
+    def recommend(self, request: Request) -> Response:
+        """
+        Recommend recipes for authenticated user based on available ingredients.
+
+        Filters by user's dietary restrictions and (optionally) by category and macros.
+
+        Return:
+            Response: List of serialized recipes.
+
+        """
+
+        data: dict = request.data or {}  # type: ignore[reportAssignmentType]
+        ing_ids = _to_uuid_list(data.get("ingredients"))
+
+        if not ing_ids:
+            raise ValidationError(
+                {"ingredients": "Debes enviar al menos un ingrediente."}
+            )
+
+        categories_raw = data.get("categories", data.get("category"))
+        cat_tokens = _to_any_list(categories_raw)
+
+        # separar categorías en IDs y nombres/friendly
+        cat_ids = []
+        cat_names = []
+        for tok in cat_tokens:
+            try:
+                cat_ids.append(UUID(tok))
+            except Exception:  # noqa: BLE001
+                cat_names.append(tok)
+
+        macro = (data.get("macro") or "").strip().lower()
+
+        qs = (
+            Recipe.objects.all()
+            .select_related("category")
+            .prefetch_related(
+                Prefetch("ingredients", queryset=Ingredient.objects.all()),
+                Prefetch(
+                    "recipe_ingredients",
+                    queryset=RecipeIngredient.objects.select_related("ingredient"),
+                ),
+                Prefetch(
+                    "recipe_images",
+                    queryset=RecipeImage.objects.select_related("image").order_by(
+                        "order", "id"
+                    ),
+                ),
+            )
+        )
+
+        # Filtro por múltiples categorías (IDs o nombres/friendly) — match cualquiera
+        if cat_ids or cat_names:
+            q_cat = Q()
+            if cat_ids:
+                q_cat |= Q(category_id__in=cat_ids)
+            for name in cat_names:
+                q_cat |= Q(category__name__iexact=name) | Q(
+                    category__friendly_name__iexact=name
+                )
+            qs = qs.filter(q_cat)
+
+        # Excluir recetas con ingredientes que violen las restricciones del usuario
+        user_restr_ids = list(
+            request.user.dietary_restrictions.values_list("id", flat=True)
+        )
+
+        if user_restr_ids:
+            qs = qs.exclude(
+                recipe_ingredients__ingredient__dietary_restrictions__in=user_restr_ids
+            )
+
+        # Anotar missing_count = total_ing - have_ing
+        qs = qs.annotate(
+            total_ing=Count("recipe_ingredients__ingredient", distinct=True),
+            have_ing=Count(
+                "recipe_ingredients__ingredient",
+                filter=Q(recipe_ingredients__ingredient_id__in=ing_ids),
+                distinct=True,
+            ),
+        ).annotate(missing_count=F("total_ing") - F("have_ing"))
+
+        # Anotar ratings (consistencia con serializer base)
+        qs = qs.annotate(
+            rating_avg=Avg("reviews__rating"),
+            rating_count=Count("reviews", distinct=True),
+        )
+
+        ordering = ["missing_count", "-rating_avg", "name"]
+        if macro in MACRO_FIELD_MAP:
+            ordering.insert(1, f"-{MACRO_FIELD_MAP[macro]}")
+
+        qs = qs.order_by(*ordering)
+        ser = RecommendationRecipeSerializer(
+            qs, many=True, context={"request": request}
+        )
+
+        return Response(ser.data)

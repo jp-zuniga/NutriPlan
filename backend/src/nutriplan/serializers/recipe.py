@@ -108,3 +108,19 @@ class RecipeSerializer(ModelSerializer):
             }
             for ri in qs
         ]
+
+
+class RecommendationRecipeSerializer(RecipeSerializer):
+    """
+    Recipe serializer for recommendations, including missing ingredient count.
+    """
+
+    missing_count = IntegerField(read_only=True)
+
+    class Meta(RecipeSerializer.Meta):
+        """
+        Serializer options and exposed fields.
+        """
+
+        fields = (*RecipeSerializer.Meta.fields, "missing_count")
+        read_only_fields = (*RecipeSerializer.Meta.read_only_fields, "missing_count")

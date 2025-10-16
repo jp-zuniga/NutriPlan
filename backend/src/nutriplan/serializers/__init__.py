@@ -10,7 +10,7 @@ from .collection import (
     ReorderItemsSerializer,
 )
 from .ingredient import IngredientSerializer
-from .recipe import RecipeSerializer
+from .recipe import RecipeSerializer, RecommendationRecipeSerializer
 from .review import ReviewReadSerializer, ReviewSerializer
 from .user import (
     ChangePasswordSerializer,
@@ -26,6 +26,7 @@ __all__: list[str] = [
     "IngredientSerializer",
     "RecipeCollectionSerializer",
     "RecipeSerializer",
+    "RecommendationRecipeSerializer",
     "ReorderItemsSerializer",
     "ReviewReadSerializer",
     "ReviewSerializer",
