@@ -5,7 +5,6 @@ Service layer for handling operations related to Recipe objects.
 from collections.abc import Iterable
 
 from django.db.models.manager import BaseManager
-from django.db.transaction import atomic
 
 from nutriplan.models import Category, Recipe
 
@@ -28,7 +27,7 @@ class RecipeService:
 
         """
 
-        return Recipe.objects.filter(category__name__iexact=category_name)
+        return Recipe.objects.filter(categories__name__iexact=category_name)
 
     @staticmethod
     def get_recipes_with_ingredients(
@@ -73,34 +72,38 @@ class RecipeService:
 
         """
 
-        category = recipe_data.get("category")
-        category_obj: Category | None = None
+        cats: str | list = (
+            recipe_data.get("category") or recipe_data.get("categories") or []
+        )  # type: ignore[reportAssignmentType]
 
-        if isinstance(category, str):
-            category_obj = Category.objects.filter(name__iexact=category).first()
-            if not category_obj:
-                category_obj = Category.objects.create(
-                    name=category, friendly_name=category
-                )
-        elif isinstance(category, Category):
-            category_obj = category
+        if isinstance(cats, str):
+            cats = [cats]
 
-        with atomic():
-            recipe = Recipe.objects.create(
-                name=recipe_data["name"],
-                description=recipe_data["description"],
-                category=category_obj,
-                prep_time=recipe_data.get("prep_time", 0),
-                cook_time=recipe_data.get("cook_time", 0),
-            )
+        cat_objs: list[Category] = []
+        for c in cats:
+            if isinstance(c, Category):
+                cat_objs.append(c)
+            else:
+                obj = Category.objects.filter(name__iexact=str(c)).first()
+                if not obj:
+                    obj = Category.objects.create(name=str(c), friendly_name=str(c))
 
-        for ingredient_data in ingredients_data:
+                cat_objs.append(obj)
+
+        recipe = Recipe.objects.create(
+            name=recipe_data["name"],
+            description=recipe_data["description"],
+            prep_time=recipe_data.get("prep_time", 0),
+            cook_time=recipe_data.get("cook_time", 0),
+        )
+
+        if cat_objs:
+            recipe.categories.add(*cat_objs)
+
+        for ing in ingredients_data:
             recipe.ingredients.add(
-                ingredient_data["ingredient"],
-                through_defaults={
-                    "amount": ingredient_data["amount"],
-                    "unit": ingredient_data.get("unit", ""),
-                },
+                ing["ingredient"],
+                through_defaults={"amount": ing["amount"], "unit": ing.get("unit", "")},
             )
 
         return recipe
