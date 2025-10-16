@@ -14,5 +14,4 @@ class CategoryAdmin(ModelAdmin):
     """
 
     list_display = ("name", "friendly_name", "description")
-    readonly_fields = ("name",)
     search_fields = ("name",)
