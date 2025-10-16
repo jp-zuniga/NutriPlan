@@ -24,7 +24,11 @@
 			style="top: 5px; right: 5px; gap: 3px;"
 		>
 			<i class="las la-star p-emphasis no-ul"></i>
-			{recipe.rating_avg}
+			{#if recipe.rating_avg}
+				{parseFloat(recipe.rating_avg).toFixed(1)}
+			{:else}
+				?
+			{/if}
 		</div>
 	</div>
 

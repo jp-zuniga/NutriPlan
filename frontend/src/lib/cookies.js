@@ -1,3 +1,2 @@
-
-export const SESSION_ACCESS_COOKIE = "session-access"
-export const SESSION_REFRESH_COOKIE = "session-refresh"
+export const SESSION_ACCESS_COOKIE = 'np-access';
+export const SESSION_REFRESH_COOKIE = 'np-refresh';

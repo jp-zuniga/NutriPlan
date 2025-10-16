@@ -1,6 +1,7 @@
 import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
+import { setCookies } from '$lib/stores/auth.js';
 
-export const POST = async ({ request }) => {
+export const POST = async ({ request, cookies }) => {
 	console.log('Using login endpoint');
 
 	let payload;
@@ -32,34 +33,18 @@ export const POST = async ({ request }) => {
 			return new Response(JSON.stringify({ error: message }), { status: upstream.status });
 		}
 
-		// console.log('Data:', data);
-		// const access = data.access;
-		// console.log('Access:', access);
+		console.log('Data:', data);
+		const access = data.access;
+		console.log('Access:', access);
 
-		// if (!access) {
-		// 	return new Response(
-		// 		JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
-		// 		{ status: 500 }
-		// 	);
-		// }
+		if (!access) {
+			return new Response(
+				JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
+				{ status: 500 }
+			);
+		}
 
-		// cookies.set(SESSION_ACCESS_COOKIE, access, {
-		// 	path: '/',
-		// 	httpOnly: true,
-		// 	sameSite: 'lax',
-		// 	secure: true,
-		// 	maxAge: 60 * 60 // 1h
-		// });
-
-		// if (refresh) {
-		// 	cookies.set(SESSION_REFRESH_COOKIE, refresh, {
-		// 		path: '/',
-		// 		httpOnly: true,
-		// 		sameSite: 'lax',
-		// 		secure: true,
-		// 		maxAge: 60 * 60 * 24 * 7 // 7d
-		// 	});
-		// }
+		setCookies(data.access, data.refresh, { cookies });
 
 		return new Response(JSON.stringify({ ok: true, user: data.user }), { status: 200 });
 	} catch (err) {

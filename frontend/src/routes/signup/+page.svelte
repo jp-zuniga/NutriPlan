@@ -125,27 +125,15 @@
 </script>
 
 {#if $authUser !== undefined && $authUser === null}
-	<main class="signup-page">
-		<section class="hero">
-			<div class="container hero-grid">
-				<article class="copy">
-					<h1>Crea tu cuenta NutriPlan</h1>
-					<p>
-						Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya
-						tu plan a partir de tu historia y cultura alimentaria.
-					</p>
-					<ul>
-						<li>✨ Planes ajustados a tu presupuesto y tiempo</li>
-						<li>🍲 Recetas con ingredientes nicaragüenses</li>
-						<li>📈 Seguimiento de metas y recordatorios</li>
-					</ul>
-				</article>
+	<main class="login no-pad" style="min-height: calc(100vh - 75px);">
+		<section class="flex-center full-size pad-20">
+			<div class="container hero-grid" style="width: 550px;">
 				<form class="card form" method="POST" onsubmit={handleLogin}>
 					<h2>Regístrate</h2>
 					<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
 
 					{#each questions as question}
-						<label for={question.id}
+						<label class="md-p" for={question.id}
 							>{question.label}
 							{#if question.required}
 								<span style="color: red">*</span>
@@ -190,6 +178,14 @@
 {/if}
 
 <style>
+	main {
+		background-image: url('$lib/assets/platos-tradicionales.webp');
+		background-size: cover;
+	}
+
+	section {
+		backdrop-filter: blur(15px);
+	}
 	input {
 		transition: 0.25s ease;
 	}
@@ -218,13 +214,6 @@
 		background-color: rgba(0, 255, 0, 0.35);
 	}
 
-	.signup-page {
-		display: flex;
-		flex-direction: column;
-		gap: 4rem;
-		padding-bottom: 4rem;
-	}
-
 	.container {
 		max-width: 960px;
 		margin: 0 auto;
@@ -236,31 +225,6 @@
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 		gap: 2.5rem;
 		align-items: start;
-		margin-top: 2rem;
-	}
-
-	.copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1.3rem;
-	}
-
-	.copy h1 {
-		margin: 0;
-		font-size: clamp(2.2rem, 3vw, 3.2rem);
-	}
-
-	.copy p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.copy ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
 	}
 
 	.form {

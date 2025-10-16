@@ -1,6 +1,5 @@
 import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
-import { SESSION_ACCESS_COOKIE, SESSION_REFRESH_COOKIE } from '$lib/cookies';
-import { NODE_ENV } from '$env/static/private';
+import { setCookies } from '$lib/stores/auth.js';
 
 export const POST = async ({ request, cookies }) => {
 	let payload;
@@ -32,35 +31,17 @@ export const POST = async ({ request, cookies }) => {
 			return new Response(JSON.stringify({ error: message }), { status: upstream.status });
 		}
 
-		console.log('Data:', data);
-		// const access = data.access;
-		// const refresh = data.refresh;
-		// console.log('Access:', access);
+		const access = data.access;
+		const refresh = data.refresh;
 
-		// if (!access) {
-		// 	return new Response(
-		// 		JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
-		// 		{ status: 500 }
-		// 	);
-		// }
+		if (!access) {
+			return new Response(
+				JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
+				{ status: 500 }
+			);
+		}
 
-		// cookies.set(SESSION_ACCESS_COOKIE, access, {
-		// 	path: '/',
-		// 	httpOnly: true,
-		// 	sameSite: 'lax',
-		// 	secure: NODE_ENV == 'production',
-		// 	maxAge: 60 * 60 // 1h
-		// });
-
-		// if (refresh) {
-		// 	cookies.set(SESSION_REFRESH_COOKIE, refresh, {
-		// 		path: '/',
-		// 		httpOnly: true,
-		// 		sameSite: 'lax',
-		// 		secure: NODE_ENV == 'production',
-		// 		maxAge: 60 * 60 * 24 * 7 // 7d
-		// 	});
-		// }
+		setCookies(access, refresh, { cookies });
 
 		return new Response(JSON.stringify({ ok: true, user: data.user }), { status: 200 });
 	} catch (err) {

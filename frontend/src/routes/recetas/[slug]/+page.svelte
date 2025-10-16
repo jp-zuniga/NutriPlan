@@ -15,8 +15,8 @@
 	let recipe = $state(null);
 	let reviews = $state(null);
 
-	const get_recipe = async () => {
-		loading = true;
+	const get_recipe = async (noload = false) => {
+		loading = !noload;
 
 		const data = await getRecipe(recipe_slug);
 		if (data != null) {
@@ -79,8 +79,7 @@
 			star_count = 0;
 			user_review = '';
 			// Refresh
-			const refresh = await getRecipe(recipe_slug);
-			reviews = refresh.reviews;
+			get_recipe(true);
 		} else {
 			const data = await response.json();
 			review_error = data?.error ?? 'Error añadiendo la reseña';
@@ -273,6 +272,7 @@
 							<div class="flex items-center gap-16">
 								<button
 									class="btn ghost"
+									disabled={(user_review == '' && star_count == 0) || review_loading}
 									onclick={() => {
 										star_count = 0;
 										user_review = '';
