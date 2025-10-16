@@ -45,6 +45,7 @@ class Recipe(BaseModel):
     slug = SlugField(max_length=120, unique=True, db_index=True)
     name = CharField(max_length=100)
     description = TextField(help_text="Short description shown prominently.")
+    categories = ManyToManyField(Category, related_name="recipes_m2m", blank=True)
     category = ForeignKey(
         Category,
         on_delete=SET_NULL,
