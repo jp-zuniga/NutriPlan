@@ -134,10 +134,14 @@ if any("pytest" in arg for arg in argv):
 
 # 8) API config: #######################################################################
 
+COOKIE_SAMESITE = "None"
+COOKIE_SECURE = not DEBUG
+
+ACCESS_COOKIE_NAME = "np-access"
+REFRESH_COOKIE_NAME = "np-refresh"
+
 REST_FRAMEWORK: dict[str, tuple[str] | list[str] | str] = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("nutriplan.auth.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",

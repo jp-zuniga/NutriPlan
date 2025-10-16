@@ -7,9 +7,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer
+
+from .utils import set_auth_cookies
 
 CustomUser = get_user_model()
 
@@ -46,10 +49,6 @@ def login_user(request: Request) -> Response:
         return Response({"error": "Credenciales inválidas."}, status=401)
 
     refresh = RefreshToken.for_user(user)
-    return Response(
-        {
-            "user": UserProfileSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }
-    )
+    res = Response({"user": UserProfileSerializer(user).data}, status=HTTP_200_OK)
+    set_auth_cookies(res, refresh)
+    return res

@@ -15,7 +15,13 @@ from nutriplan.views import (
     ReviewViewSet,
     UserViewSet,
 )
-from nutriplan.views.auth import google_sign_in, login_user, register_user
+from nutriplan.views.auth import (
+    RefreshCookieView,
+    google_sign_in,
+    login_user,
+    logout_user,
+    register_user,
+)
 
 router = CustomRouter()
 router.register("categories", CategoryViewSet, basename="category")
@@ -29,7 +35,13 @@ urlpatterns: list[URLResolver | URLPattern] = [
     path("", include(router.urls)),
     re_path(r"^auth/google/?$", google_sign_in, name="google_sign_in"),
     re_path(r"^auth/login/?$", login_user, name="login_user"),
+    re_path(r"^auth/logout/?$", logout_user, name="logout_user"),
     re_path(r"^auth/register/?$", register_user, name="register_user"),
     re_path(r"^auth/refresh/?$", TokenRefreshView.as_view(), name="token_refresh"),
+    re_path(
+        r"^auth/refresh-cookie/?$",
+        RefreshCookieView.as_view(),
+        name="token_refresh_cookie",
+    ),
     re_path(r"^auth/verify/?$", TokenVerifyView.as_view(), name="token_verify"),
 ]
