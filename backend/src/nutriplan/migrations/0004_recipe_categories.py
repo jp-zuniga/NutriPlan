@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('nutriplan', '0003_review'),
+        ("nutriplan", "0003_review"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='recipe',
-            name='categories',
-            field=models.ManyToManyField(blank=True, related_name='recipes_m2m', to='nutriplan.category'),
+            model_name="recipe",
+            name="categories",
+            field=models.ManyToManyField(
+                blank=True, related_name="recipes_m2m", to="nutriplan.category"
+            ),
         ),
     ]
