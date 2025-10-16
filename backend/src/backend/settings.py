@@ -108,7 +108,7 @@ CORS_ALLOWED_ORIGIN_REGEXES: list[str] = [
 
 CSRF_TRUSTED_ORIGINS: list[str] = [
     "http://localhost:5173",
-    "http://localhost:8000",    
+    "http://localhost:8000",
     "https://nutri-plan.net",
     "https://*.nutri-plan.net",
     "https://*.railway.app",
@@ -139,7 +139,7 @@ if any("pytest" in arg for arg in argv):
 COOKIE_DOMAIN = "nutri-plan.net"
 COOKIE_HTTPONLY = True
 COOKIE_PATH = "/"
-COOKIE_SAMESITE = "Lax"
+COOKIE_SAMESITE = "None"
 COOKIE_SECURE = True
 
 ACCESS_COOKIE_NAME = "np-access"
