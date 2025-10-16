@@ -112,10 +112,8 @@ class RecipeViewSet(ReadOnlyModelViewSet):
 
         params = self.request.GET
 
-        # ---- CATEGORÍAS: aceptar múltiples y por UUID o nombre ----
-        cat_tokens = _split_csv(params.get("categories")) or _split_csv(
-            params.get("category")
-        )
+        # ---- CATEGORÍAS: múltiples tokens (UUID o nombre/friendly) ----
+        cat_tokens = _split_csv(params.get("categories") or params.get("category"))
         if cat_tokens:
             q = Q()
             for tok in cat_tokens:
@@ -144,13 +142,13 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
-        # ---- Agregar agregados de ratings ----
+        # ---- Ratings ----
         qs = qs.annotate(
             rating_avg=Avg("reviews__rating"),
             rating_count=Count("reviews", distinct=True),
         )
 
-        # ---- Orden por macro/calorías (DESC). Ya no hay filtros min/max. ----
+        # ---- Orden por macro/calorías (DESC). Sin min/max. ----
         sort_macro = (params.get("sort_macro") or "").strip().lower()
         if sort_macro in MACRO_FIELD_MAP:
             qs = qs.order_by(f"-{MACRO_FIELD_MAP[sort_macro]}", "-created_at", "name")
@@ -217,7 +215,7 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
         url_path="recommend",
     )
-    def recommend(self, request: Request) -> Response:
+    def recommend(self, request: Request) -> Response:  # noqa: C901, PLR0912
         """
         Recommend recipes for authenticated user based on available ingredients.
 
@@ -229,55 +227,67 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         """
 
         data: dict = request.data or {}  # type: ignore[reportAssignmentType]
-        ing_ids = _to_uuid_list(data.get("ingredients"))
+
+        # ---- ingredientes: aceptar lista JSON o CSV string usando helpers ----
+        raw_ing = data.get("ingredients")
+        if isinstance(raw_ing, list):
+            ing_ids: list[UUID] = []
+            for v in raw_ing:
+                try:
+                    ing_ids.append(UUID(str(v)))
+                except (ValueError, TypeError):
+                    continue
+        else:
+            ing_ids = _parse_uuid_list(raw_ing)
 
         if not ing_ids:
             raise ValidationError(
                 {"ingredients": "Debes enviar al menos un ingrediente."}
             )
 
-        categories_raw = data.get("categories", data.get("category"))
-        cat_tokens = _to_any_list(categories_raw)
+        # ---- categorías: aceptar lista JSON o CSV string, separar ids/nombres ----
+        raw_cats = data.get("categories", data.get("category"))
+        if isinstance(raw_cats, list):
+            cat_tokens = [str(v).strip() for v in raw_cats if str(v).strip()]
+        else:
+            cat_tokens = _split_csv(raw_cats)
 
-        # separar categorías en IDs y nombres/friendly
-        cat_ids = []
-        cat_names = []
+        cat_ids: list[UUID] = []
+        cat_names: list[str] = []
         for tok in cat_tokens:
             try:
                 cat_ids.append(UUID(tok))
-            except Exception:  # noqa: BLE001
+            except (ValueError, TypeError):
                 cat_names.append(tok)
 
         macro = (data.get("macro") or "").strip().lower()
 
-        qs = (
-            Recipe.objects.all()
-            .select_related("category")
-            .prefetch_related(
-                Prefetch("ingredients", queryset=Ingredient.objects.all()),
-                Prefetch(
-                    "recipe_ingredients",
-                    queryset=RecipeIngredient.objects.select_related("ingredient"),
+        qs = Recipe.objects.all().prefetch_related(
+            "categories",  # <-- M2M categories
+            Prefetch("ingredients", queryset=Ingredient.objects.all()),
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredient.objects.select_related("ingredient"),
+            ),
+            Prefetch(
+                "recipe_images",
+                queryset=RecipeImage.objects.select_related("image").order_by(
+                    "order", "id"
                 ),
-                Prefetch(
-                    "recipe_images",
-                    queryset=RecipeImage.objects.select_related("image").order_by(
-                        "order", "id"
-                    ),
-                ),
-            )
+            ),
         )
 
         # Filtro por múltiples categorías (IDs o nombres/friendly) — match cualquiera
         if cat_ids or cat_names:
             q_cat = Q()
             if cat_ids:
-                q_cat |= Q(category_id__in=cat_ids)
+                q_cat |= Q(categories__id__in=cat_ids)
             for name in cat_names:
-                q_cat |= Q(category__name__iexact=name) | Q(
-                    category__friendly_name__iexact=name
+                q_cat |= Q(categories__name__iexact=name) | Q(
+                    categories__friendly_name__iexact=name
                 )
-            qs = qs.filter(q_cat)
+
+            qs = qs.filter(q_cat).distinct()
 
         # Excluir recetas con ingredientes que violen las restricciones del usuario
         user_restr_ids = list(
@@ -286,7 +296,7 @@ class RecipeViewSet(ReadOnlyModelViewSet):
 
         if user_restr_ids:
             qs = qs.exclude(
-                recipe_ingredients__ingredient__dietary_restrictions__in=user_restr_ids
+                recipe_ingredients__ingredient__dietary_restrictions__id__in=user_restr_ids
             )
 
         # Anotar missing_count = total_ing - have_ing
@@ -299,12 +309,13 @@ class RecipeViewSet(ReadOnlyModelViewSet):
             ),
         ).annotate(missing_count=F("total_ing") - F("have_ing"))
 
-        # Anotar ratings (consistencia con serializer base)
+        # Ratings (consistencia con serializer base)
         qs = qs.annotate(
             rating_avg=Avg("reviews__rating"),
             rating_count=Count("reviews", distinct=True),
         )
 
+        # Orden: menos faltantes, (opcional) macro desc, rating desc, nombre
         ordering = ["missing_count", "-rating_avg", "name"]
         if macro in MACRO_FIELD_MAP:
             ordering.insert(1, f"-{MACRO_FIELD_MAP[macro]}")
