@@ -17,6 +17,7 @@ class RecipeAdmin(ModelAdmin):
     """
 
     date_hierarchy = "created_at"
+    filter_horizontal = ("categories",)
     list_display = ("name", "slug", "created_at")
     list_filter = ("created_at",)
     prepopulated_fields: ClassVar[Mapping[str, Sequence[str]]] = {"slug": ("name",)}  # type: ignore[reportIncompatibleVariableOverride]

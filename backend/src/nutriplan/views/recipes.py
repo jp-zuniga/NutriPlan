@@ -105,40 +105,49 @@ class RecipeViewSet(ReadOnlyModelViewSet):
     search_fields: ClassVar[list[str]] = ["name", "description"]
     serializer_class = RecipeSerializer
 
-    def get_queryset(self) -> BaseManager[Recipe]:  # type: ignore[reportIncomatibleMethodOverride]
+    def get_queryset(  # noqa: C901, PLR0912  # type: ignore[reportIncomatibleMethodOverride]
+        self,
+    ) -> BaseManager[Recipe]:
         """
         Return a queryset of Recipe objects according to request parameters.
         """
 
-        qs = (
-            Recipe.objects.all()
-            .select_related("category")
-            .prefetch_related(
-                Prefetch("ingredients", queryset=Ingredient.objects.all()),
-                Prefetch(
-                    "recipe_ingredients",
-                    queryset=RecipeIngredient.objects.select_related("ingredient"),
+        qs = Recipe.objects.all().prefetch_related(
+            "categories",
+            Prefetch("ingredients", queryset=Ingredient.objects.all()),
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredient.objects.select_related("ingredient"),
+            ),
+            Prefetch(
+                "recipe_images",
+                queryset=RecipeImage.objects.select_related("image").order_by(
+                    "order", "id"
                 ),
-                Prefetch(
-                    "recipe_images",
-                    queryset=RecipeImage.objects.select_related("image").order_by(
-                        "order", "id"
-                    ),
-                ),
-            )
+            ),
         )
 
         params = self.request.GET
-        category = params.get("category")
+        cat_param = params.get("category")
+        cats_param = params.get("categories")
 
-        if category:
-            if category.isdigit():
-                qs = qs.filter(category_id=int(category))
-            else:
-                qs = qs.filter(
-                    Q(category__name__iexact=category)
-                    | Q(category__friendly_name__iexact=category)
-                )
+        if cat_param or cats_param:
+            q = Q()
+            values = []
+            if cats_param:
+                values = [v.strip() for v in cats_param.split(",") if v.strip()]
+            elif cat_param:
+                values = [cat_param.strip()]
+
+            for v in values:
+                if v.isdigit():
+                    q |= Q(categories__id=int(v))
+                else:
+                    q |= Q(categories__name__iexact=v) | Q(
+                        categories__friendly_name__iexact=v
+                    )
+
+            qs = qs.filter(q).distinct()
 
         time_max = params.get("time_max")
         if time_max and time_max.isdigit():
