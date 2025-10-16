@@ -134,6 +134,12 @@ if any("pytest" in arg for arg in argv):
 
 # 8) API config: #######################################################################
 
+JWT_REFRESH_COOKIE_NAME = "nutriplan_refresh"
+JWT_COOKIE_SECURE = not DEBUG
+JWT_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
+JWT_COOKIE_DOMAIN = "nutri-plan.net"
+JWT_COOKIE_PATH = "/"
+
 REST_FRAMEWORK: dict[str, tuple[str] | list[str] | str] = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
