@@ -141,7 +141,7 @@ ACCESS_COOKIE_NAME = "np-access"
 REFRESH_COOKIE_NAME = "np-refresh"
 
 REST_FRAMEWORK: dict[str, tuple[str] | list[str] | str] = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("backend.auth.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("nutriplan.auth.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
