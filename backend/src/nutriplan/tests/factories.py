@@ -86,7 +86,7 @@ class ImageFactory(DjangoModelFactory):
 class RecipeFactory(DjangoModelFactory):
     class Meta:
         model = Recipe
-        skip_post_generation_save = True
+        skip_postgeneration_save = True
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.sentence(nb_words=3).rstrip("."))
