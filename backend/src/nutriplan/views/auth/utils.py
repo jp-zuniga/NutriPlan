@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 def _cookie_kwargs(max_age: int, path: str = "/") -> dict:
     return {
-        "httponly": True,
+        "httponly": settings.COOKIE_HTTPONLY,
         "secure": settings.COOKIE_SECURE,
         "samesite": settings.COOKIE_SAMESITE,
         "max_age": max_age,

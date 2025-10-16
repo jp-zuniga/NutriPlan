@@ -107,6 +107,8 @@ CORS_ALLOWED_ORIGIN_REGEXES: list[str] = [
 ]
 
 CSRF_TRUSTED_ORIGINS: list[str] = [
+    "http://localhost:5173",
+    "http://localhost:8000",    
     "https://nutri-plan.net",
     "https://*.nutri-plan.net",
     "https://*.railway.app",
