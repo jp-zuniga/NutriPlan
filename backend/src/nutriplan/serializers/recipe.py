@@ -25,7 +25,7 @@ class RecipeSerializer(ModelSerializer):
     Recipe serializer exposing ingredients and ordered images.
     """
 
-    categories = CategorySerializer(read_only=True)
+    categories = CategorySerializer(many=True, read_only=True)
     ingredients = SerializerMethodField()
     images = SerializerMethodField()
     total_time = IntegerField(read_only=True)
