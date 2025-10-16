@@ -78,7 +78,7 @@ def update_cookies_from_refresh_response(response: Response) -> None:
         response.set_cookie(
             settings.REFRESH_COOKIE_NAME,
             refresh,
-            **_cookie_kwargs(refresh_max, "/auth/refresh"),
+            **_cookie_kwargs(refresh_max, "/"),
         )
 
     for k in ("access", "refresh"):
@@ -97,4 +97,4 @@ def clear_auth_cookies(response: Response) -> None:
     """
 
     response.delete_cookie(settings.ACCESS_COOKIE_NAME, path="/")
-    response.delete_cookie(settings.REFRESH_COOKIE_NAME, path="/auth/refresh")
+    response.delete_cookie(settings.REFRESH_COOKIE_NAME, path="/")
