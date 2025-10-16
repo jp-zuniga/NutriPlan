@@ -45,6 +45,7 @@ class RecipeSerializer(ModelSerializer):
             "slug",
             "name",
             "description",
+            "instructions",
             "categories",
             "ingredients",
             "images",
