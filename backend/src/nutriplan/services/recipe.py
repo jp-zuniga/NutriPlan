@@ -5,6 +5,7 @@ Service layer for handling operations related to Recipe objects.
 from collections.abc import Iterable
 
 from django.db.models.manager import BaseManager
+from django.db.transaction import atomic
 
 from nutriplan.models import Category, Recipe
 
@@ -48,7 +49,7 @@ class RecipeService:
         return Recipe.objects.filter(ingredients__name__in=ingredient_names).distinct()
 
     @staticmethod
-    def create_recipe(
+    def create_recipe(  # noqa: C901
         recipe_data: dict[str, int | str], ingredients_data: list[dict[str, int | str]]
     ) -> Recipe:
         """
@@ -72,38 +73,53 @@ class RecipeService:
 
         """
 
-        cats: str | list = (
-            recipe_data.get("category") or recipe_data.get("categories") or []
-        )  # type: ignore[reportAssignmentType]
+        cat_field = recipe_data.get("category")
+        cats_field = recipe_data.get("categories")
+        to_add: list[Category] = []
 
-        if isinstance(cats, str):
-            cats = [cats]
+        def _resolve_one(cand: str | Category) -> Category | None:
+            if isinstance(cand, Category):
+                return cand
+            if isinstance(cand, str) and cand.strip():
+                obj = Category.objects.filter(name__iexact=cand.strip()).first()
+                return obj or Category.objects.create(
+                    name=cand.strip(), friendly_name=cand.strip()
+                )
+            return None
 
-        cat_objs: list[Category] = []
-        for c in cats:
-            if isinstance(c, Category):
-                cat_objs.append(c)
-            else:
-                obj = Category.objects.filter(name__iexact=str(c)).first()
-                if not obj:
-                    obj = Category.objects.create(name=str(c), friendly_name=str(c))
+        if cat_field:
+            c = _resolve_one(cat_field)  # type: ignore[reportArgumentType]
+            if c:
+                to_add.append(c)
 
-                cat_objs.append(obj)
+        if (
+            cats_field
+            and isinstance(cats_field, Iterable)
+            and not isinstance(cats_field, (str, bytes))
+        ):
+            for it in cats_field:  # type: ignore[reportGeneralTypeIssues]
+                c = _resolve_one(it)
+                if c:
+                    to_add.append(c)
 
-        recipe = Recipe.objects.create(
-            name=recipe_data["name"],
-            description=recipe_data["description"],
-            prep_time=recipe_data.get("prep_time", 0),
-            cook_time=recipe_data.get("cook_time", 0),
-        )
+        with atomic():
+            recipe = Recipe.objects.create(
+                name=recipe_data["name"],
+                description=recipe_data["description"],
+                prep_time=recipe_data.get("prep_time", 0),
+                cook_time=recipe_data.get("cook_time", 0),
+            )
 
-        if cat_objs:
-            recipe.categories.add(*cat_objs)
+            if to_add:
+                recipe.categories.add(*to_add)
 
-        for ing in ingredients_data:
+        for ingredient_data in ingredients_data:
             recipe.ingredients.add(
-                ing["ingredient"],
-                through_defaults={"amount": ing["amount"], "unit": ing.get("unit", "")},
+                ingredient_data["ingredient"],
+                through_defaults={
+                    "amount": ingredient_data["amount"],
+                    "unit": ingredient_data.get("unit", ""),
+                },
             )
 
         return recipe

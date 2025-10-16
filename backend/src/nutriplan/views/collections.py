@@ -68,7 +68,8 @@ class RecipeCollectionViewSet(ModelViewSet):
 
         user = self.request.user
 
-        recipe_qs = Recipe.objects.select_related("category").prefetch_related(
+        recipe_qs = Recipe.objects.prefetch_related(
+            "categories",
             Prefetch(
                 "recipe_ingredients",
                 queryset=RecipeIngredient.objects.select_related("ingredient"),

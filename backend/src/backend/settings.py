@@ -134,6 +134,12 @@ if any("pytest" in arg for arg in argv):
 
 # 8) API config: #######################################################################
 
+COOKIE_SAMESITE = "Lax"
+COOKIE_SECURE = not DEBUG
+ACCESS_COOKIE_NAME = "access"
+REFRESH_COOKIE_NAME = "refresh"
+
+
 JWT_REFRESH_COOKIE_NAME = "nutriplan_refresh"
 JWT_COOKIE_SECURE = not DEBUG
 JWT_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
