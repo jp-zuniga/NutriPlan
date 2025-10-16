@@ -44,6 +44,11 @@ class Recipe(BaseModel):
     slug = SlugField(max_length=120, unique=True, db_index=True)
     name = CharField(max_length=100)
     description = TextField(help_text="Short description shown prominently.")
+    instructions = TextField(
+        blank=True,
+        help_text="Detailed step-by-step instructions.",
+    )
+
     categories = ManyToManyField(Category, related_name="recipes", blank=True)
     ingredients = ManyToManyField(
         Ingredient,
