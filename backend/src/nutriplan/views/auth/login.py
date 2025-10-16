@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer
 
-from .cookies import set_refresh_cookie
+from .utils import set_auth_cookies
 
 CustomUser = get_user_model()
 
@@ -49,14 +49,6 @@ def login_user(request: Request) -> Response:
         return Response({"error": "Credenciales inválidas."}, status=401)
 
     refresh = RefreshToken.for_user(user)
-    resp = Response(
-        {
-            "user": UserProfileSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        },
-        status=HTTP_200_OK,
-    )
-
-    set_refresh_cookie(resp, str(refresh))
-    return resp
+    res = Response({"user": UserProfileSerializer(user).data}, status=HTTP_200_OK)
+    set_auth_cookies(res, refresh)
+    return res
