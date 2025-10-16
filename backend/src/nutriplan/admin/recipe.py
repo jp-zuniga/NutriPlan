@@ -16,10 +16,9 @@ class RecipeAdmin(ModelAdmin):
     Admin interface options for `Recipe` model.
     """
 
-    autocomplete_fields = ("category",)
     date_hierarchy = "created_at"
-    list_display = ("name", "slug", "category", "created_at")
-    list_filter = ("category", "created_at")
+    list_display = ("name", "slug", "created_at")
+    list_filter = ("created_at",)
     prepopulated_fields: ClassVar[Mapping[str, Sequence[str]]] = {"slug": ("name",)}  # type: ignore[reportIncompatibleVariableOverride]
     search_fields = ("name", "slug")
 
