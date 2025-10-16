@@ -33,7 +33,7 @@ def set_auth_cookies(response: Response, refresh_token: RefreshToken) -> None:
     response.set_cookie(
         settings.ACCESS_COOKIE_NAME,
         str(refresh_token.access_token),
-        domain=settings.COOKIE_DOMAIN,
+        # domain=settings.COOKIE_DOMAIN,j
         path=settings.COOKIE_PATH,
         httponly=settings.COOKIE_HTTPONLY,
         secure=settings.COOKIE_SECURE,
@@ -44,7 +44,7 @@ def set_auth_cookies(response: Response, refresh_token: RefreshToken) -> None:
     response.set_cookie(
         settings.REFRESH_COOKIE_NAME,
         str(refresh_token),
-        domain=settings.COOKIE_DOMAIN,
+        # domain=settings.COOKIE_DOMAIN,j
         path=settings.COOKIE_PATH,
         httponly=settings.COOKIE_HTTPONLY,
         secure=settings.COOKIE_SECURE,
