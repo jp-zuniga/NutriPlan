@@ -14,6 +14,7 @@ from nutriplan.views import (
     RecipeViewSet,
     ReviewViewSet,
     UserViewSet,
+    chefcito_chat,
 )
 from nutriplan.views.auth import (
     RefreshCookieView,
@@ -44,4 +45,5 @@ urlpatterns: list[URLResolver | URLPattern] = [
         name="token_refresh_cookie",
     ),
     re_path(r"^auth/verify/?$", TokenVerifyView.as_view(), name="token_verify"),
+    re_path(r"^chefcito/chat/?$", chefcito_chat, name="chefcito_chat"),
 ]

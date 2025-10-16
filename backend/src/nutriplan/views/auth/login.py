@@ -12,8 +12,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer
 
-from .utils import set_auth_cookies
-
 CustomUser = get_user_model()
 
 
