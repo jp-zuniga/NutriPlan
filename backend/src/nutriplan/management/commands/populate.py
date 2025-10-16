@@ -8,9 +8,9 @@ from json import dumps
 
 from django.core.management.base import BaseCommand, CommandParser
 
-from nutriplan.services.llm import (
+from nutriplan.services.llm import GeminiClient
+from nutriplan.services.llm.populate import (
     DEFAULT_LOCALE,
-    GeminiClient,
     build_category_prompt,
     build_ingredient_prompt,
     build_recipe_prompt,
