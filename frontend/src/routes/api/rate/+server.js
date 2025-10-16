@@ -1,8 +1,7 @@
-import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
 import { API_RECIPES_ENDPOINT } from '$lib/endpoints';
 import { getUser } from '$lib/stores/auth';
 
-export const POST = async ({ request, cookies }) => {
+export const POST = async ({ request }) => {
 	let payload;
 	try {
 		payload = await request.json();
@@ -10,20 +9,18 @@ export const POST = async ({ request, cookies }) => {
 		return new Response(JSON.stringify({ error: 'Invalid Body: ' + err }), { status: 400 });
 	}
 
-	const user = getUser({ cookies });
+	const user = getUser();
 
 	if (!user)
 		return new Response(JSON.stringify({ error: 'User is not logged in' }), { status: 400 });
-
-	const sessionCookie = cookies.get(SESSION_ACCESS_COOKIE);
 
 	try {
 		const response = await fetch(API_RECIPES_ENDPOINT + '/' + payload.slug + '/rate', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${sessionCookie}`
+				'Content-Type': 'application/json'
 			},
+			credentials: 'include',
 			body: JSON.stringify({
 				rating: payload.rating,
 				comment: payload.comment

@@ -49,9 +49,10 @@
 		let request = createFormRequest();
 
 		try {
-			const response = await fetch('/api/login', {
+			const response = await fetch(API_LOGIN_ENDPOINT, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
 				body: JSON.stringify(request)
 			});
 

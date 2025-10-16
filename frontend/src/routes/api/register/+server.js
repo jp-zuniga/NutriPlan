@@ -17,6 +17,7 @@ export const POST = async ({ request, cookies }) => {
 		const upstream = await fetch(API_REGISTER_ENDPOINT, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
 			body: JSON.stringify(payload)
 		}).catch((err) => {
 			console.log(`Communication error:`, err);
@@ -32,34 +33,34 @@ export const POST = async ({ request, cookies }) => {
 		}
 
 		console.log('Data:', data);
-		const access = data.access;
-		const refresh = data.refresh;
-		console.log('Access:', access);
+		// const access = data.access;
+		// const refresh = data.refresh;
+		// console.log('Access:', access);
 
-		if (!access) {
-			return new Response(
-				JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
-				{ status: 500 }
-			);
-		}
+		// if (!access) {
+		// 	return new Response(
+		// 		JSON.stringify({ error: 'Respuesta invalida del servidor de autentificación' }),
+		// 		{ status: 500 }
+		// 	);
+		// }
 
-		cookies.set(SESSION_ACCESS_COOKIE, access, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			secure: NODE_ENV == 'production',
-			maxAge: 60 * 60 // 1h
-		});
+		// cookies.set(SESSION_ACCESS_COOKIE, access, {
+		// 	path: '/',
+		// 	httpOnly: true,
+		// 	sameSite: 'lax',
+		// 	secure: NODE_ENV == 'production',
+		// 	maxAge: 60 * 60 // 1h
+		// });
 
-		if (refresh) {
-			cookies.set(SESSION_REFRESH_COOKIE, refresh, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: NODE_ENV == 'production',
-				maxAge: 60 * 60 * 24 * 7 // 7d
-			});
-		}
+		// if (refresh) {
+		// 	cookies.set(SESSION_REFRESH_COOKIE, refresh, {
+		// 		path: '/',
+		// 		httpOnly: true,
+		// 		sameSite: 'lax',
+		// 		secure: NODE_ENV == 'production',
+		// 		maxAge: 60 * 60 * 24 * 7 // 7d
+		// 	});
+		// }
 
 		return new Response(JSON.stringify({ ok: true, user: data.user }), { status: 200 });
 	} catch (err) {

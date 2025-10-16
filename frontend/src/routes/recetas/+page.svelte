@@ -84,6 +84,7 @@
 		}
 	];
 
+	let url_params = $state('');
 	let recipeResults = $state([]);
 
 	$effect(() => {
@@ -174,7 +175,12 @@
 	]);
 
 	let orderby = $state('Relevancia');
-	const orderby_options = ['Relevancia', 'Mayor Valoración', 'Menor Tiempo', 'Menos Calorías'];
+	const orderby_options = [
+		{ name: 'Relevancia', url_param: '' },
+		{ name: 'Mayor Valoración', url_param: '' },
+		{ name: 'Menor Tiempo', url_param: '' },
+		{ name: 'Menos Calorías', url_params: '' }
+	];
 
 	let selected_categories = $state([]);
 

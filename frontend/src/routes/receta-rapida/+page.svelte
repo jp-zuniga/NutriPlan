@@ -1,5 +1,6 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
+	import { API_INGREDIENTS_ENDPOINT } from '$lib/endpoints';
 
 	const pantry = ['Yuca', 'Repollo morado', 'Mango verde', 'Limón', 'Chiltoma', 'Frijoles cocidos'];
 
@@ -35,277 +36,83 @@
 		'Activa el modo temporada para priorizar ingredientes frescos locales.',
 		'Guarda combinaciones frecuentes para que la IA aprenda tus gustos.'
 	];
+
+	let ingredients = $state(null);
+	let loading = $state(true);
+
+	let selected = $state([]);
+
+	let search_query = $state('');
+	let query = $state([]);
+
+	const getIngredients = async () => {
+		loading = true;
+
+		const response = await fetch(API_INGREDIENTS_ENDPOINT, {
+			method: 'GET'
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			ingredients = data;
+		}
+
+		loading = false;
+	};
+
+	const filterQuery = (ingredients) => {
+		if (search_query == '') return ingredients;
+		else
+			return ingredients.filter((i) => {
+				return i.name.toLowerCase().includes(search_query.toLowerCase());
+			});
+	};
+
+	$effect(() => {
+		query = filterQuery(ingredients);
+	});
+
+	getIngredients();
 </script>
 
-<main class="pantry-mode">
-	<section class="hero">
-		<div class="container hero-inner">
-			<div class="copy">
-				<h1>Receta rápida: cocinar con lo que tienes</h1>
-				<p>
-					Selecciona ingredientes disponibles y obtén recetas ordenadas por porcentaje de coincidencia,
-					tiempo y perfil nutricional.
-				</p>
-			</div>
-			<form class="input-card">
-				<label for="ingredient">Agregar ingrediente</label>
-				<div class="input-row">
-					<input id="ingredient" type="text" placeholder="Ej. chiltoma, queso fresco, papaya" />
-					<button type="button">Añadir</button>
-				</div>
-				<div class="chips">
-					{#each pantry as item}
-						<span class="chip">{item}</span>
-					{/each}
-					<button type="button" class="ghost">Limpiar lista</button>
-				</div>
-				<div class="preferences">
-					<label><input type="checkbox" checked /> Incluir solo opciones saludables</label>
-					<label><input type="checkbox" /> Mostrar recetas veganas</label>
-					<label><input type="checkbox" /> Filtrar por menos de 30 minutos</label>
-				</div>
-			</form>
-		</div>
-	</section>
-
-	<section class="results">
+<main>
+	<section>
 		<div class="container">
-			<header class="section-head">
-				<h2>Resultados sugeridos por IA</h2>
-				<p>Ordenados por coincidencia, impacto nutricional y popularidad en Nicaragua.</p>
-			</header>
-			<div class="result-grid">
-				{#each suggestions as suggestion}
-					<article class="card result">
-						<div class="header">
-							<h3>{suggestion.recipe}</h3>
-							<span class="match">Coincidencia {suggestion.match}%</span>
-						</div>
-						<div class="meta">
-							<span>{suggestion.time}</span>
-							<span>{suggestion.steps} pasos</span>
-							<span>{suggestion.health}</span>
-						</div>
-						<div class="progress">
-							<div style={`width: ${suggestion.match}%`}></div>
-						</div>
-						<ul class="missing">
-							{#each suggestion.missing as item}
-								<li>Falta: {item}</li>
-							{/each}
-						</ul>
-						<div class="actions">
-							<a href="/recetas">Ver receta base</a>
-							<a href="#">Generar versión personalizada</a>
-						</div>
-					</article>
-				{/each}
-			</div>
+			<p class="h3 txt-center">Receta Rápida</p>
 		</div>
 	</section>
 
-	<section class="smart-tips">
-		<div class="container tips-grid">
-			<article class="card summary">
-				<h2>Optimiza tu despensa</h2>
-				<p>
-					Obtén recomendaciones priorizando ingredientes nicaragüenses, reduce desperdicios y conecta con
-					proveedores locales.
-				</p>
-				<a class="btn primary" href="/planificador-ia">Sincronizar con mi plan</a>
-			</article>
-			<article class="card checklist">
-				<h3>Consejos rápidos</h3>
-				<ul>
-					{#each smartTips as tip}
-						<li>{tip}</li>
+	<section id="ingredients">
+		{#if ingredients}
+			<div class="flex-center direction-col">
+				<input type="text" bind:value={search_query} />
+				<div class="flex-center wrap gap-8 container">
+					{#each query as ingredient}
+						<button
+							class="ingredient pad-10 bg-soft-gray clickable hoverable no-border"
+							data-selected={selected.includes(ingredient)}
+							onclick={() => {
+								if (selected.includes(ingredient))
+									selected = selected.filter((e) => e != ingredient);
+								else selected.push(ingredient);
+							}}
+						>
+							{ingredient.name}
+						</button>
 					{/each}
-				</ul>
-			</article>
-		</div>
+				</div>
+			</div>
+		{/if}
 	</section>
 </main>
 
 <style>
-	.pantry-mode {
-		display: flex;
-		flex-direction: column;
-		gap: 4.5rem;
-		padding-bottom: 5rem;
+	.ingredient {
+		transition: 0.1s linear;
 	}
 
-	.container {
-		max-width: 1000px;
-		margin: 0 auto;
-		padding: 0 1.5rem;
-	}
-
-	.hero-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2.5rem;
-		align-items: start;
-	}
-
-	.copy h1 {
-		margin: 0;
-		font-size: clamp(2.1rem, 3vw, 3rem);
-	}
-
-	.copy p {
-		margin: 1rem 0 0;
-		color: var(--color-soft);
-	}
-
-	.input-card {
-		background: rgba(255, 255, 255, 0.92);
-		border-radius: var(--radius-lg);
-		padding: 2.5rem;
-		box-shadow: var(--shadow-soft);
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.input-row {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 1rem;
-	}
-
-	.input-row button {
-		background: var(--gradient-leaf);
+	.ingredient[data-selected='true'] {
+		background-color: var(--color-primary);
 		color: white;
-		border: none;
-		border-radius: 999px;
-		padding: 0 1.6rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.8rem;
-	}
-
-	.chips .ghost {
-		border: none;
-		background: rgba(8, 44, 36, 0.08);
-		color: var(--color-forest);
-		border-radius: 999px;
-		padding: 0.5rem 1rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.preferences {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-		color: var(--color-soft);
-	}
-
-	.results .result-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-		gap: 1.8rem;
-		margin-top: 2rem;
-	}
-
-	.result {
-		padding: 1.8rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.result .header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 1rem;
-	}
-
-	.match {
-		font-weight: 700;
-		color: var(--color-forest);
-	}
-
-	.meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6rem;
-		color: var(--color-soft);
-		font-weight: 600;
-	}
-
-	.progress {
-		height: 8px;
-		background: rgba(8, 44, 36, 0.08);
-		border-radius: 999px;
-		overflow: hidden;
-	}
-
-	.progress div {
-		height: 100%;
-		background: var(--gradient-leaf);
-	}
-
-	.missing {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
-	}
-
-	.actions {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 1rem;
-		font-weight: 600;
-	}
-
-	.actions a {
-		text-decoration: none;
-		color: var(--color-forest);
-	}
-
-	.tips-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2rem;
-		align-items: stretch;
-	}
-
-	.summary {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.checklist {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.checklist ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
-	}
-
-	@media (max-width: 640px) {
-		.input-row {
-			grid-template-columns: 1fr;
-		}
-
-		.actions {
-			justify-content: flex-start;
-		}
 	}
 </style>

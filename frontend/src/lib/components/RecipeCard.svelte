@@ -46,7 +46,7 @@
 					{:else}
 						<i class="las la-users"></i>
 					{/if}
-					{recipe.servings} porciones
+					{recipe.servings} porcion{#if recipe.servings != 1}es{/if}
 				</div>
 			{/if}
 
