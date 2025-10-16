@@ -14,7 +14,9 @@ from django.db.models import (
     ManyToManyField,
     Q,
     TextField,
+    UniqueConstraint,
 )
+from django.db.models.functions import Lower
 
 from .base_model import BaseModel
 
@@ -40,7 +42,7 @@ class Ingredient(BaseModel):
         Ensure non-negative nutrition values and indexing for search.
         """
 
-        constraints: ClassVar[list[CheckConstraint]] = [
+        constraints: ClassVar[list[CheckConstraint | UniqueConstraint]] = [
             CheckConstraint(
                 check=None,
                 condition=Q(calories_per_100g__gte=0),  # type: ignore[reportCallIssue]
@@ -66,6 +68,7 @@ class Ingredient(BaseModel):
                 condition=Q(sugar_per_100g__gte=0),  # type: ignore[reportCallIssue]
                 name="chk_ing_sug_ge_0",
             ),
+            UniqueConstraint(Lower("name"), name="uniq_ing_name"),
         ]
 
         indexes: ClassVar[list[Index]] = [
