@@ -16,7 +16,7 @@ from nutriplan.views import (
     UserViewSet,
 )
 from nutriplan.views.auth import (
-    CookieTokenRefreshView,
+    RefreshCookieView,
     google_sign_in,
     login_user,
     logout_user,
@@ -40,7 +40,7 @@ urlpatterns: list[URLResolver | URLPattern] = [
     re_path(r"^auth/refresh/?$", TokenRefreshView.as_view(), name="token_refresh"),
     re_path(
         r"^auth/refresh-cookie/?$",
-        CookieTokenRefreshView.as_view(),
+        RefreshCookieView.as_view(),
         name="token_refresh_cookie",
     ),
     re_path(r"^auth/verify/?$", TokenVerifyView.as_view(), name="token_verify"),

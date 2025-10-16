@@ -15,7 +15,7 @@ from nutriplan.models import Provider, SocialAccount
 from nutriplan.serializers import UserProfileSerializer
 from nutriplan.services.auth import google as google_service
 
-from .cookies import set_refresh_cookie
+from .utils import set_auth_cookies
 
 CustomUser = get_user_model()
 
@@ -106,15 +106,13 @@ def google_sign_in(request: Request) -> Response:
         )
 
     refresh = RefreshToken.for_user(user)
-    resp = Response(
+    res = Response(
         {
             "user": UserProfileSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
             "created": created_user,
         },
         status=HTTP_201_CREATED if created_user else HTTP_200_OK,
     )
 
-    set_refresh_cookie(resp, str(refresh))
-    return resp
+    set_auth_cookies(res, refresh)
+    return res

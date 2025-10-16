@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from nutriplan.serializers import UserProfileSerializer, UserRegistrationSerializer
 
-from .cookies import set_refresh_cookie
+from .utils import set_auth_cookies
 
 CustomUser = get_user_model()
 
@@ -36,16 +36,11 @@ def register_user(request: Request) -> Response:
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
         refresh = RefreshToken.for_user(user)  # type: ignore[reportArgumentType]
-        resp = Response(
-            {
-                "user": UserProfileSerializer(user).data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
-            status=HTTP_201_CREATED,
+        res = Response(
+            {"user": UserProfileSerializer(user).data}, status=HTTP_201_CREATED
         )
 
-        set_refresh_cookie(resp, str(refresh))
-        return resp
+        set_auth_cookies(res, refresh)
+        return res
 
     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
