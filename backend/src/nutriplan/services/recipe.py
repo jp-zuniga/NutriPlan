@@ -28,7 +28,7 @@ class RecipeService:
 
         """
 
-        return Recipe.objects.filter(category__name__iexact=category_name)
+        return Recipe.objects.filter(categories__name__iexact=category_name)
 
     @staticmethod
     def get_recipes_with_ingredients(
@@ -49,7 +49,7 @@ class RecipeService:
         return Recipe.objects.filter(ingredients__name__in=ingredient_names).distinct()
 
     @staticmethod
-    def create_recipe(
+    def create_recipe(  # noqa: C901
         recipe_data: dict[str, int | str], ingredients_data: list[dict[str, int | str]]
     ) -> Recipe:
         """
@@ -73,26 +73,45 @@ class RecipeService:
 
         """
 
-        category = recipe_data.get("category")
-        category_obj: Category | None = None
+        cat_field = recipe_data.get("category")
+        cats_field = recipe_data.get("categories")
+        to_add: list[Category] = []
 
-        if isinstance(category, str):
-            category_obj = Category.objects.filter(name__iexact=category).first()
-            if not category_obj:
-                category_obj = Category.objects.create(
-                    name=category, friendly_name=category
+        def _resolve_one(cand: str | Category) -> Category | None:
+            if isinstance(cand, Category):
+                return cand
+            if isinstance(cand, str) and cand.strip():
+                obj = Category.objects.filter(name__iexact=cand.strip()).first()
+                return obj or Category.objects.create(
+                    name=cand.strip(), friendly_name=cand.strip()
                 )
-        elif isinstance(category, Category):
-            category_obj = category
+            return None
+
+        if cat_field:
+            c = _resolve_one(cat_field)  # type: ignore[reportArgumentType]
+            if c:
+                to_add.append(c)
+
+        if (
+            cats_field
+            and isinstance(cats_field, Iterable)
+            and not isinstance(cats_field, (str, bytes))
+        ):
+            for it in cats_field:  # type: ignore[reportGeneralTypeIssues]
+                c = _resolve_one(it)
+                if c:
+                    to_add.append(c)
 
         with atomic():
             recipe = Recipe.objects.create(
                 name=recipe_data["name"],
                 description=recipe_data["description"],
-                category=category_obj,
                 prep_time=recipe_data.get("prep_time", 0),
                 cook_time=recipe_data.get("cook_time", 0),
             )
+
+            if to_add:
+                recipe.categories.add(*to_add)
 
         for ingredient_data in ingredients_data:
             recipe.ingredients.add(

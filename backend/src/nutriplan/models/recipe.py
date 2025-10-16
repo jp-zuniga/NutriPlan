@@ -8,7 +8,6 @@ from typing import ClassVar
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models import (
     CASCADE,
-    SET_NULL,
     CharField,
     CheckConstraint,
     DateTimeField,
@@ -45,14 +44,12 @@ class Recipe(BaseModel):
     slug = SlugField(max_length=120, unique=True, db_index=True)
     name = CharField(max_length=100)
     description = TextField(help_text="Short description shown prominently.")
-    category = ForeignKey(
-        Category,
-        on_delete=SET_NULL,
-        null=True,
+    instructions = TextField(
         blank=True,
-        related_name="recipes",
+        help_text="Detailed step-by-step instructions.",
     )
 
+    categories = ManyToManyField(Category, related_name="recipes", blank=True)
     ingredients = ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
@@ -164,7 +161,6 @@ class Recipe(BaseModel):
             GinIndex(
                 fields=["name"], name="idx_recipe_name_trgm", opclasses=["gin_trgm_ops"]
             ),
-            Index(fields=["category"]),
             Index(fields=["created_at"]),
             Index(fields=["slug"], name="idx_recipe_slug"),
             Index(fields=["total_time"]),

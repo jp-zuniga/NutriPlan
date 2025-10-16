@@ -182,8 +182,8 @@ def seed_recipes_with_json(  # noqa: C901, PLR0912, PLR0915
                     if not recipe.description and description:
                         recipe.description = description
                         changed = True
-                    if category and recipe.category.id is None:  # type: ignore[reportOptionalMemberAccess]
-                        recipe.category = category
+                    if category:
+                        recipe.categories.add(category)
                         changed = True
                     if (recipe.servings or 0) == 0 and servings:
                         recipe.servings = servings

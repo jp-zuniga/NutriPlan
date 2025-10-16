@@ -16,12 +16,15 @@ class RecipeAdmin(ModelAdmin):
     Admin interface options for `Recipe` model.
     """
 
-    autocomplete_fields = ("category",)
     date_hierarchy = "created_at"
-    list_display = ("name", "slug", "category", "created_at")
-    list_filter = ("category", "created_at")
+    filter_horizontal = ("categories",)
+    list_display = ("name", "slug", "categories_list", "created_at")
+    list_filter = ("categories", "created_at")
     prepopulated_fields: ClassVar[Mapping[str, Sequence[str]]] = {"slug": ("name",)}  # type: ignore[reportIncompatibleVariableOverride]
-    search_fields = ("name", "slug")
+    search_fields = ("name", "instructions", "slug")
+
+    def categories_list(self, obj: Recipe) -> str:  # noqa: D102
+        return ", ".join(obj.categories.values_list("friendly_name", flat=True)) or "-"
 
 
 @register(RecipeIngredient)

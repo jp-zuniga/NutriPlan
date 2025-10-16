@@ -84,8 +84,17 @@
         split-on-trailing-comma    = false
 
     [tool.ruff.lint.per-file-ignores]
-        "**/admin/__init__.py"    = ["F401"]
-        "**/llm/prompts.py"       = ["E501"]
-        "**/migrations/*"         = ["D100", "D101", "D104", "E501", "RUF012"]
-        "**/tests/*"              = ["D100", "D101", "D103", "D104", "D106", "PT013", "S101"]
+        "**/admin/__init__.py" = ["F401"]
+        "**/llm/prompts.py" = ["E501"]
+        "**/migrations/*" = [
+            "ANN001",
+            "ARG001",
+            "D100",
+            "D101",
+            "D103",
+            "D104",
+            "E501",
+            "RUF012",
+        ]
+        "**/tests/*" = ["D100", "D101", "D103", "D104", "D106", "PT013", "S101"]
         "src/backend/settings.py" = ["E501"]

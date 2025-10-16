@@ -51,25 +51,8 @@ def _parse_uuid_list(value: str | None) -> list[UUID]:
     return out
 
 
-def _to_any_list(value: str | list | tuple | None) -> list[str]:
-    if value is None:
-        return []
-    if isinstance(value, (list, tuple)):
-        return [str(x).strip() for x in value if str(x).strip()]
-
-    return [s.strip() for s in str(value).split(",") if s.strip()]
-
-
-def _to_uuid_list(value: str | list | tuple | None) -> list[UUID]:
-    raw = _to_any_list(value)
-    out: list[UUID] = []
-
-    for x in raw:
-        try:
-            out.append(UUID(x))
-        except Exception:  # noqa: BLE001, S112
-            continue
-    return out
+def _split_csv(value: str | None) -> list[str]:
+    return [] if not value else [v.strip() for v in value.split(",") if v.strip()]
 
 
 class RecipeViewSet(ReadOnlyModelViewSet):
@@ -105,53 +88,51 @@ class RecipeViewSet(ReadOnlyModelViewSet):
     search_fields: ClassVar[list[str]] = ["name", "description"]
     serializer_class = RecipeSerializer
 
-    def get_queryset(self) -> BaseManager[Recipe]:  # type: ignore[reportIncomatibleMethodOverride]
+    def get_queryset(  # type: ignore[reportIncomatibleMethodOverride]
+        self,
+    ) -> BaseManager[Recipe]:
         """
         Return a queryset of Recipe objects according to request parameters.
         """
 
-        qs = (
-            Recipe.objects.all()
-            .select_related("category")
-            .prefetch_related(
-                Prefetch("ingredients", queryset=Ingredient.objects.all()),
-                Prefetch(
-                    "recipe_ingredients",
-                    queryset=RecipeIngredient.objects.select_related("ingredient"),
+        qs = Recipe.objects.all().prefetch_related(
+            "categories",
+            Prefetch("ingredients", queryset=Ingredient.objects.all()),
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredient.objects.select_related("ingredient"),
+            ),
+            Prefetch(
+                "recipe_images",
+                queryset=RecipeImage.objects.select_related("image").order_by(
+                    "order", "id"
                 ),
-                Prefetch(
-                    "recipe_images",
-                    queryset=RecipeImage.objects.select_related("image").order_by(
-                        "order", "id"
-                    ),
-                ),
-            )
+            ),
         )
 
         params = self.request.GET
-        category = params.get("category")
 
-        if category:
-            if category.isdigit():
-                qs = qs.filter(category_id=int(category))
-            else:
-                qs = qs.filter(
-                    Q(category__name__iexact=category)
-                    | Q(category__friendly_name__iexact=category)
-                )
+        # ---- CATEGORÍAS: aceptar múltiples y por UUID o nombre ----
+        cat_tokens = _split_csv(params.get("categories")) or _split_csv(
+            params.get("category")
+        )
+        if cat_tokens:
+            q = Q()
+            for tok in cat_tokens:
+                try:
+                    q |= Q(categories__id=UUID(tok))
+                except (ValueError, TypeError):
+                    q |= Q(categories__name__iexact=tok) | Q(
+                        categories__friendly_name__iexact=tok
+                    )
+            qs = qs.filter(q).distinct()
 
+        # ---- Tiempo total máximo opcional ----
         time_max = params.get("time_max")
         if time_max and time_max.isdigit():
             qs = qs.filter(total_time__lte=int(time_max))
 
-        for key, field in MACRO_FIELD_MAP.items():
-            vmin = params.get(f"{key}_min")
-            vmax = params.get(f"{key}_max")
-            if vmin:
-                qs = qs.filter(**{f"{field}__gte": vmin})
-            if vmax:
-                qs = qs.filter(**{f"{field}__lte": vmax})
-
+        # ---- Ingredientes include/exclude por UUID (match-all para include) ----
         include_ids = _parse_uuid_list(params.get("include_ingredients"))
         if include_ids:
             qs = qs.filter(recipe_ingredients__ingredient_id__in=include_ids)
@@ -163,11 +144,13 @@ class RecipeViewSet(ReadOnlyModelViewSet):
         if exclude_ids:
             qs = qs.exclude(recipe_ingredients__ingredient_id__in=exclude_ids)
 
+        # ---- Agregar agregados de ratings ----
         qs = qs.annotate(
             rating_avg=Avg("reviews__rating"),
             rating_count=Count("reviews", distinct=True),
         )
 
+        # ---- Orden por macro/calorías (DESC). Ya no hay filtros min/max. ----
         sort_macro = (params.get("sort_macro") or "").strip().lower()
         if sort_macro in MACRO_FIELD_MAP:
             qs = qs.order_by(f"-{MACRO_FIELD_MAP[sort_macro]}", "-created_at", "name")

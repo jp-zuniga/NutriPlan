@@ -69,28 +69,25 @@ class ReviewViewSet(ModelViewSet):
         Return the base queryset for this view, optionally filtered and ordered.
         """
 
-        recipe_qs = (
-            Recipe.objects.select_related("category")
-            .prefetch_related(
-                Prefetch(
-                    "recipe_ingredients",
-                    queryset=RecipeIngredient.objects.select_related("ingredient"),
+        recipe_qs = Recipe.objects.prefetch_related(
+            "categories",
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredient.objects.select_related("ingredient"),
+            ),
+            Prefetch(
+                "ingredients",
+                queryset=Ingredient.objects.all(),
+            ),
+            Prefetch(
+                "recipe_images",
+                queryset=RecipeImage.objects.select_related("image").order_by(
+                    "order", "id"
                 ),
-                Prefetch(
-                    "ingredients",
-                    queryset=Ingredient.objects.all(),
-                ),
-                Prefetch(
-                    "recipe_images",
-                    queryset=RecipeImage.objects.select_related("image").order_by(
-                        "order", "id"
-                    ),
-                ),
-            )
-            .annotate(
-                rating_avg=Avg("reviews__rating"),
-                rating_count=Count("reviews", distinct=True),
-            )
+            ),
+        ).annotate(
+            rating_avg=Avg("reviews__rating"),
+            rating_count=Count("reviews", distinct=True),
         )
 
         qs = (
