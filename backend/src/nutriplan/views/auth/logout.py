@@ -18,7 +18,7 @@ def logout_user(request: Request) -> Response:  # noqa: ARG001
     Log out the current user by clearing the refresh-token cookie.
 
     Args:
-        request: Incoming HTTP request.
+        request (Request): Incoming HTTP request.
 
     Return:
         Response: HTTP 204 and Set-Cookie header that clears refresh token cookie.
