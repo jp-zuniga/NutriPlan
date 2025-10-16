@@ -108,10 +108,6 @@ class UserViewSet(ModelViewSet):
         """
         Handles retrieval and update of the authenticated user's information.
 
-        If the request method is PUT/PATCH, updates user's data with provided payload.
-        Validates input data and performs update operation.
-        Return serialized data of authenticated user.
-
         Args:
             request: HTTP request containing user and data.
 
@@ -126,6 +122,7 @@ class UserViewSet(ModelViewSet):
                 data=request.data,
                 partial=(request.method == "PATCH"),
             )
+
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
 
