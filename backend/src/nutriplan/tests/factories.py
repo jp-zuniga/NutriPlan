@@ -86,6 +86,7 @@ class ImageFactory(DjangoModelFactory):
 class RecipeFactory(DjangoModelFactory):
     class Meta:
         model = Recipe
+        skip_post_generation_save = True
 
     id = LazyFunction(uuid4)
     name = LazyAttribute(lambda _: fake.unique.sentence(nb_words=3).rstrip("."))
@@ -124,10 +125,36 @@ class RecipeFactory(DjangoModelFactory):
             return
 
         if extracted:
-            for c in extracted:
-                self.categories.add(c)
+            if isinstance(extracted, (list, tuple)):
+                for c in extracted:
+                    self.categories.add(c)
+            else:
+                self.categories.add(extracted)
         else:
             self.categories.add(CategoryFactory())
+
+    @post_generation
+    def category(
+        self,
+        create: bool,  # noqa: FBT001
+        extracted: Iterable[Category] | None,
+        **kwargs,  # noqa: ANN003, ARG002
+    ) -> None:
+        """
+        Post-generation hook that populates categories relation.
+
+        Args:
+            create:    Indicates whether parent object was actually created.
+            extracted: Optional iterable of Category instances to attach.
+            **kwargs:  Ignored; present for Factory Boy API compatibility.
+
+        """
+
+        if not create or not extracted:
+            return
+
+        self.categories.clear()
+        self.categories.add(extracted)
 
 
 class RecipeIngredientFactory(DjangoModelFactory):
