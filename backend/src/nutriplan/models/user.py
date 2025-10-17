@@ -174,6 +174,18 @@ class CustomUser(BaseModel, AbstractUser):
 
         return self.email
 
+    @property
+    def role(self) -> str:
+        """
+        Get Django credentials for user.
+        """
+
+        if getattr(self, "is_superuser", False):
+            return "admin"
+        if getattr(self, "is_staff", False):
+            return "staff"
+        return "user"
+
 
 class DietaryRestriction(BaseModel):
     """

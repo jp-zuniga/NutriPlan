@@ -11,7 +11,6 @@ from rest_framework.serializers import (
     ModelSerializer,
     PrimaryKeyRelatedField,
     Serializer,
-    SerializerMethodField,
     ValidationError,
 )
 
@@ -35,7 +34,7 @@ class UserRegistrationSerializer(ModelSerializer):
         many=True, queryset=DietaryRestriction.objects.all(), required=False
     )
 
-    role = SerializerMethodField(read_only=True)
+    role = CharField(read_only=True, source="role")
 
     class Meta:
         """
@@ -54,17 +53,6 @@ class UserRegistrationSerializer(ModelSerializer):
         )
 
         read_only_fields = ("id", "email", "role")
-
-    def get_role(self, obj: object) -> str:
-        """
-        Get current user's role.
-        """
-
-        if getattr(obj, "is_superuser", False):
-            return "admin"
-        if getattr(obj, "is_staff", False):
-            return "staff"
-        return "user"
 
     def create(self, validated_data: dict) -> AbstractUser:
         """
