@@ -9,7 +9,7 @@ export const authenticatedFetch = async (url, request, { cookies }) => {
 
 		const cookie_string = `${access ? SESSION_ACCESS_COOKIE + '=' + access : ''}${refresh ? ';' + SESSION_REFRESH_COOKIE + '=' + refresh : ''}`;
 
-		const user = getUser({ cookies });
+		const user = await getUser({ cookies });
 		if (!user) return { error: 'El usuario no se pudo autenticar.' };
 
 		request.headers['Cookie'] = cookie_string;

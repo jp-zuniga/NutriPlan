@@ -4,6 +4,8 @@ import { authenticatedFetch, JSONRequest } from '$lib/utils/fetch.js';
 export const POST = async ({ request, cookies }) => {
 	let payload;
 
+	console.log('Preguntandole a chefcito...');
+
 	try {
 		payload = await request.json();
 	} catch (err) {

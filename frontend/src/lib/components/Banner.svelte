@@ -47,11 +47,13 @@
 <nav class="site-nav flex-center bg-white">
 	<div class="nav-inner flex items-center justify-between rel-pos">
 		<!-- Brand logo -->
-		<a href="/" class="brand flex items-center no-ul gap-8" onclick={closeMenu}>
+		<a href="/" class="brand flex items-center no-ul gap-4" onclick={closeMenu}>
 			<img src={LogoFavicon} alt="NutriPlan logo" />
 			<div class="flex direction-col">
-				<span class="title md-p bold">NutriPlan</span>
-				<span class="subtitle sm-p p-ghost">Come mejor, vive mejor</span>
+				<span class="title md-p bold" style="font-family: 'Montserrat'">NUTRIPLAN</span>
+				<span class="subtitle sm-p p-ghost" style="font-family: 'Montserrat'; font-size:10px"
+					>COME MEJOR, VIVE MEJOR</span
+				>
 			</div>
 		</a>
 

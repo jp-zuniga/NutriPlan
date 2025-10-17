@@ -64,11 +64,22 @@
 		error = '';
 
 		try {
-			const response = await fetch('/api/chef-ia/', JSONRequest({ message: messageText }));
+			console.log('New chefsito fetch');
+			const response = await fetch('/api/chefcito', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					message: messageText
+				})
+			});
 
 			if (!response.ok) {
+				console.log('Response is not ok: ', response);
 				const data = await response.json();
-				throw new Error(data?.message ?? 'Error en la respuesta del servidor');
+				console.log('Data: ', data);
+				throw new Error(data ?? 'Error en la respuesta del servidor');
 			}
 
 			const data = (await response.json()).data;

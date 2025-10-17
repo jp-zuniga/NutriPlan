@@ -1,24 +1,11 @@
 <script>
 	import SVG_AI from '$lib/assets/ai.svg';
+	import { marked } from 'marked';
 
 	let { message } = $props();
 
 	const isUser = message.role === 'user';
 	const isAssistant = message.role === 'assistant';
-
-	// Simple markdown parser para texto básico
-	function parseMarkdown(text) {
-		if (!text) return '';
-
-		// Bold
-		text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-		// Italic
-		text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-		// Line breaks
-		text = text.replace(/\n/g, '<br>');
-
-		return text;
-	}
 
 	function formatTime(timestamp) {
 		if (!timestamp) return '';
@@ -45,7 +32,7 @@
 		{/if}
 
 		<div class="message-text">
-			{@html parseMarkdown(message.content)}
+			{@html marked(message.content)}
 		</div>
 
 		{#if message.recipes && message.recipes.length > 0}
