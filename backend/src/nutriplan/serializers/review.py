@@ -10,6 +10,8 @@ from rest_framework.serializers import ModelSerializer, UUIDField, ValidationErr
 
 from nutriplan.models import Recipe, Review
 
+from .user import UserPublicSerializer
+
 User = get_user_model()
 
 MIN_STARS = 1
@@ -134,6 +136,8 @@ class ReviewReadSerializer(ModelSerializer):
     """
     Read-friendly shape (includes nested ids/emails minimal).
     """
+
+    user = UserPublicSerializer(read_only=True)
 
     class Meta:
         """

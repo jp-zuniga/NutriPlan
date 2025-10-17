@@ -16,6 +16,7 @@ from .review import ReviewReadSerializer, ReviewSerializer
 from .user import (
     ChangePasswordSerializer,
     UserProfileSerializer,
+    UserPublicSerializer,
     UserRegistrationSerializer,
 )
 
@@ -34,5 +35,6 @@ __all__: list[str] = [
     "ReviewReadSerializer",
     "ReviewSerializer",
     "UserProfileSerializer",
+    "UserPublicSerializer",
     "UserRegistrationSerializer",
 ]

@@ -15,6 +15,8 @@ from rest_framework.serializers import (
 from nutriplan.models import Article, Recipe
 from nutriplan.services import sync_article_recipe_refs
 
+from .user import UserPublicSerializer
+
 
 class ArticleRecipeMiniSerializer(ModelSerializer):
     class Meta:
@@ -30,6 +32,7 @@ class ArticleSerializer(ModelSerializer):
     Recipe references auto-synced from text.
     """
 
+    author = UserPublicSerializer(read_only=True)
     recipes = SerializerMethodField()
 
     class Meta:

@@ -146,6 +146,21 @@ class UserProfileSerializer(ModelSerializer):
         read_only_fields = ("id", "email", "role")
 
 
+class UserPublicSerializer(ModelSerializer):
+    """
+    Minimal user shape for public reads (no teléfono ni restricciones).
+    """
+
+    class Meta:
+        """
+        Ensure only public fields are exposed.
+        """
+
+        model = CustomUser
+        fields = ("id", "email", "first_name", "last_name")
+        read_only_fields = fields
+
+
 class ChangePasswordSerializer(Serializer):
     """
     Serializer for changing the current user's password via /users/me/change-password.
