@@ -47,6 +47,4 @@ class ArticleViewSet(ModelViewSet):
             return [IsAuthenticated(), ArticleWritePermission()]
         if self.action in ("destroy",):
             return [IsAuthenticated(), ArticleDeletePermission()]
-
-        msg = "Unhandled action for permissions"
-        raise RuntimeError(msg)
+        return [AllowAny()]
