@@ -10,6 +10,7 @@ from rest_framework.serializers import (
     CharField,
     ModelSerializer,
     PrimaryKeyRelatedField,
+    ReadOnlyField,
     Serializer,
     ValidationError,
 )
@@ -34,7 +35,7 @@ class UserRegistrationSerializer(ModelSerializer):
         many=True, queryset=DietaryRestriction.objects.all(), required=False
     )
 
-    role = CharField(read_only=True)
+    role = ReadOnlyField()
 
     class Meta:
         """
