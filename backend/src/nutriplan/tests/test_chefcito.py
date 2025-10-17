@@ -1,6 +1,6 @@
 # type: ignore[reportAttributeAccessIssue]
 
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,7 +16,7 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
-from nutriplan.models import ChatMessage, ChatRole, ChatThread
+from nutriplan.models import ChatMessage, ChatRole, ChatThread, Recipe
 
 from .factories import UserFactory
 
@@ -25,12 +25,26 @@ pytestmark = mark.django_db
 User = get_user_model()
 
 EXPECTED_MESSAGE_COUNT = 2
+RECIPE_ID_STR = "11111111-1111-1111-1111-111111111111"
+RECIPE_ID = UUID(RECIPE_ID_STR)
+
+
+def _ensure_recipe_for_hydration() -> None:
+    if not Recipe.objects.filter(id=RECIPE_ID).exists():
+        Recipe.objects.create(
+            id=RECIPE_ID,
+            name="Pollo con arroz integral",
+            description="Receta sencilla con pollo y arroz integral.",
+            prep_time=10,
+            cook_time=15,
+            servings=2,
+        )
 
 
 def _mock_agent_response() -> dict:
     return {
         "reply": "¡Ajúa! Te recomiendo **Pollo con arroz integral** 💪🍚",
-        "recipes": ["11111111-1111-1111-1111-111111111111"],
+        "recipes": [RECIPE_ID_STR],
         "ingredients": ["Pollo", "Arroz integral"],
         "used_tools": [{"tool": "find_recipes", "args": {"query": "pollo"}}],
     }
@@ -77,10 +91,13 @@ def test_send_appends_user_and_assistant_messages(
 ) -> None:
     client, _user = auth_client
 
+    _ensure_recipe_for_hydration()
+
     def _fake_chat(
         user: settings.AUTH_USER_MODEL,  # noqa: ARG001
         message: str,
         history: list[dict[str, str]] | None = None,  # noqa: ARG001
+        **kwargs,  # noqa: ANN003, ARG001
     ) -> dict:
         assert isinstance(message, str)
         assert message
@@ -121,8 +138,33 @@ def test_send_appends_user_and_assistant_messages(
 
     assert msg_assist["role"] == ChatRole.ASSISTANT
     assert "recomiendo" in msg_assist["content"].lower()
-    assert "tools" in msg_assist["meta"]
-    assert msg_assist["meta"]["recipes"] == _mock_agent_response()["recipes"]
+
+    meta_recipes = msg_assist["meta"]["recipes"]
+    assert isinstance(meta_recipes, list)
+    assert len(meta_recipes) == 1
+
+    r0 = meta_recipes[0]
+    for key in (
+        "id",
+        "slug",
+        "name",
+        "total_time",
+        "servings",
+        "primary_image",
+        "rating_avg",
+        "rating_count",
+    ):
+        assert key in r0
+
+    assert r0["id"] == RECIPE_ID_STR
+    assert "pollo" in r0["name"].lower()
+
+    # top-level convenience (si lo devolvés en la vista)
+    if "recipes" in res2.data:
+        top_recipes = res2.data["recipes"]
+        assert isinstance(top_recipes, list)
+        assert len(top_recipes) == 1
+        assert top_recipes[0]["id"] == RECIPE_ID_STR
 
     # Persistencia en DB: 2 mensajes
     th = ChatThread.objects.get(id=thread_id)
@@ -134,7 +176,6 @@ def test_send_appends_user_and_assistant_messages(
 
     # Título aplicado si estaba vacío
     th.refresh_from_db()
-
     assert th.title == "Recetas con pollo (rápidas)"
 
 
@@ -182,11 +223,13 @@ def test_stateless_chat_endpoint_allowany(
 
     client, _user = auth_client
 
+    _ensure_recipe_for_hydration()
+
     def _fake_chat(
         user: settings.AUTH_USER_MODEL,  # noqa: ARG001
         message: str,
         history: list[dict[str, str]] | None = None,  # noqa: ARG001
-        **kwargs,
+        **kwargs,  # noqa: ANN003, ARG001
     ) -> dict:
         assert isinstance(message, str)
         assert message
@@ -202,6 +245,27 @@ def test_stateless_chat_endpoint_allowany(
     assert res.status_code == HTTP_200_OK, res.data
     assert "reply" in res.data
     assert res.data["recipes"] == _mock_agent_response()["recipes"]
+    assert "recipes" in res.data
+
+    recs = res.data["recipes"]
+
+    assert isinstance(recs, list)
+    assert len(recs) == 1
+
+    r0 = recs[0]
+    for key in (
+        "id",
+        "slug",
+        "name",
+        "total_time",
+        "servings",
+        "primary_image",
+        "rating_avg",
+        "rating_count",
+    ):
+        assert key in r0
+
+    assert r0["id"] == RECIPE_ID_STR
 
 
 def test_cannot_send_without_auth() -> None:

@@ -4,7 +4,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
-from nutriplan.services.llm.chefcito import ChefcitoAgent
+from nutriplan.services.llm.chefcito import ChefcitoAgent, summarize_recipes_by_ids
 
 
 @api_view(["POST"])
@@ -35,6 +35,16 @@ def chefcito_chat(request: Request) -> Response:
         message,
         history=history,  # type: ignore[reportArgumentType]
     )
+
+    recipes_payload = res.get("recipes") or res.get("recipe_ids") or []
+    recipes_full: list[dict] = []
+    if isinstance(recipes_payload, list) and recipes_payload:
+        if isinstance(recipes_payload[0], dict) and "id" in recipes_payload[0]:
+            recipes_full = recipes_payload
+        elif isinstance(recipes_payload[0], str):
+            recipes_full = summarize_recipes_by_ids(recipes_payload)
+
+    res["recipes"] = recipes_full  # asegurar objetos para el frontend
 
     status = (
         HTTP_200_OK if "reply" in res or "error" not in res else HTTP_400_BAD_REQUEST

@@ -19,7 +19,7 @@ from nutriplan.serializers.chat import (
     ChatThreadSerializer,
     SendMessageSerializer,
 )
-from nutriplan.services.llm.chefcito import ChefcitoAgent
+from nutriplan.services.llm.chefcito import ChefcitoAgent, summarize_recipes_by_ids
 
 from .permissions import ChatAccessPermission
 
@@ -130,10 +130,25 @@ class ChatThreadViewSet(ModelViewSet):
         agent = ChefcitoAgent()
         result = agent.chat(request.user, msg_text, history=history)
 
-        # Persist assistant message (and light tool log in meta)
+        # --- NORMALIZAR/HIDRATAR RECETAS PARA LA UI ---
+        recipes_payload = result.get("recipes") or result.get("recipe_ids") or []
+        recipes_full: list[dict] = []
+
+        if isinstance(recipes_payload, list) and recipes_payload:
+            # Si ya vienen objetos con 'id', los pasamos directo
+            if isinstance(recipes_payload[0], dict) and "id" in recipes_payload[0]:
+                recipes_full = recipes_payload
+            # Si vienen como IDs (str), hidrátalos a resúmenes
+            elif isinstance(recipes_payload[0], str):
+                recipes_full = summarize_recipes_by_ids(recipes_payload)
+
+        # Reescribir para que el frontend reciba objetos siempre
+        result["recipes"] = recipes_full
+
+        # Persist assistant message (y log de herramientas)
         assistant_meta = {
             "tools": result.get("used_tools") or [],
-            "recipes": result.get("recipes") or [],
+            "recipes": recipes_full,  # <-- ahora objetos, no solo IDs
             "ingredients": result.get("ingredients") or [],
         }
         assistant_msg = ChatMessage.objects.create(
@@ -151,6 +166,7 @@ class ChatThreadViewSet(ModelViewSet):
                 "thread": ChatThreadSerializer(thread).data,
                 "message_user": ChatMessageSerializer(user_msg).data,
                 "message_assistant": ChatMessageSerializer(assistant_msg).data,
+                "recipes": recipes_full,
             },
             status=HTTP_201_CREATED,
         )
