@@ -31,11 +31,6 @@ class UserRegistrationSerializer(ModelSerializer):
     phone_number = CharField(required=False, allow_blank=True)
     password = CharField(write_only=True, min_length=8)
     password_confirm = CharField(write_only=True, min_length=8)
-    dietary_restrictions = PrimaryKeyRelatedField(
-        many=True, queryset=DietaryRestriction.objects.all(), required=False
-    )
-
-    role = ReadOnlyField()
 
     class Meta:
         """
@@ -50,10 +45,9 @@ class UserRegistrationSerializer(ModelSerializer):
             "password",
             "password_confirm",
             "dietary_restrictions",
-            "role",
         )
 
-        read_only_fields = ("id", "email", "role")
+        read_only_fields = ("id", "email")
 
     def create(self, validated_data: dict) -> AbstractUser:
         """
@@ -131,6 +125,8 @@ class UserProfileSerializer(ModelSerializer):
         many=True, queryset=DietaryRestriction.objects.all(), required=False
     )
 
+    role = ReadOnlyField()
+
     class Meta:
         """
         Ensure profile fields are read-only where appropriate.
@@ -144,9 +140,10 @@ class UserProfileSerializer(ModelSerializer):
             "last_name",
             "phone_number",
             "dietary_restrictions",
+            "role",
         )
 
-        read_only_fields = ("id", "email")
+        read_only_fields = ("id", "email", "role")
 
 
 class ChangePasswordSerializer(Serializer):
