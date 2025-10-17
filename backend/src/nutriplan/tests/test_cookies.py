@@ -34,7 +34,7 @@ def test_register_tokens_then_me_via_cookie(
     assert "np-refresh" not in res.cookies
     assert "np-access" not in res.cookies
 
-    body = res.json()
+    body = res.data
 
     assert "access" in body
     assert "refresh" in body
@@ -46,7 +46,7 @@ def test_register_tokens_then_me_via_cookie(
     res_me = api_client.get(reverse("user-me"))
 
     assert res_me.status_code == HTTP_200_OK
-    assert res_me.json()["email"] == "ana@example.com"
+    assert res_me.data["user"]["email"] == "ana@example.com"
 
 
 def test_login_tokens_then_me_via_cookie(
@@ -68,7 +68,7 @@ def test_login_tokens_then_me_via_cookie(
     assert "np-refresh" not in res.cookies
     assert "np-access" not in res.cookies
 
-    body = res.json()
+    body = res.data
     assert "access" in body
     assert "refresh" in body
 
@@ -79,7 +79,7 @@ def test_login_tokens_then_me_via_cookie(
     res_me = api_client.get(reverse("user-me"))
 
     assert res_me.status_code == HTTP_200_OK
-    assert res_me.json()["email"] == "ana@example.com"
+    assert res_me.data["user"]["email"] == "ana@example.com"
 
 
 def test_login_requires_email_and_password_for_cookie(client: APIClient) -> None:

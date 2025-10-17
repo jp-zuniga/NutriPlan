@@ -25,12 +25,12 @@ def test_me_get_and_patch(auth_client: tuple[APIClient, UserFactory]) -> None:
     res = client.get(url)
 
     assert res.status_code == HTTP_200_OK
-    assert user.email == res.data["email"]
+    assert user.email == res.data["user"]["email"]
 
     res2 = client.patch(url, {"first_name": "Nuevo"})
 
     assert res2.status_code == HTTP_200_OK
-    assert res2.data["first_name"] == "Nuevo"
+    assert res2.data["user"]["first_name"] == "Nuevo"
 
 
 def test_change_password(auth_client: tuple[APIClient, UserFactory]) -> None:

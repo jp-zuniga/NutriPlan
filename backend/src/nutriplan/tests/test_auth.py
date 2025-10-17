@@ -40,7 +40,7 @@ def test_register_and_login(
 
     assert res.status_code == HTTP_201_CREATED
 
-    body = res.json()
+    body = res.data
 
     assert "access" in body
     assert "refresh" in body
@@ -55,7 +55,7 @@ def test_register_and_login(
     res_me = api_client.get(url_me)
 
     assert res_me.status_code == HTTP_200_OK
-    assert res_me.json()["email"] == "ana@example.com"
+    assert res_me.data["user"]["email"] == "ana@example.com"
 
     # LOGIN también devuelve tokens en el body
     url_login = reverse("login_user")
@@ -65,7 +65,7 @@ def test_register_and_login(
 
     assert res_login.status_code == HTTP_200_OK
 
-    body_login = res_login.json()
+    body_login = res_login.data
 
     assert "access" in body_login
     assert "refresh" in body_login
@@ -107,13 +107,13 @@ def test_google_sign_in_creates_user(
 
     assert res.status_code in (HTTP_200_OK, HTTP_201_CREATED)
 
-    body = res.json()
+    body = res.data
 
     assert body["user"]["email"] == "gg@example.com"
 
-    # <- cookies seteadas por el backend
-    assert "np-access" in res.cookies
-    assert "np-refresh" in res.cookies
+    # <- cookies NO seteadas por el backend
+    assert "np-access" not in res.cookies
+    assert "np-refresh" not in res.cookies
 
 
 def test_google_sign_in_existing_sa_updates(
@@ -147,9 +147,9 @@ def test_google_sign_in_existing_sa_updates(
 
     assert res.status_code == HTTP_200_OK
 
-    # <- cookies seteadas por el backend
-    assert "np-access" in res.cookies
-    assert "np-refresh" in res.cookies
+    # <- cookies NO seteadas por el backend
+    assert "np-access" not in res.cookies
+    assert "np-refresh" not in res.cookies
 
 
 def test_google_sign_in_requires_token(client: APIClient) -> None:
