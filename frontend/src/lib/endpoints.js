@@ -7,3 +7,4 @@ export const API_ME_ENDPOINT = PUBLIC_API_ENDPOINT + '/users/me/';
 export const API_RECIPES_ENDPOINT = PUBLIC_API_ENDPOINT + '/recipes';
 export const API_LOGOUT_ENDPOINT = PUBLIC_API_ENDPOINT + '/auth/logout/';
 export const API_INGREDIENTS_ENDPOINT = PUBLIC_API_ENDPOINT + '/ingredients/';
+export const API_COLLECTIONS_ENDPOINT = PUBLIC_API_ENDPOINT + '/collections/';

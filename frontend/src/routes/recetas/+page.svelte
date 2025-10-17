@@ -26,49 +26,6 @@
 
 	const max_page_count = 20;
 
-	// const recipeResults = [
-	// 	{
-	// 		id: 'vigoron-saludable',
-	// 		title: 'Vigorón saludable',
-	// 		calories: '430 kcal',
-	// 		time: '35 min',
-	// 		portions: '2 porciones',
-	// 		tags: ['Top nica', 'Alto en fibra'],
-	// 		rating: 4.8,
-	// 		image: ImagenVigoron
-	// 	},
-	// 	{
-	// 		id: 'gallo-pinto-energizante',
-	// 		title: 'Gallo pinto energizante',
-	// 		calories: '380 kcal',
-	// 		time: '25 min',
-	// 		portions: '4 porciones',
-	// 		tags: ['Desayuno', 'Vegetariano'],
-	// 		rating: 4.9,
-	// 		image: GalloPinto
-	// 	},
-	// 	{
-	// 		id: 'sopa-queso-liviana',
-	// 		title: 'Sopa de queso liviana',
-	// 		calories: '320 kcal',
-	// 		time: '40 min',
-	// 		portions: '4 porciones',
-	// 		tags: ['Reconfortante', 'Sin gluten'],
-	// 		rating: 4.7,
-	// 		image: PlatosTipicos
-	// 	},
-	// 	{
-	// 		id: 'ensalada-chayote-verde',
-	// 		title: 'Ensalada de chayote verde',
-	// 		calories: '280 kcal',
-	// 		time: '20 min',
-	// 		portions: '3 porciones',
-	// 		tags: ['Refrescante', 'Baja en carbohidratos'],
-	// 		rating: 4.6,
-	// 		image: PlatosTipicos
-	// 	}
-	// ];
-
 	const spotlight = [
 		{
 			title: 'Colección Nica Fit',

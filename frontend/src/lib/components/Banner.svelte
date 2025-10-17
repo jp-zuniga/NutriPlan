@@ -4,14 +4,18 @@
 	import { goto } from '$app/navigation';
 	import RotatingNutriplan from './RotatingNutriplan.svelte';
 
-	let navLinks = $state([
-		{ text: 'Inicio', href: '/' },
-		{ text: 'Recetas', href: '/recetas' },
-		{ text: 'Planes', href: '/planes' },
-		{ text: 'Receta rápida', href: '/receta-rapida' },
-		{ text: 'Chef IA', href: '/chef-ia' },
-		{ text: 'Perfil', href: ($authUser !== undefined && $authUser !== null) ? '/perfil' : '/login' }
-	]);
+	let navLinks = $state([]);
+
+	$effect(() => {
+		navLinks = [
+			{ text: 'Inicio', href: '/' },
+			{ text: 'Recetas', href: '/recetas' },
+			{ text: 'Planes', href: '/planes' },
+			{ text: 'Receta rápida', href: '/receta-rapida' },
+			{ text: 'Chef IA', href: '/chef-ia' },
+			{ text: 'Perfil', href: $authUser !== undefined && $authUser !== null ? '/perfil' : '/login' }
+		];
+	});
 
 	let menuOpen = $state(false);
 
