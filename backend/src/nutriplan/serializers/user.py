@@ -34,7 +34,7 @@ class UserRegistrationSerializer(ModelSerializer):
         many=True, queryset=DietaryRestriction.objects.all(), required=False
     )
 
-    role = CharField(read_only=True, source="role")
+    role = CharField(read_only=True)
 
     class Meta:
         """
