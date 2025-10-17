@@ -2,4 +2,15 @@
 NutriPlan admin site configuration.
 """
 
-from . import category, collection, dietary, ingredient, recipe, review, social, user
+from . import (
+    article,
+    category,
+    chat,
+    collection,
+    dietary,
+    ingredient,
+    recipe,
+    review,
+    social,
+    user,
+)

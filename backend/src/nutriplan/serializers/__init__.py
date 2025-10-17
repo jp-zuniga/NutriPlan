@@ -2,6 +2,7 @@
 Serializers for NutriPlan app models.
 """
 
+from .article import ArticleRecipeMiniSerializer, ArticleSerializer
 from .category import CategorySerializer
 from .collection import (
     AddRemoveRecipeSerializer,
@@ -20,6 +21,8 @@ from .user import (
 
 __all__: list[str] = [
     "AddRemoveRecipeSerializer",
+    "ArticleRecipeMiniSerializer",
+    "ArticleSerializer",
     "CategorySerializer",
     "ChangePasswordSerializer",
     "CollectionItemReadSerializer",
