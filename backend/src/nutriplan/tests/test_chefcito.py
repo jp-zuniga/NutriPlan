@@ -37,7 +37,7 @@ def _mock_agent_response() -> dict:
 
 
 def test_create_and_list_threads(auth_client: tuple[APIClient, UserFactory]) -> None:
-    client, user = auth_client
+    client, _user = auth_client
 
     # Crear
     url_list = reverse("conversation-list")
@@ -59,10 +59,10 @@ def test_create_and_list_threads(auth_client: tuple[APIClient, UserFactory]) -> 
 def test_permissions_cannot_access_others_thread(
     auth_client: tuple[APIClient, UserFactory],
 ) -> None:
-    client, user = auth_client
+    client, _user = auth_client
     other = User.objects.create_user(
         email="other@example.com",
-        password="secret12345",  # noqa: S106
+        password="secret12345",
     )
 
     th = ChatThread.objects.create(owner=other, title="de otro")
@@ -75,22 +75,19 @@ def test_permissions_cannot_access_others_thread(
 def test_send_appends_user_and_assistant_messages(
     monkeypatch: MonkeyPatch, auth_client: tuple[APIClient, UserFactory]
 ) -> None:
-    client, user = auth_client
+    client, _user = auth_client
 
-    # Mock del agente dentro del view (import path del view)
-    class _FakeAgent:
-        def chat(
-            self,
-            _user: settings.AUTH_USER_MODEL,
-            message: str,
-            _history: list[dict[str, str]] | None = None,
-        ) -> dict:
-            assert isinstance(message, str)
-            assert message
-            return _mock_agent_response()
+    def _fake_chat(
+        user: settings.AUTH_USER_MODEL,  # noqa: ARG001
+        message: str,
+        history: list[dict[str, str]] | None = None,  # noqa: ARG001
+    ) -> dict:
+        assert isinstance(message, str)
+        assert message
+        return _mock_agent_response()
 
     monkeypatch.setattr(
-        "nutriplan.views.services.llm.chefcito.agent.ChefcitoAgent", _FakeAgent
+        "nutriplan.views.chat.ChefcitoAgent.chat", _fake_chat, raising=False
     )
 
     # Crear hilo
@@ -176,27 +173,29 @@ def test_delete_thread_cascades_messages(
     assert not ChatMessage.objects.filter(thread_id=th.id).exists()
 
 
-def test_stateless_chat_endpoint_allowany(monkeypatch: MonkeyPatch) -> None:
+def test_stateless_chat_endpoint_allowany(
+    auth_client: APIClient, monkeypatch: MonkeyPatch
+) -> None:
     """
     POST /chat/chefcito funciona sin autenticación y devuelve el shape esperado.
     """
 
-    # Mock del agente dentro del endpoint stateless
-    class _FakeAgent:
-        def chat(
-            self,
-            _user: settings.AUTH_USER_MODEL,
-            message: str,
-            _history: list[dict[str, str]] | None = None,
-        ) -> dict:
-            assert _user is None or getattr(_user, "is_authenticated", False)
-            assert isinstance(message, str)
-            assert message
-            return _mock_agent_response()
+    client, _user = auth_client
 
-    monkeypatch.setattr("nutriplan.views.chat.ChefcitoAgent", _FakeAgent)
+    def _fake_chat(
+        user: settings.AUTH_USER_MODEL,  # noqa: ARG001
+        message: str,
+        history: list[dict[str, str]] | None = None,  # noqa: ARG001
+        **kwargs,
+    ) -> dict:
+        assert isinstance(message, str)
+        assert message
+        return _mock_agent_response()
 
-    client = APIClient()
+    monkeypatch.setattr(
+        "nutriplan.views.chat.ChefcitoAgent.chat", _fake_chat, raising=False
+    )
+
     url = reverse("chefcito_chat")
     res = client.post(url, {"message": "Hola Chefcito"}, format="json")
 

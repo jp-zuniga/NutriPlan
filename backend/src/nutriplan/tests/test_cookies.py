@@ -54,7 +54,7 @@ def test_login_tokens_then_me_via_cookie(
 ) -> None:
     _ = django_user_model.objects.create_user(
         email="ana@example.com",
-        password="pass12345",  # noqa: S106
+        password="pass12345",
     )
 
     url_login = reverse("login_user")
