@@ -91,22 +91,24 @@ backend/
 
 ### Modelo ORM
 
-Todas las entidades heredan de un `BaseModel` con UUID como PK, lo que simplifica referencias entre tablas y evita colisiones. El usuario (`CustomUser`) elimina `username` y autentica únicamente por email con unicidad case-insensitive. Ingredientes modelan macros por 100 g con *check constraints* para valores no negativos y usan índices GIN trigram (`pg_trgm`) sobre `name` y `description` para búsqueda tolerante/autocompletado; categorías también indexan por trigram en `friendly_name`. Las recetas emplean `slug` único (case-insensitive) e índices específicos, relaciones M2M con categorías e ingredientes (a través de `RecipeIngredient`, que almacena cantidad/unidad con unicidad por receta/ingrediente) y un M2M ordenado con imágenes; además usan `GeneratedField` en base de datos para `total_time` y `total_calories`, permitiendo ordenar y filtrar sin recomputar en la aplicación. Colecciones de usuario aseguran unicidad por dueño en `name` y `slug` (case-insensitive) y mantienen orden explícito de ítems; las reseñas imponen una por usuario/receta con rating validado 1–5 e índices en rating y fechas. OAuth social (Google) se liga por `(provider, provider_user_id)` y restringe el proveedor mediante `choices`.
+Con Django, trabajamos con un modelo ORM, donde las tablas de la base de datos se definen con clases en Python. De ahí, se ocupan como base para crear un API. Los modelos se serializan para poder ser enviados al frontend, y se crean endpoints en los cuales se recibe y envían los datos, listos para ser mostrados (filtrados y ordenados) en el sitio web.
 
 ### Microservicios
 
-La capa de API usa DRF con viewsets enfocados y *prefetching* coherente para evitar N+1 (ingredientes a través de la tabla intermedia, imágenes ordenadas, categorías). El `RecipeViewSet` expone búsqueda por nombre/descripcion, filtros por categorías (IDs o nombres/friendly), tiempo máximo y *include/exclude* de ingredientes por UUID (con *match-all* al incluir); anota `rating_avg` y `rating_count` para ordenamientos y ofrece acciones para listar y crear reseñas. Ingredientes y categorías son *read-only*; colecciones ofrecen CRUD más acciones para agregar/quitar/reordenar recetas (y búsqueda por `slug`), y usuarios exponen `me` (GET/PUT/PATCH) y cambio de contraseña. La seguridad se centra en JWT (Simple JWT) servidos en **cookies HTTPOnly** (`np-access` ~60 min y `np-refresh` ~1 día) mediante `CookieJWTAuthentication` que lee el acceso desde cookie (el header Bearer está comentado por defecto); CORS/CSRF están configurados para `localhost:5173` y dominios `nutri-plan.net`/`railway.app`. El *sign-in* con Google valida estrictamente `aud`, `iss` y email verificado antes de crear o vincular cuentas, y el *exception handler* garantiza respuestas de error consistentes. La capa de servicios encapsula la lógica de dominio (`RecipeService`, `UserService`) y la integración con Gemini para *seeders* controlados: un cliente (`GeminiClient`), *prompts* acotados a lo existente (listas permitidas) y *seeders* robustos con manejo de errores, expuestos vía el comando `populate` con `--dry-run`.
+Los endpoints del API fueron diseñados de manera átomica, independiente y escalabla, de tal manera que cada servicio ofrecido por el API tiene su propia "línea de producción":
 
-Hoy operamos como monolito modular por costo/beneficio: latencia baja, simplicidad operativa y un dominio bien encapsulado que permite extraer piezas si el tráfico o la latencia lo exigen. Candidatos naturales a externalizar en el futuro incluyen la generación LLM (como `worker/batch` con cola), recomendaciones pesadas si evolucionan a modelos específicos, y el asistente `Chefcito` si requiere *streaming*, herramientas externas o orquestación independiente. Mientras tanto, el diseño en capas y los límites de módulo ya trazados facilitan una transición selectiva sin rehacer el dominio.
+> `modelo => serializador => servicio => endpoint`
+
+Adicionalmente, se evitó un diseño monolítico. Al contrario, los elementos del sitio web (backend, frontend, DB) se mantuvieron desacoplados para promover la escalabilidad y evitar conflictos.
 
 ---
 
 ## Guía de Instalación
 
-Debido a que NutriPlan es un sitio web, no se necesita instalar. Nuestros usuarios solamente necesitan un navegador web para utilizar NutriPlan, desde cualquier dispositivo o plataforma compatible con un navegador moderno (Chrome, Firefox, Edge, etc.).
+Debido a que NutriPlan es un sitio web, no se necesita instalar. Nuestros usuarios solamente necesitan un navegador web para utilizar NutriPlan; pueden acceder desde [https://nutri-plan.net](https://nutri-plan.net) desde cualquier dispositivo o plataforma compatible con un navegador moderno (Chrome, Firefox, Edge, etc.).
 
 ## Guía de Ejecución Local
 
-### [Backend – Django API](./backend-guia-local.md)
+### [Backend](./backend-guia-local.md)
 
-### [Frontend – Svelte Site](./backend-guia-local.md)
+### [Frontend](./frontend-guia-local.md)
