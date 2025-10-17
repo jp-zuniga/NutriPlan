@@ -1,226 +1,466 @@
 <script>
+	import { onMount } from 'svelte';
 	import Banner from '$lib/components/Banner.svelte';
-
+	import ChatMessage from '$lib/components/ChatMessage.svelte';
+	import ChatInput from '$lib/components/ChatInput.svelte';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 	import SVG_AI from '$lib/assets/ai.svg';
+	import { API_CHEFCITO_CHAT_ENDPOINT } from '$lib/endpoints';
+	import { authenticatedFetch, JSONRequest } from '$lib/utils/fetch';
 
-	const features = [
-		{
-			title: 'Planificación consciente',
-			description: 'Equilibra macros, tradiciones locales y tus objetivos en menos de un minuto.'
-		},
-		{
-			title: 'Relevancia en tiempo real',
-			description: 'La IA aprende de tus check-ins diarios y ajusta porciones, snacks y compras.'
-		},
-		{
-			title: 'Contexto cultural',
-			description: 'Recomendaciones basadas en ingredientes nicaragüenses disponibles en tu zona.'
-		}
+	let messages = $state([]);
+	let loading = $state(false);
+	let error = $state('');
+	let userInput = $state('');
+	let messagesContainer;
+
+	const allSuggestedQuestions = [
+		'¿Qué puedo cocinar con yuca y queso?',
+		'¿Cómo hago un gallo pinto saludable?',
+		'Dame una receta rápida para el desayuno',
+		'Recomiéndame un platillo típico bajo en calorías',
+		'¿Qué receta puedo hacer en 30 minutos?',
+		'Ayúdame a planear una cena nicaragüense',
+		'Necesito ideas para meal prep semanal',
+		'¿Cómo sustituir ingredientes en recetas tradicionales?',
+		'¿Qué platillo puedo hacer con plátano maduro?',
+		'Dame opciones vegetarianas de comida nica',
+		'¿Cómo hacer un nacatamal más ligero?',
+		'Recetas con frijoles rojos y arroz'
 	];
 
-	const assistants = [
-		{
-			name: 'Chef tradicional',
-			description: 'Proteínas magras, granos enteros y sazón criolla.',
-			tag: 'Sabores clásicos'
-		},
-		{
-			name: 'Coach activo',
-			description: 'Snacks energéticos, timing de carbohidratos y hidratación.',
-			tag: 'Rendimiento'
-		},
-		{
-			name: 'Nutri familiar',
-			description: 'Menús para compartir, porciones balanceadas y economía local.',
-			tag: 'Compartir'
+	// Seleccionar 4 preguntas aleatorias
+	let randomQuestions = $state([]);
+
+	onMount(() => {
+		randomQuestions = allSuggestedQuestions.sort(() => Math.random() - 0.5).slice(0, 4);
+	});
+
+	const scrollToBottom = () => {
+		if (messagesContainer) {
+			setTimeout(() => {
+				messagesContainer.scrollTop = messagesContainer.scrollHeight;
+			}, 100);
 		}
-	];
+	};
+
+	const sendMessage = async (text) => {
+		if (!text || !text.trim()) return;
+
+		const messageText = text.trim();
+
+		// Agregar mensaje del usuario
+		messages = [
+			...messages,
+			{
+				role: 'user',
+				content: messageText,
+				timestamp: new Date()
+			}
+		];
+
+		scrollToBottom();
+		loading = true;
+		error = '';
+
+		try {
+			const response = await fetch('/api/chef-ia/', JSONRequest({ message: messageText }));
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data?.message ?? 'Error en la respuesta del servidor');
+			}
+
+			const data = (await response.json()).data;
+			console.log(data);
+
+			if (data == null) throw new Error('Hubo un error obteniendo la respuesta de chefcito');
+
+			// Agregar respuesta de Chefcito
+			messages = [
+				...messages,
+				{
+					role: 'assistant',
+					content: data.reply || 'No recibí respuesta de Chefcito.',
+					recipes: data.recipes || [],
+					ingredients: data.ingredients || [],
+					timestamp: new Date()
+				}
+			];
+
+			scrollToBottom();
+		} catch (err) {
+			error = err ?? 'No pude conectarme con Chefcito. Intentá de nuevo.';
+			console.error('Error al enviar mensaje:', err);
+		} finally {
+			loading = false;
+		}
+	};
 </script>
 
-<main class="chef-ia">
-	<section class="hero">
-		<div class="container hero-grid">
-			<div class="copy">
-				<span class="badge">Inteligencia culinaria nica</span>
-				<h1>Conoce a Chef Nutri IA</h1>
-				<p>
-					Un asistente diseñado para transformar tus datos en planes deliciosos, sostenibles y
-					auténticamente nicaragüenses. Sin recetas genéricas: todo se adapta a ti.
+<svelte:head>
+	<title>Chefcito - Tu Asistente Culinario IA | NutriPlan</title>
+</svelte:head>
+
+<main class="chat-page">
+	<header class="chat-header">
+		<div class="header-content">
+			<div class="header-avatar">
+				<img src={SVG_AI} alt="Chefcito" />
+			</div>
+			<div class="header-text">
+				<h1 class="h2 bold no-margin">Chefcito</h1>
+				<p class="sm-p p-ghost no-margin">Tu asistente culinario nicaragüense</p>
+			</div>
+		</div>
+	</header>
+
+	<div class="messages-container" bind:this={messagesContainer}>
+		{#if messages.length === 0}
+			<div class="welcome-screen">
+				<div class="welcome-icon">
+					<img src={SVG_AI} alt="Chefcito" />
+				</div>
+				<h2 class="h2 bold text-col-1">¡Hola! Soy Chefcito</h2>
+				<p class="md-p text-col-2">
+					Tu asistente culinario personal. Pregúntame sobre recetas, ingredientes, planificación de
+					comidas o consejos de cocina. Estoy aquí para ayudarte a cocinar rico y saludable al
+					estilo nica.
 				</p>
-				<div class="actions">
-					<a class="btn primary" href="/planificador-ia">Crear mi plan</a>
-					<a class="btn ghost" href="/planificador-ia">Ver evaluación</a>
-				</div>
-			</div>
-			<div class="assistant card">
-				<div class="avatar">
-					<img src={SVG_AI} alt="Chef IA" />
-				</div>
-				<div class="message">
-					<h2>Hola, soy Chef Nutri</h2>
-					<p>Estoy listo para analizar tus preferencias y generar un plan sabroso y equilibrado.</p>
-					<ul>
-						<li>✅ Ajusto por presupuesto y tiempo</li>
-						<li>✅ Sugerencias con ingredientes locales</li>
-						<li>✅ Plan semanal + lista de compras</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</section>
 
-	<section class="features">
-		<div class="container">
-			<header class="section-head">
-				<h2>Lo que hace diferente a nuestra IA</h2>
-				<p>Inteligencia alimentada con recetas nicas, datos nutricionales y feedback de la comunidad.</p>
-			</header>
-			<div class="feature-grid">
-				{#each features as feature}
-					<article class="card">
-						<h3>{feature.title}</h3>
-						<p>{feature.description}</p>
-					</article>
-				{/each}
+				<div class="suggested-section">
+					<h3 class="h4 bold text-col-1 mb">Preguntas para empezar:</h3>
+					<div class="suggestions-grid">
+						{#each randomQuestions as question}
+							<button class="suggestion-btn card hoverable" onclick={() => sendMessage(question)}>
+								<i class="las la-comment-dots"></i>
+								<span>{question}</span>
+							</button>
+						{/each}
+					</div>
+				</div>
 			</div>
-		</div>
-	</section>
+		{:else}
+			<div class="messages-list">
+				{#each messages as message}
+					<ChatMessage {message} />
+				{/each}
 
-	<section class="assistants">
-		<div class="container">
-			<header class="section-head">
-				<h2>Elige tu compañero ideal</h2>
-				<p>Cada modo de Chef Nutri IA prioriza un estilo distinto según tus objetivos.</p>
-			</header>
-			<div class="assist-grid">
-				{#each assistants as item}
-					<article class="card">
-						<span class="tag">{item.tag}</span>
-						<h3>{item.name}</h3>
-						<p>{item.description}</p>
-						<a href="/planificador-ia">Activar modo</a>
-					</article>
-				{/each}
+				{#if loading}
+					<div class="typing-indicator">
+						<div class="typing-avatar">
+							<img src={SVG_AI} alt="Chefcito" />
+						</div>
+						<div class="typing-bubble card">
+							<span class="typing-text">Chefcito está escribiendo</span>
+							<div class="typing-dots">
+								<span></span>
+								<span></span>
+								<span></span>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if error}
+					<div class="error-message card">
+						<i class="las la-exclamation-triangle"></i>
+						<p>{error}</p>
+						<button class="btn ghost sm" onclick={() => (error = '')}> Cerrar </button>
+					</div>
+				{/if}
 			</div>
+		{/if}
+	</div>
+
+	<div class="input-container">
+		<div class="input-wrapper">
+			<ChatInput
+				bind:value={userInput}
+				onSend={sendMessage}
+				disabled={loading}
+				placeholder="Pregúntame sobre recetas, ingredientes o tips de cocina..."
+			/>
 		</div>
-	</section>
+	</div>
 </main>
 
 <style>
-	.chef-ia {
+	.chat-page {
 		display: flex;
 		flex-direction: column;
-		gap: 4.5rem;
-		padding-bottom: 5rem;
+		height: calc(100vh - 80px);
+		background: var(--color-soft-white);
+		position: relative;
 	}
 
-	.container {
-		max-width: 1080px;
+	.chat-header {
+		background: white;
+		border-bottom: 1px solid var(--color-soft-gray);
+		padding: 1rem 0;
+		flex-shrink: 0;
+	}
+
+	.header-content {
+		max-width: 1000px;
 		margin: 0 auto;
 		padding: 0 1.5rem;
-	}
-
-	.hero-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2.5rem;
-		align-items: center;
-		margin-top: 2rem;
-	}
-
-	.copy .badge {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.4rem 1rem;
-		border-radius: 999px;
-		background: rgba(15, 184, 114, 0.15);
-		color: var(--color-forest);
-		font-weight: 600;
-		margin-bottom: 1rem;
-	}
-
-	.copy h1 {
-		margin: 0;
-		font-size: clamp(2.3rem, 3vw, 3.4rem);
-	}
-
-	.copy p {
-		margin: 1rem 0 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.actions {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		margin-top: 1.5rem;
-	}
-
-	.assistant {
-		display: grid;
-		grid-template-columns: 120px 1fr;
-		gap: 1.2rem;
 		align-items: center;
-		padding: 2rem;
+		gap: 1rem;
 	}
 
-	.avatar {
+	.header-avatar {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background: var(--gradient-leaf);
+		padding: 0.75rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(15, 184, 114, 0.1);
-		border-radius: var(--radius-md);
-		padding: 1rem;
+		flex-shrink: 0;
 	}
 
-	.avatar img {
-		width: 72px;
-		height: 72px;
+	.header-avatar img {
+		width: 100%;
+		height: 100%;
+		filter: brightness(0) invert(1);
 	}
 
-	.message h2 {
-		margin: 0 0 0.75rem;
-	}
-
-	.message p {
-		margin: 0 0 0.75rem;
-		color: var(--color-soft);
-	}
-
-	.message ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.5;
-	}
-
-	.feature-grid,
-	.assist-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-		gap: 1.5rem;
-		margin-top: 2rem;
-	}
-
-	.feature-grid .card,
-	.assist-grid .card {
-		padding: 1.8rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.assist-grid a {
-		font-weight: 600;
-		text-decoration: none;
+	.header-text h1 {
 		color: var(--color-forest);
 	}
 
-	@media (max-width: 640px) {
-		.assistant {
+	.messages-container {
+		flex: 1;
+		overflow-y: auto;
+		overflow-x: hidden;
+		scroll-behavior: smooth;
+	}
+
+	.welcome-screen {
+		max-width: 700px;
+		margin: 0 auto;
+		padding: 3rem 1.5rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.welcome-icon {
+		width: 120px;
+		height: 120px;
+		border-radius: 50%;
+		background: var(--gradient-leaf);
+		padding: 2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: var(--shadow-soft);
+	}
+
+	.welcome-icon img {
+		width: 100%;
+		height: 100%;
+		filter: brightness(0) invert(1);
+	}
+
+	.welcome-screen h2 {
+		margin: 0;
+	}
+
+	.welcome-screen > p {
+		max-width: 500px;
+		margin: 0;
+		line-height: 1.6;
+	}
+
+	.suggested-section {
+		width: 100%;
+		margin-top: 2rem;
+	}
+
+	.suggestions-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.suggestion-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem;
+		background: white;
+		border: 2px solid var(--color-soft-gray);
+		border-radius: var(--radius-md);
+		text-align: left;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		color: var(--color-forest);
+		font-size: 0.95rem;
+		line-height: 1.4;
+	}
+
+	.suggestion-btn i {
+		font-size: 1.5rem;
+		color: var(--color-leaf);
+		flex-shrink: 0;
+	}
+
+	.suggestion-btn:hover {
+		border-color: var(--color-leaf);
+		background: var(--color-soft-stone);
+		transform: translateY(-2px);
+	}
+
+	.messages-list {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+	}
+
+	.typing-indicator {
+		display: flex;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.typing-avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: var(--gradient-leaf);
+		padding: 0.5rem;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.typing-avatar img {
+		width: 100%;
+		height: 100%;
+		filter: brightness(0) invert(1);
+	}
+
+	.typing-bubble {
+		padding: 1rem 1.25rem;
+		border-radius: var(--radius-md);
+		border-bottom-left-radius: 0.25rem;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.typing-text {
+		color: var(--color-soft);
+		font-size: 0.9rem;
+	}
+
+	.typing-dots {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.typing-dots span {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--color-soft);
+		animation: typing 1.4s infinite;
+	}
+
+	.typing-dots span:nth-child(2) {
+		animation-delay: 0.2s;
+	}
+
+	.typing-dots span:nth-child(3) {
+		animation-delay: 0.4s;
+	}
+
+	@keyframes typing {
+		0%,
+		60%,
+		100% {
+			transform: translateY(0);
+			opacity: 0.5;
+		}
+		30% {
+			transform: translateY(-10px);
+			opacity: 1;
+		}
+	}
+
+	.error-message {
+		max-width: 600px;
+		margin: 0 auto 1.5rem;
+		padding: 1rem 1.25rem;
+		background: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.2);
+		border-radius: var(--radius-md);
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: #dc2626;
+	}
+
+	.error-message i {
+		font-size: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	.error-message p {
+		flex: 1;
+		margin: 0;
+	}
+
+	.input-container {
+		background: white;
+		border-top: 1px solid var(--color-soft-gray);
+		flex-shrink: 0;
+	}
+
+	.input-wrapper {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+
+	@media (max-width: 768px) {
+		.chat-page {
+			height: calc(100vh - 70px);
+		}
+
+		.header-content {
+			padding: 0 1rem;
+		}
+
+		.header-avatar {
+			width: 40px;
+			height: 40px;
+			padding: 0.625rem;
+		}
+
+		.welcome-screen {
+			padding: 2rem 1rem;
+		}
+
+		.welcome-icon {
+			width: 100px;
+			height: 100px;
+			padding: 1.5rem;
+		}
+
+		.suggestions-grid {
 			grid-template-columns: 1fr;
-			text-align: left;
+		}
+
+		.messages-list {
+			padding: 1.5rem 1rem;
 		}
 	}
 </style>
