@@ -44,7 +44,18 @@ def _ensure_recipe_for_hydration() -> None:
 def _mock_agent_response() -> dict:
     return {
         "reply": "¡Ajúa! Te recomiendo **Pollo con arroz integral** 💪🍚",
-        "recipes": [RECIPE_ID_STR],
+        "recipes": [
+            {
+                "id": RECIPE_ID_STR,
+                "slug": "pollo-con-arroz-integral",
+                "name": "Pollo con arroz integral",
+                "total_time": 25,
+                "servings": 2,
+                "primary_image": "https://example.com/image.jpg",
+                "rating_avg": 4.5,
+                "rating_count": 12,
+            }
+        ],
         "ingredients": ["Pollo", "Arroz integral"],
         "used_tools": [{"tool": "find_recipes", "args": {"query": "pollo"}}],
     }
@@ -94,6 +105,7 @@ def test_send_appends_user_and_assistant_messages(
     _ensure_recipe_for_hydration()
 
     def _fake_chat(
+        self,  # noqa: ANN001, ARG001
         user: settings.AUTH_USER_MODEL,  # noqa: ARG001
         message: str,
         history: list[dict[str, str]] | None = None,  # noqa: ARG001
@@ -226,6 +238,7 @@ def test_stateless_chat_endpoint_allowany(
     _ensure_recipe_for_hydration()
 
     def _fake_chat(
+        self,  # noqa: ANN001, ARG001
         user: settings.AUTH_USER_MODEL,  # noqa: ARG001
         message: str,
         history: list[dict[str, str]] | None = None,  # noqa: ARG001
