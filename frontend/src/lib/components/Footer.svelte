@@ -62,6 +62,7 @@
 				<ul class="link-list">
 					<li><a href="/" class="md-p p-ghost no-ul hover-lift">Inicio</a></li>
 					<li><a href="/recetas" class="md-p p-ghost no-ul hover-lift">Recetas</a></li>
+					<li><a href="/articulos" class="md-p p-ghost no-ul hover-lift">Artículos</a></li>
 					<li><a href="/planes" class="md-p p-ghost no-ul hover-lift">Planes Nutricionales</a></li>
 					<li><a href="/receta-rapida" class="md-p p-ghost no-ul hover-lift">Receta Rápida</a></li>
 					<li><a href="/chef-ia" class="md-p p-ghost no-ul hover-lift">Chef IA</a></li>

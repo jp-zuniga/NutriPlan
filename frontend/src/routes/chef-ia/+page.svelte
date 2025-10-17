@@ -7,6 +7,7 @@
 	import SVG_AI from '$lib/assets/ai.svg';
 	import { API_CHEFCITO_CHAT_ENDPOINT } from '$lib/endpoints';
 	import { authenticatedFetch, JSONRequest } from '$lib/utils/fetch';
+	import { authUser } from '$lib/stores/auth';
 
 	let messages = $state([]);
 	let loading = $state(false);
@@ -113,7 +114,18 @@
 	<title>Chefcito - Tu Asistente Culinario IA | NutriPlan</title>
 </svelte:head>
 
-<main class="chat-page">
+<main class="chat-page rel-pos">
+	{#if $authUser === null}
+		<section
+			class="full-width flex-center abs-pos"
+			style="height: calc(100vh - 75px); background-color:rgba(0,0,0,0.2); backdrop-filter: blur(5px); z-index:99"
+		>
+			<div class="card flex direction-col pad-20">
+				<p class="h3 bold">Inicia Sesión para continuar</p>
+			</div>
+		</section>
+	{/if}
+
 	<header class="chat-header">
 		<div class="header-content">
 			<div class="header-avatar">

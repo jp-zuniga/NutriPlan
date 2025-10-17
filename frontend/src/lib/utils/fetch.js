@@ -15,10 +15,13 @@ export const authenticatedFetch = async (url, request, { cookies }) => {
 		request.headers['Cookie'] = cookie_string;
 		const response = await fetch(url, request);
 
+		console.log('Chefcito response: ', response);
+
 		if (response.ok) {
-			return { data: await response.json() };
+			return { ok: true, data: await response.json() };
 		} else {
 			const data = await response.json();
+			console.log('Chefcito response is not ok, data: ', data);
 			return { error: data?.message ?? 'Error desconocido, HTTP status: ' + response.status };
 		}
 	} else {

@@ -9,3 +9,5 @@ export const API_LOGOUT_ENDPOINT = PUBLIC_API_ENDPOINT + '/auth/logout/';
 export const API_INGREDIENTS_ENDPOINT = PUBLIC_API_ENDPOINT + '/ingredients/';
 export const API_COLLECTIONS_ENDPOINT = PUBLIC_API_ENDPOINT + '/collections/';
 export const API_CHEFCITO_CHAT_ENDPOINT = PUBLIC_API_ENDPOINT + '/chefcito/chat/';
+export const API_ARTICLES_ENDPOINT = PUBLIC_API_ENDPOINT + '/articles/';
+export const API_CREATE_ARTICLE_ENDPOINT = PUBLIC_API_ENDPOINT + '/articles/';
