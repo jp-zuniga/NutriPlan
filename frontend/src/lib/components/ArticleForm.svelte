@@ -47,7 +47,7 @@
 				success = true;
 				// Redirigir al artículo creado después de un breve delay
 				setTimeout(() => {
-					goto(`/articulos/${data.slug}`);
+					goto(`/articulos`);
 				}, 2000);
 			} else {
 				const errorData = await response.json();

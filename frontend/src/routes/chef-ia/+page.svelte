@@ -102,7 +102,7 @@
 
 			scrollToBottom();
 		} catch (err) {
-			error = err ?? 'No pude conectarme con Chefcito. Intentá de nuevo.';
+			error = 'No pude conectarme con Chefcito. Intentá de nuevo.';
 			console.error('Error al enviar mensaje:', err);
 		} finally {
 			loading = false;

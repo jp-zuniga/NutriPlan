@@ -26,7 +26,7 @@
 		<div class="article-meta flex direction-col gap-4 sm-p p-ghost">
 			<span class="author">
 				<i class="las la-user"></i>
-				{article.author || 'NutriPlan'}
+				{article.author.name || 'NutriPlan'}
 			</span>
 			<span class="date">
 				<i class="las la-calendar"></i>
@@ -41,7 +41,7 @@
 		</div>
 	</div>
 
-	<p class="article-excerpt md-p p-ghost txt-left">
+	<p class="article-excerpt md-p p-ghost txt-left no-overflow">
 		{getExcerpt(article.text)}
 	</p>
 

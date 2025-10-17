@@ -76,7 +76,7 @@
 					<div class="article-meta flex items-center gap-24 mb-l p-ghost">
 						<div class="author flex items-center gap-8">
 							<i class="las la-user"></i>
-							<span>{article.author || 'NutriPlan'}</span>
+							<span>{article.author.name || 'NutriPlan'}</span>
 						</div>
 						<div class="date flex items-center gap-8">
 							<i class="las la-calendar"></i>
