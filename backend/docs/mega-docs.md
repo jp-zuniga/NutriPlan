@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="./logo.png" size=600x600 alt="Logo de NutriPlan."/>
+</div>
+
+<div align="right">
+  <a>16 de octubre de 2025.</a>
+</div>
+
+---
+
 # Documentación
 
 ## Resumen Técnico
