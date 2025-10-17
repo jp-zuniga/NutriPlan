@@ -2,13 +2,15 @@
 Admin registration for chat models.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import ChatMessage, ChatThread
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(ChatThread)
-class ChatThreadAdmin(ModelAdmin):
+class ChatThreadAdmin(ReadOnlyForStaffAdmin):
     autocomplete_fields = ("owner",)
     list_display = (
         "id",
@@ -25,7 +27,7 @@ class ChatThreadAdmin(ModelAdmin):
 
 
 @register(ChatMessage)
-class ChatMessageAdmin(ModelAdmin):
+class ChatMessageAdmin(ReadOnlyForStaffAdmin):
     autocomplete_fields = ("thread",)
     list_display = ("id", "thread", "role", "created_at")
     list_filter = ("role",)

@@ -2,13 +2,15 @@
 Register admin interfaces for collection-related models.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import CollectionItem, RecipeCollection
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(CollectionItem)
-class CollectionItemAdmin(ModelAdmin):
+class CollectionItemAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `CollectionItem` model.
     """
@@ -20,7 +22,7 @@ class CollectionItemAdmin(ModelAdmin):
 
 
 @register(RecipeCollection)
-class RecipeCollectionAdmin(ModelAdmin):
+class RecipeCollectionAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `RecipeCollection` model.
     """

@@ -2,13 +2,15 @@
 Register admin interface for `DietaryRestriction` model.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import DietaryRestriction
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(DietaryRestriction)
-class DietaryRestrictionAdmin(ModelAdmin):
+class DietaryRestrictionAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `DietaryRestriction` model.
     """

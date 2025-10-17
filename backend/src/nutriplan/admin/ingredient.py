@@ -2,13 +2,15 @@
 Register admin interface for `Ingredient` model.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import Ingredient
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(Ingredient)
-class IngredientAdmin(ModelAdmin):
+class IngredientAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `Ingredient` model.
     """

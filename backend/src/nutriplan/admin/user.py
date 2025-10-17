@@ -13,9 +13,11 @@ from django.utils.translation import gettext_lazy as _
 
 from nutriplan.models import CustomUser
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(CustomUser)
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(ReadOnlyForStaffAdmin, UserAdmin):
     """
     Admin interface options for `CustomUser` model.
     """

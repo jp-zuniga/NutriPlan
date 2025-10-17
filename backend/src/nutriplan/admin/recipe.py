@@ -5,13 +5,15 @@ Register admin interfaces for all recipe-related models.
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import Recipe, RecipeIngredient
 
+from .mixins import EditorsAdmin
+
 
 @register(Recipe)
-class RecipeAdmin(ModelAdmin):
+class RecipeAdmin(EditorsAdmin):
     """
     Admin interface options for `Recipe` model.
     """
@@ -28,7 +30,7 @@ class RecipeAdmin(ModelAdmin):
 
 
 @register(RecipeIngredient)
-class RecipeIngredientAdmin(ModelAdmin):
+class RecipeIngredientAdmin(EditorsAdmin):
     """
     Admin interface options for `RecipeIngredient` model.
     """

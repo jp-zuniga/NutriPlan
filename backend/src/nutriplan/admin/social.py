@@ -2,13 +2,15 @@
 Register admin interfaces for `SocialAccount` model.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import SocialAccount
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(SocialAccount)
-class SocialAccountAdmin(ModelAdmin):
+class SocialAccountAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `SocialAccount` model.
     """

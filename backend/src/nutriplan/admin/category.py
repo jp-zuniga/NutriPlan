@@ -2,13 +2,15 @@
 Register admin interface for `Category` model.
 """
 
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import register
 
 from nutriplan.models import Category
 
+from .mixins import ReadOnlyForStaffAdmin
+
 
 @register(Category)
-class CategoryAdmin(ModelAdmin):
+class CategoryAdmin(ReadOnlyForStaffAdmin):
     """
     Admin interface options for `Category` model.
     """
