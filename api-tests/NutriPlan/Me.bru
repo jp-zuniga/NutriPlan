@@ -5,11 +5,23 @@ meta {
 }
 
 get {
-  url: 
-  body: none
+  url: https://nightly-api.nutri-plan.net/users/me/
+  body: json
   auth: inherit
+}
+
+headers {
+  Cookie: np-access=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwNzA5MTE5LCJpYXQiOjE3NjA3MDU1MTksImp0aSI6ImQyOWUzYTNkZmFlMzQ2Yjc4MGZhZTgzODkxZDI5YWVjIiwidXNlcl9pZCI6ImYwMjM3YmEwLWJhMzktNGQyYS04MGRkLTM3Yjk1MDA2ODkyYSJ9.dRSasNFLCEJ5xWioHjs_U6sDtUMM3UOoO4VrBZ_Lmvc
+}
+
+body:json {
+  {
+    "title": "Guía práctica de nutrición: lo esencial para comer mejor",
+    "text": ""
+  }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

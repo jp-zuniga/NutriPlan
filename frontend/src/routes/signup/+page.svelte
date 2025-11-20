@@ -6,7 +6,7 @@
 	import { authUser } from '$lib/stores/auth';
 	import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
 	import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
-	import { load } from '../recetas/[slug]/+page';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	let loading = $state(false);
 	let error = $state('');
@@ -21,9 +21,8 @@
 
 	let errorfields = $state({});
 
-	onMount(() => {
-		const user = get(authUser);
-		if (user) {
+	$effect(() => {
+		if ($authUser !== null && $authUser !== undefined) {
 			goto('/');
 		}
 	});
@@ -54,12 +53,15 @@
 
 			const data = await response.json();
 
-			if (!response.ok) {
-				error = data?.error || `Error creando tu cuenta (HTTP ${response.status})`;
-				loading = false;
-				return;
-			}
+			if (data)
+				if (!response.ok) {
+					error = data?.error ?? `Error accediendo a tu cuenta (HTTP ${response.status})`;
+					loading = false;
+					return;
+				}
 
+			console.log('User: ', data.user);
+			$authUser = data.user;
 			success = true;
 			setTimeout(() => {
 				goto('/');
@@ -122,65 +124,68 @@
 	]);
 </script>
 
-<main class="signup-page">
-	<section class="hero">
-		<div class="container hero-grid">
-			<article class="copy">
-				<h1>Crea tu cuenta NutriPlan</h1>
-				<p>
-					Personaliza tu experiencia, guarda recetas favoritas y deja que Chef Nutri IA construya tu
-					plan a partir de tu historia y cultura alimentaria.
-				</p>
-				<ul>
-					<li>✨ Planes ajustados a tu presupuesto y tiempo</li>
-					<li>🍲 Recetas con ingredientes nicaragüenses</li>
-					<li>📈 Seguimiento de metas y recordatorios</li>
-				</ul>
-			</article>
-			<form class="card form" method="POST" onsubmit={handleLogin}>
-				<h2>Regístrate</h2>
-				<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
+{#if $authUser !== undefined && $authUser === null}
+	<main class="login no-pad" style="min-height: calc(100vh - 75px);">
+		<section class="flex-center full-size pad-20">
+			<div class="container hero-grid" style="width: 550px;">
+				<form class="card form" method="POST" onsubmit={handleLogin}>
+					<h2>Regístrate</h2>
+					<!-- <p class="no-margin" style="color: red">* (Requerido)</p> -->
 
-				{#each questions as question}
-					<label for={question.id}
-						>{question.label}
-						{#if question.required}
-							<span style="color: red">*</span>
+					{#each questions as question}
+						<label class="md-p" for={question.id}
+							>{question.label}
+							{#if question.required}
+								<span style="color: red">*</span>
+							{/if}
+						</label>
+						<input
+							name={question.id}
+							type={question.type}
+							placeholder={question.placeholder}
+							required={question.required}
+							bind:value={question.value}
+							oninput={(event) => {
+								const error = question.validator ? question.validator(event.target.value) : '';
+								event.target.setCustomValidity(error || '');
+							}}
+						/>
+					{/each}
+					<button class="btn primary mt" type="submit" disabled={loading}>
+						{#if loading}
+							Creando cuenta…
+						{:else}
+							Crear cuenta
 						{/if}
-					</label>
-					<input
-						name={question.id}
-						type={question.type}
-						placeholder={question.placeholder}
-						required={question.required}
-						bind:value={question.value}
-						oninput={(event) => {
-							const error = question.validator ? question.validator(event.target.value) : '';
-							event.target.setCustomValidity(error || '');
-						}}
-					/>
-				{/each}
-				<hr style="width: 100%" />
-				<button class="btn primary" type="submit" disabled={loading}>
-					{#if loading}
-						Creando cuenta…
-					{:else}
-						Crear cuenta
+					</button>
+					{#if error}
+						<p id="fb-error" class="feedback error">{error}</p>
 					{/if}
-				</button>
-				{#if error}
-					<p id="fb-error" class="feedback error">{error}</p>
-				{/if}
-				{#if success}
-					<p id="fb-success" class="feedback success">¡Cuenta creada! Preparando tu experiencia…</p>
-				{/if}
-				<p class="login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
-			</form>
-		</div>
-	</section>
-</main>
+					{#if success}
+						<p id="fb-success" class="feedback success">
+							¡Cuenta creada! Preparando tu experiencia…
+						</p>
+					{/if}
+					<p class="login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+				</form>
+			</div>
+		</section>
+	</main>
+{:else}
+	<div class="flex-center" style="height: calc(100vh - 75px);">
+		<RotatingNutriplan />
+	</div>
+{/if}
 
 <style>
+	main {
+		background-image: url('$lib/assets/platos-tradicionales.webp');
+		background-size: cover;
+	}
+
+	section {
+		backdrop-filter: blur(15px);
+	}
 	input {
 		transition: 0.25s ease;
 	}
@@ -209,13 +214,6 @@
 		background-color: rgba(0, 255, 0, 0.35);
 	}
 
-	.signup-page {
-		display: flex;
-		flex-direction: column;
-		gap: 4rem;
-		padding-bottom: 4rem;
-	}
-
 	.container {
 		max-width: 960px;
 		margin: 0 auto;
@@ -227,31 +225,6 @@
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 		gap: 2.5rem;
 		align-items: start;
-		margin-top: 2rem;
-	}
-
-	.copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1.3rem;
-	}
-
-	.copy h1 {
-		margin: 0;
-		font-size: clamp(2.2rem, 3vw, 3.2rem);
-	}
-
-	.copy p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.copy ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
 	}
 
 	.form {

@@ -1,0 +1,16 @@
+meta {
+  name: Google Sign-In
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://nightly-api.nutri-plan.net/auth/google
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

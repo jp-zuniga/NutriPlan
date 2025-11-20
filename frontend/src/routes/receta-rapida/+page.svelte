@@ -1,5 +1,7 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
+	import { API_INGREDIENTS_ENDPOINT } from '$lib/endpoints';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
 
 	const pantry = ['Yuca', 'Repollo morado', 'Mango verde', 'Limón', 'Chiltoma', 'Frijoles cocidos'];
 
@@ -35,277 +37,287 @@
 		'Activa el modo temporada para priorizar ingredientes frescos locales.',
 		'Guarda combinaciones frecuentes para que la IA aprenda tus gustos.'
 	];
+
+	let ingredients = $state(null);
+	let loading = $state(true);
+	let selected = $state([]);
+	let search_query = $state('');
+	let query = $state([]);
+	let showResults = $state(false);
+	let searching = $state(false);
+
+	const getIngredients = async () => {
+		loading = true;
+
+		const response = await fetch(API_INGREDIENTS_ENDPOINT, {
+			method: 'GET'
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			ingredients = data;
+		}
+
+		loading = false;
+	};
+
+	const filterQuery = (ingredients) => {
+		if (search_query == '') return ingredients;
+		else
+			return ingredients.filter((i) => {
+				return i.name.toLowerCase().includes(search_query.toLowerCase());
+			});
+	};
+
+	const searchRecipes = async () => {
+		if (selected.length === 0) return;
+
+		searching = true;
+		showResults = false;
+
+		// Simular búsqueda
+		setTimeout(() => {
+			searching = false;
+			showResults = true;
+		}, 1500);
+	};
+
+	$effect(() => {
+		query = filterQuery(ingredients);
+	});
+
+	getIngredients();
 </script>
 
-<main class="pantry-mode">
-	<section class="hero">
-		<div class="container hero-inner">
-			<div class="copy">
-				<h1>Receta rápida: cocinar con lo que tienes</h1>
-				<p>
-					Selecciona ingredientes disponibles y obtén recetas ordenadas por porcentaje de coincidencia,
-					tiempo y perfil nutricional.
-				</p>
-			</div>
-			<form class="input-card">
-				<label for="ingredient">Agregar ingrediente</label>
-				<div class="input-row">
-					<input id="ingredient" type="text" placeholder="Ej. chiltoma, queso fresco, papaya" />
-					<button type="button">Añadir</button>
-				</div>
-				<div class="chips">
-					{#each pantry as item}
-						<span class="chip">{item}</span>
-					{/each}
-					<button type="button" class="ghost">Limpiar lista</button>
-				</div>
-				<div class="preferences">
-					<label><input type="checkbox" checked /> Incluir solo opciones saludables</label>
-					<label><input type="checkbox" /> Mostrar recetas veganas</label>
-					<label><input type="checkbox" /> Filtrar por menos de 30 minutos</label>
-				</div>
-			</form>
+<div class="main flex-center direction-col">
+	<!-- Hero Section -->
+	<section class="flex-center full-width" style="background-color: #84994F">
+		<div class="container flex-center direction-col pad-20 full-width">
+			<p class="h2 bold text-col-white">¿Qué tienes en tu despensa?</p>
+			<p class="md-p text-col-white txt-center mt">
+				Selecciona los ingredientes que tienes disponibles y descubre recetas perfectas para ti
+			</p>
 		</div>
 	</section>
 
-	<section class="results">
-		<div class="container">
-			<header class="section-head">
-				<h2>Resultados sugeridos por IA</h2>
-				<p>Ordenados por coincidencia, impacto nutricional y popularidad en Nicaragua.</p>
-			</header>
-			<div class="result-grid">
-				{#each suggestions as suggestion}
-					<article class="card result">
-						<div class="header">
-							<h3>{suggestion.recipe}</h3>
-							<span class="match">Coincidencia {suggestion.match}%</span>
-						</div>
-						<div class="meta">
-							<span>{suggestion.time}</span>
-							<span>{suggestion.steps} pasos</span>
-							<span>{suggestion.health}</span>
-						</div>
-						<div class="progress">
-							<div style={`width: ${suggestion.match}%`}></div>
-						</div>
-						<ul class="missing">
-							{#each suggestion.missing as item}
-								<li>Falta: {item}</li>
-							{/each}
-						</ul>
-						<div class="actions">
-							<a href="/recetas">Ver receta base</a>
-							<a href="#">Generar versión personalizada</a>
-						</div>
-					</article>
-				{/each}
-			</div>
-		</div>
-	</section>
+	<!-- Paso 2: Resultados sugeridos -->
+	{#if showResults}
+		<section id="results" class="flex-center direction-col full-width pad-50 bg-soft-gray">
+			<div class="container flex-center direction-col gap-24">
+				<div class="flex-center direction-col">
+					<p class="h2 bold">Recetas sugeridas</p>
+					<p class="md-p p-ghost">Basadas en tus ingredientes seleccionados</p>
+				</div>
 
-	<section class="smart-tips">
-		<div class="container tips-grid">
-			<article class="card summary">
-				<h2>Optimiza tu despensa</h2>
-				<p>
-					Obtén recomendaciones priorizando ingredientes nicaragüenses, reduce desperdicios y conecta con
-					proveedores locales.
-				</p>
-				<a class="btn primary" href="/planificador-ia">Sincronizar con mi plan</a>
-			</article>
-			<article class="card checklist">
-				<h3>Consejos rápidos</h3>
-				<ul>
-					{#each smartTips as tip}
-						<li>{tip}</li>
+				<div class="results-grid regrid-cols-3 gap-16" style="max-width: 1000px;">
+					{#each suggestions as recipe, i}
+						<div
+							class="recipe-card bg-white b-shadow pad-20 round-10 hoverable"
+							style="animation-delay: calc(0.1s * {i});"
+						>
+							<div class="flex justify-between items-center mb">
+								<h3 class="h3 bold">{recipe.recipe}</h3>
+								<div class="match-badge">
+									<span class="tag">{recipe.match}% match</span>
+								</div>
+							</div>
+
+							<div class="recipe-info flex gap-16 mb">
+								<div class="info-item flex items-center gap-8">
+									<i class="las la-clock p-emphasis"></i>
+									<span class="sm-p">{recipe.time}</span>
+								</div>
+								<div class="info-item flex items-center gap-8">
+									<i class="las la-list p-emphasis"></i>
+									<span class="sm-p">{recipe.steps} pasos</span>
+								</div>
+							</div>
+
+							<div class="missing-ingredients mb">
+								<p class="sm-p bold mb-s">Ingredientes faltantes:</p>
+								<div class="flex wrap gap-8">
+									{#each recipe.missing as missing}
+										<span
+											class="chip"
+											style="background-color: rgba(200, 111, 86, 0.1); color: var(--color-emphasis);"
+										>
+											{missing}
+										</span>
+									{/each}
+								</div>
+							</div>
+
+							<div class="nutrition-info">
+								<p class="sm-p p-ghost">{recipe.health}</p>
+							</div>
+						</div>
 					{/each}
-				</ul>
-			</article>
+				</div>
+			</div>
+		</section>
+	{/if}
+
+	<!-- Paso 1: Selección de ingredientes -->
+	<section id="ingredients" class="flex-center direction-col full-width pad-50">
+		<div class="container flex-center direction-col gap-24">
+			<!-- Barra de búsqueda -->
+			<div
+				class="search-container bg-white b-shadow pad-20 round-10"
+				style="max-width: 600px; width: 100%;"
+			>
+				<input
+					type="text"
+					bind:value={search_query}
+					placeholder="Buscar ingredientes..."
+					class="full-width"
+				/>
+			</div>
+
+			<!-- Contador de ingredientes seleccionados -->
+			{#if selected.length > 0}
+				<div class="flex-center gap-16">
+					<p class="md-p bold">Ingredientes seleccionados: {selected.length}</p>
+					<button class="btn primary" onclick={searchRecipes} disabled={searching}>
+						{#if searching}
+							Buscando recetas...
+						{:else}
+							Buscar recetas
+						{/if}
+					</button>
+				</div>
+			{/if}
+
+			<!-- Grid de ingredientes -->
+			{#if loading}
+				<div class="flex-center full-width" style="min-height: 200px;">
+					<RotatingNutriplan />
+				</div>
+			{:else if ingredients}
+				<div class="ingredients-grid flex-center wrap gap-8" style="max-width: 800px;">
+					{#each query as ingredient}
+						<button
+							class="ingredient pad-10 bg-soft-gray clickable hoverable no-border round-5"
+							data-selected={selected.includes(ingredient)}
+							onclick={() => {
+								if (selected.includes(ingredient))
+									selected = selected.filter((e) => e != ingredient);
+								else selected.push(ingredient);
+							}}
+						>
+							{ingredient.name}
+						</button>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	</section>
-</main>
+</div>
 
 <style>
-	.pantry-mode {
-		display: flex;
-		flex-direction: column;
-		gap: 4.5rem;
-		padding-bottom: 5rem;
+	/* Hero section con ícono de búsqueda */
+	.search-container input {
+		background-image: url('$lib/assets/magnifying-glass.svg');
+		background-repeat: no-repeat;
+		background-size: 16px;
+		background-position: 12px 12px;
+		padding-left: 40px;
 	}
 
-	.container {
-		max-width: 1000px;
-		margin: 0 auto;
-		padding: 0 1.5rem;
+	/* Ingredientes seleccionables */
+	.ingredient {
+		transition: 0.2s ease;
+		font-weight: 500;
 	}
 
-	.hero-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2.5rem;
-		align-items: start;
-	}
-
-	.copy h1 {
-		margin: 0;
-		font-size: clamp(2.1rem, 3vw, 3rem);
-	}
-
-	.copy p {
-		margin: 1rem 0 0;
-		color: var(--color-soft);
-	}
-
-	.input-card {
-		background: rgba(255, 255, 255, 0.92);
-		border-radius: var(--radius-lg);
-		padding: 2.5rem;
-		box-shadow: var(--shadow-soft);
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.input-row {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 1rem;
-	}
-
-	.input-row button {
-		background: var(--gradient-leaf);
+	.ingredient[data-selected='true'] {
+		background-color: var(--color-primary-dark);
 		color: white;
-		border: none;
-		border-radius: 999px;
-		padding: 0 1.6rem;
-		font-weight: 600;
-		cursor: pointer;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 	}
 
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.8rem;
+	.ingredient:hover:not([data-selected='true']) {
+		background-color: var(--color-soft-gray-darker);
+		transform: translateY(-1px);
 	}
 
-	.chips .ghost {
-		border: none;
-		background: rgba(8, 44, 36, 0.08);
-		color: var(--color-forest);
-		border-radius: 999px;
-		padding: 0.5rem 1rem;
-		font-weight: 600;
-		cursor: pointer;
+	/* Grid de ingredientes */
+	.ingredients-grid {
+		justify-content: center;
 	}
 
-	.preferences {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-		color: var(--color-soft);
-	}
-
-	.results .result-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-		gap: 1.8rem;
-		margin-top: 2rem;
-	}
-
-	.result {
-		padding: 1.8rem;
+	/* Tarjetas de recetas */
+	.recipe-card {
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 	}
 
-	.result .header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 1rem;
+	.recipe-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 	}
 
-	.match {
-		font-weight: 700;
-		color: var(--color-forest);
-	}
-
-	.meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6rem;
-		color: var(--color-soft);
+	/* Badge de match */
+	.match-badge .tag {
+		background-color: var(--color-leaf);
+		color: white;
 		font-weight: 600;
 	}
 
-	.progress {
-		height: 8px;
-		background: rgba(8, 44, 36, 0.08);
-		border-radius: 999px;
-		overflow: hidden;
+	/* Información de receta */
+	.recipe-info {
+		border-bottom: 1px solid var(--color-soft-gray);
+		padding-bottom: 0.75rem;
 	}
 
-	.progress div {
-		height: 100%;
-		background: var(--gradient-leaf);
-	}
-
-	.missing {
-		margin: 0;
-		padding-left: 1.1rem;
+	.info-item {
 		color: var(--color-soft);
-		line-height: 1.6;
 	}
 
-	.actions {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 1rem;
-		font-weight: 600;
+	/* Ingredientes faltantes */
+	.missing-ingredients {
+		flex-grow: 1;
 	}
 
-	.actions a {
-		text-decoration: none;
-		color: var(--color-forest);
+	/* Animaciones */
+	@keyframes FadeIn {
+		0% {
+			opacity: 0;
+			transform: translateY(-15px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0px);
+		}
 	}
 
-	.tips-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2rem;
-		align-items: stretch;
+	.recipe-card {
+		animation: FadeIn 0.6s ease;
+		animation-fill-mode: both;
 	}
 
-	.summary {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.checklist {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.checklist ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		line-height: 1.6;
-	}
-
-	@media (max-width: 640px) {
-		.input-row {
+	/* Responsive */
+	@media (max-width: 768px) {
+		.results-grid {
 			grid-template-columns: 1fr;
 		}
 
-		.actions {
+		.ingredients-grid {
 			justify-content: flex-start;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.search-container {
+			margin: 0 1rem;
+		}
+
+		.recipe-card {
+			margin: 0 1rem;
 		}
 	}
 </style>

@@ -30,6 +30,8 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
+		"@tinymce/tinymce-svelte": "^3.2.0",
+		"marked": "^16.4.0",
 		"showdown": "^2.1.0"
 	}
 }

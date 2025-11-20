@@ -1,6 +1,5 @@
-// import { NODE_ENV } from '$env/static/private';
-import { SESSION_ACCESS_COOKIE, SESSION_REFRESH_COOKIE } from '$lib/cookies';
 import { API_LOGIN_ENDPOINT } from '$lib/endpoints';
+import { setCookies } from '$lib/stores/auth.js';
 
 export const POST = async ({ request, cookies }) => {
 	console.log('Using login endpoint');
@@ -19,6 +18,7 @@ export const POST = async ({ request, cookies }) => {
 		const upstream = await fetch(API_LOGIN_ENDPOINT, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
 			body: JSON.stringify(payload)
 		}).catch((err) => {
 			console.log('Communication error: ', err);
@@ -35,7 +35,6 @@ export const POST = async ({ request, cookies }) => {
 
 		console.log('Data:', data);
 		const access = data.access;
-		const refresh = data.refresh;
 		console.log('Access:', access);
 
 		if (!access) {
@@ -45,23 +44,7 @@ export const POST = async ({ request, cookies }) => {
 			);
 		}
 
-		cookies.set(SESSION_ACCESS_COOKIE, access, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			secure: true,
-			maxAge: 60 * 60 // 1h
-		});
-
-		if (refresh) {
-			cookies.set(SESSION_REFRESH_COOKIE, refresh, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: true,
-				maxAge: 60 * 60 * 24 * 7 // 7d
-			});
-		}
+		setCookies(data.access, data.refresh, { cookies });
 
 		return new Response(JSON.stringify({ ok: true, user: data.user }), { status: 200 });
 	} catch (err) {

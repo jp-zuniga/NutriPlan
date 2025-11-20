@@ -2,19 +2,21 @@
 	import { authUser } from '$lib/stores/auth';
 	import LogoFavicon from '$lib/assets/favicon.svg';
 	import { goto } from '$app/navigation';
+	import RotatingNutriplan from './RotatingNutriplan.svelte';
+
+	let navLinks = $state([]);
 
 	$effect(() => {
-		console.log(`Auth user: ${JSON.stringify($authUser)}`);
+		navLinks = [
+			{ text: 'Inicio', href: '/' },
+			{ text: 'Recetas', href: '/recetas' },
+			{ text: 'Artículos', href: '/articulos' },
+			// { text: 'Planes', href: '/planes' },
+			{ text: 'Receta rápida', href: '/receta-rapida' },
+			{ text: 'Chef IA', href: '/chef-ia' },
+			{ text: 'Perfil', href: $authUser !== undefined && $authUser !== null ? '/perfil' : '/login' }
+		];
 	});
-
-	const navLinks = [
-		{ text: 'Inicio', href: '/' },
-		{ text: 'Recetas', href: '/recetas' },
-		{ text: 'Planes', href: '/planes' },
-		{ text: 'Receta rápida', href: '/receta-rapida' },
-		{ text: 'Chef IA', href: '/chef-ia' },
-		{ text: 'Perfil', href: '/perfil' }
-	];
 
 	let menuOpen = $state(false);
 
@@ -43,300 +45,192 @@
 	}
 </script>
 
-<nav class="site-nav" data-open={menuOpen}>
-	<div class="nav-inner">
-		<a class="brand" href="/" onclick={closeMenu}>
+<nav class="site-nav flex-center bg-white">
+	<div class="nav-inner flex items-center justify-between rel-pos">
+		<!-- Brand logo -->
+		<a href="/" class="brand flex items-center no-ul gap-4" onclick={closeMenu}>
 			<img src={LogoFavicon} alt="NutriPlan logo" />
-			<div class="brand-copy">
-				<span class="title">NutriPlan</span>
-				<span class="subtitle">Come mejor, vive mejor</span>
+			<div class="flex direction-col">
+				<span class="title md-p bold" style="font-family: 'Montserrat'">NUTRIPLAN</span>
+				<span class="subtitle sm-p p-ghost" style="font-family: 'Montserrat'; font-size:10px"
+					>COME MEJOR, VIVE MEJOR</span
+				>
 			</div>
 		</a>
+
+		<!-- Normal navbar -->
+		<div class="nav-links flex-center gap-32 high-res">
+			{#each navLinks as link}
+				<a href={link.href} class="nav-link no-ul md-p"><span>{link.text}</span></a>
+			{/each}
+		</div>
+
+		<!-- Sign in -->
+		<div class="sign-in flex-center gap-16 high-res">
+			{#if $authUser !== undefined && $authUser !== null}
+				<div class="user-pill flex-center gap-16 pill pad-10 bg-white b-shadow">
+					<span class="avatar full-round text-col-white flex-center"
+						>{initials($authUser.first_name || $authUser.email)}</span
+					>
+					<div class="user-info flex direction-col">
+						<p class="md-p bold no-margin">{$authUser.first_name} {$authUser.last_name}</p>
+						<p class="md-p p-ghost no-margin">{$authUser.email}</p>
+					</div>
+					<button class="btn ghost" onclick={handleLogout}>Salir</button>
+				</div>
+			{:else if $authUser === null}
+				<a href="/login" class="btn ghost">Ingresar</a>
+				<a href="/signup" class="btn primary">Regístrate</a>
+			{/if}
+		</div>
+
+		<!-- Toolbar -->
 		<button
-			class="menu-toggle"
 			type="button"
+			class="low-res toolbar flex direction-col justify-between no-border no-pad"
+			data-open={menuOpen}
 			onclick={toggleMenu}
-			aria-expanded={menuOpen}
-			aria-label="Menu Toggle"
+			aria-label="Toggle menu"
 		>
 			<span></span>
 			<span></span>
 			<span></span>
 		</button>
-		<div class="nav-links" class:open={menuOpen}>
-			{#each navLinks as link}
-				<a href={link.href} onclick={closeMenu}>{link.text}</a>
-			{/each}
-		</div>
-		<div class="nav-cta">
-			{#if $authUser}
-				<div class="user-pill">
-					<span class="avatar">{initials($authUser.first_name || $authUser.email)}</span>
-					<div class="user-info">
-						<strong>{$authUser.first_name} {$authUser.last_name}</strong>
-						<span>{$authUser.email}</span>
-					</div>
-					<button type="button" onclick={handleLogout}>Salir</button>
-				</div>
-			{:else if $authUser === null}
-				<a class="ghost" href="/login">Ingresar</a>
-				<a class="primary" href="/signup">Regístrate</a>
-			{/if}
-		</div>
+	</div>
+
+	<!-- Menu -->
+	<div
+		class="menu flex-center direction-col abs-pos low-res full-width soft-outline"
+		data-open={menuOpen}
+	>
+		{#each navLinks as link}
+			<a
+				href={link.href}
+				class="nav-link no-ul md-p full-width txt-center pad-10"
+				onclick={closeMenu}><span>{link.text}</span></a
+			>
+		{/each}
 	</div>
 </nav>
 
 <style>
+	:root {
+		--navbar-height: 75px;
+	}
+
+	.nav-inner {
+		width: 90%;
+	}
+
 	.site-nav {
 		position: sticky;
 		top: 0;
+		height: var(--navbar-height);
 		z-index: 100;
 		backdrop-filter: blur(16px);
 		background: rgba(255, 255, 255, 0.82);
 		border-bottom: 1px solid rgba(8, 44, 36, 0.08);
+		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 	}
 
-	.nav-inner {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0.75rem 1.5rem;
-		display: flex;
-		align-items: center;
-		gap: 1.5rem;
+	.sign-in {
+		width: 300px;
 	}
 
 	.brand {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		text-decoration: none;
-		color: inherit;
+		width: 190px;
 	}
 
 	.brand img {
-		height: 48px;
 		width: 48px;
-		object-fit: contain;
+		height: 48px;
 	}
 
-	.brand-copy {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.1;
-	}
+	.user-pill .avatar {
+		background: #73946b;
+		background: linear-gradient(138deg, rgba(115, 148, 107, 1) 0%, rgba(3, 167, 145, 1) 50%);
 
-	.brand-copy .title {
-		font-family: var(--font-display, 'Alegreya Sans', sans-serif);
-		font-weight: 700;
-		font-size: 1.2rem;
-		color: var(--color-forest, #05463a);
-	}
-
-	.brand-copy .subtitle {
-		font-size: 0.8rem;
-		color: var(--color-soft, #587a6a);
-	}
-
-	.menu-toggle {
-		background: none;
-		border: none;
-		padding: 0;
-		width: 42px;
-		height: 42px;
-		display: none;
-		flex-direction: column;
-		justify-content: center;
-		gap: 6px;
-		cursor: pointer;
-	}
-
-	.menu-toggle span {
-		display: block;
-		height: 3px;
-		width: 100%;
-		background: var(--color-forest, #05463a);
-		border-radius: 999px;
-		transition:
-			transform 0.3s ease,
-			opacity 0.3s ease;
-	}
-
-	.site-nav[data-open='true'] .menu-toggle span:nth-child(1) {
-		transform: translateY(9px) rotate(45deg);
-	}
-
-	.site-nav[data-open='true'] .menu-toggle span:nth-child(2) {
-		opacity: 0;
-	}
-
-	.site-nav[data-open='true'] .menu-toggle span:nth-child(3) {
-		transform: translateY(-9px) rotate(-45deg);
-	}
-
-	.nav-links {
-		display: flex;
-		gap: 1.5rem;
-		align-items: center;
-	}
-
-	.nav-links a {
-		text-decoration: none;
-		font-weight: 600;
-		color: var(--color-soft, #587a6a);
-		font-size: 0.98rem;
-		transition:
-			color 0.2s ease,
-			transform 0.2s ease;
-	}
-
-	.nav-links a:hover {
-		color: var(--color-forest, #05463a);
-		transform: translateY(-2px);
-	}
-
-	.nav-cta {
-		margin-left: auto;
-		display: flex;
-		align-items: center;
-		gap: 0.9rem;
-	}
-
-	.nav-cta a {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.55rem 1.2rem;
-		border-radius: 999px;
-		text-decoration: none;
-		font-weight: 600;
-		font-size: 0.95rem;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
-	}
-
-	.nav-cta .ghost {
-		background: rgba(8, 44, 36, 0.05);
-		color: var(--color-forest, #05463a);
-	}
-
-	.nav-cta .ghost:hover {
-		transform: translateY(-2px);
-	}
-
-	.nav-cta .primary {
-		background: var(--gradient-leaf, linear-gradient(135deg, #0fb872 0%, #53d5a5 100%));
-		color: white;
-		box-shadow: 0 12px 24px rgba(15, 184, 114, 0.28);
-	}
-
-	.nav-cta .primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 18px 28px rgba(15, 184, 114, 0.32);
-	}
-
-	.user-pill {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		background: rgba(255, 255, 255, 0.9);
-		border-radius: 999px;
-		padding: 0.4rem 0.8rem 0.4rem 0.4rem;
-		box-shadow: 0 12px 24px rgba(8, 44, 36, 0.12);
-	}
-
-	.avatar {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		background: var(--gradient-mint);
-		color: white;
-		font-weight: 700;
-	}
-
-	.user-info {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.1;
-	}
-
-	.user-info strong {
-		font-size: 0.95rem;
-	}
-
-	.user-info span {
-		color: var(--color-soft);
-		font-size: 0.8rem;
+		width: 40px;
+		height: 40px;
 	}
 
 	.user-pill button {
-		border: none;
-		background: rgba(8, 44, 36, 0.08);
-		color: var(--color-forest);
-		padding: 0.3rem 0.8rem;
 		border-radius: 999px;
-		font-weight: 600;
+		padding: 10px;
+	}
+
+	.user-info p {
+		margin: -4px 0px;
+	}
+
+	.nav-link,
+	.nav-link span {
+		transition: 0.2s ease;
+	}
+
+	.nav-link:hover span {
+		transform: translateY(-3px);
+		font-weight: bold;
+	}
+
+	.toolbar {
+		width: 40px;
+		height: 30px;
+
 		cursor: pointer;
-		transition: transform 0.2s ease;
+		background: none;
 	}
 
-	.user-pill button:hover {
-		transform: translateY(-1px);
+	.toolbar span {
+		width: 100%;
+		border: 1px solid rgba(0, 0, 0, 0.5);
+		transition: 0.2s ease;
 	}
 
-	@media (max-width: 960px) {
-		.nav-inner {
-			padding: 0.75rem 1rem;
-		}
+	.toolbar[data-open='true'] span:nth-child(1) {
+		transform: translateY(14px) rotate(45deg);
+	}
 
-		.nav-links {
-			position: absolute;
-			top: 100%;
-			left: 0;
-			right: 0;
-			background: rgba(255, 255, 255, 0.95);
-			flex-direction: column;
-			padding: 1.5rem;
-			gap: 1rem;
-			border-bottom: 1px solid rgba(8, 44, 36, 0.08);
-			opacity: 0;
-			pointer-events: none;
-			transform: translateY(-10px);
-			transition:
-				opacity 0.25s ease,
-				transform 0.25s ease;
-		}
+	.toolbar[data-open='true'] span:nth-child(2) {
+		opacity: 0;
+	}
 
-		.nav-links.open {
-			opacity: 1;
-			pointer-events: auto;
-			transform: translateY(0);
-		}
+	.toolbar[data-open='true'] span:nth-child(3) {
+		transform: translateY(-14px) rotate(-45deg);
+	}
 
-		.nav-cta {
-			gap: 0.6rem;
-		}
+	.menu {
+		top: var(--navbar-height);
+		background: white;
+		display: none;
+		opacity: 0%;
+		transform: translateY(-10px);
+		transition: 0.2s ease;
+	}
 
-		.menu-toggle {
-			display: inline-flex;
-			margin-left: auto;
-		}
+	.menu[data-open='true'] {
+		display: flex;
+		opacity: 90%;
+		transform: translateY(0px);
+	}
 
-		.nav-cta {
+	.menu a:hover {
+		background: rgba(0, 0, 0, 0.1);
+	}
+
+	@media (max-width: 1200px) {
+		.high-res {
 			display: none;
 		}
 	}
 
-	@media (max-width: 640px) {
-		.user-pill {
-			padding: 0.4rem 0.6rem 0.4rem 0.4rem;
-		}
-
-		.user-pill button {
-			padding: 0.3rem 0.65rem;
+	@media (min-width: 1200px) {
+		.low-res {
+			display: none;
 		}
 	}
+
+	/* .user-pill button:hover {
+		background: rgb(240, 240, 240);
+	} */
 </style>

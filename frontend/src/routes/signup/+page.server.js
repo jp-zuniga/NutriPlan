@@ -1,7 +1,7 @@
 import { SESSION_ACCESS_COOKIE } from '$lib/cookies';
 import { NODE_ENV } from '$env/static/private';
 import { API_REGISTER_ENDPOINT } from '$lib/endpoints';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ cookies, request }) => {
@@ -47,6 +47,14 @@ export const actions = {
 			sameSite: 'lax',
 			secure: NODE_ENV == 'production',
 			maxAge: 60 * 60
+		});
+
+		cookies.set(SESSION_ACCESS_COOKIE, body.refresh, {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: NODE_ENV == 'production',
+			maxAge: 60 * 60 * 24
 		});
 
 		return { success: true, data: body };

@@ -1,15 +1,74 @@
 <script>
 	import Banner from '$lib/components/Banner.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { authUser } from '$lib/stores/auth';
 
 	import ImagenVigoron from '$lib/assets/vigoron.jpg';
 	import PlatosTipicos from '$lib/assets/platos-tipicos.jpeg';
 	import GalloPinto from '$lib/assets/gallo-pinto.jpg';
 	import SVG_AI from '$lib/assets/ai.svg';
+	import SVG_STAR from '$lib/assets/star.svg';
 
 	import icon_SoupBowl from '$lib/assets/soup-bowl.svg';
 	import icon_Calendar from '$lib/assets/calendar.svg';
 	import icon_RabbitFast from '$lib/assets/rabbit-fast.svg';
+	import RecipeCard from '$lib/components/RecipeCard.svelte';
+	import RotatingNutriplan from '$lib/components/RotatingNutriplan.svelte';
+	import { API_RECIPES_ENDPOINT } from '$lib/endpoints';
+
+	let recipe_loading = $state(true);
+	let recipeResults = $state([]);
+	const resolveResults = async (page) => {
+		recipe_loading = true;
+
+		recipeResults = [];
+
+		const response = await fetch(API_RECIPES_ENDPOINT, {
+			method: 'GET'
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			console.log(data);
+			recipeResults = data.slice(0, 4);
+			recipe_loading = false;
+			return;
+		}
+
+		recipeResults = null;
+
+		recipe_loading = false;
+	};
+
+	let results = $state(null);
+	resolveResults();
+
+	const categories = [
+		{
+			title: 'Desayuno',
+			icon: '<i class="las la-coffee"></i>',
+			gradient: '#A9C46C',
+			background_color: 'rgba(164,180,101,0.1)'
+		},
+		{
+			title: 'Almuerzo',
+			icon: '<i class="las la-drumstick-bite"></i>',
+			gradient: 'rgb(169, 74, 74)',
+			background_color: 'rgba(169, 74, 74, 0.1)'
+		},
+		{
+			title: 'Cena',
+			icon: '<i class="las la-utensils"></i>',
+			gradient: 'rgb(106, 156, 137)',
+			background_color: 'rgba(106, 156, 137, 0.1)'
+		},
+		{
+			title: 'Postres',
+			icon: '<i class="las la-cookie"></i>',
+			gradient: 'rgb(185, 148, 112)',
+			background_color: 'rgba(185, 148, 112, 0.1)'
+		}
+	];
 
 	const quickActions = [
 		{
@@ -17,7 +76,9 @@
 			description:
 				'Explora platos típicos, saludables y fusiones creativas para cada momento del día.',
 			cta: 'Ver recetas',
+			cta_link: '/recetas',
 			accent: 'leaf',
+			background: 'rgb(119, 178, 84)',
 			icon: icon_SoupBowl
 		},
 		{
@@ -25,7 +86,9 @@
 			description:
 				'Genera un plan semanal que respete tus metas, tu actividad física y tus preferencias.',
 			cta: 'Crear plan',
+			cta_link: '/planes',
 			accent: 'mint',
+			background: 'rgb(133, 169, 143)',
 			icon: icon_Calendar
 		},
 		{
@@ -33,7 +96,9 @@
 			description:
 				'Escribe lo que tienes en casa y deja que nuestra IA sugiera la mejor coincidencia.',
 			cta: 'Receta rápida',
+			cta_link: '/receta-rapida',
 			accent: 'sunrise',
+			background: 'rgb(202, 115, 115)',
 			icon: icon_RabbitFast
 		}
 	];
@@ -73,7 +138,7 @@
 			time: '20 min',
 			rating: 4.6,
 			tags: ['Baja en carbohidratos', 'Refrescante'],
-			image: PlatosTipicos
+			image: 'https://tipsparatuviaje.com/wp-content/uploads/2020/01/carne-en-vaho-2.jpg'
 		}
 	];
 
@@ -148,1034 +213,569 @@
 	const firstName = (name = '') => name.trim().split(' ')[0] || 'NutriChef';
 </script>
 
-<main class="home">
-	<section class="hero">
-		<div class="container hero-inner">
-			<div class="hero-copy">
-				<div class="pill no-select">
-					<img src={SVG_AI} alt="ai" />
-					Potenciado por IA
-				</div>
-				{#if $authUser}
-					<span class="welcome">Hola, {firstName($authUser.name ?? $authUser.email)} 👋</span>
-				{/if}
-				<h1>NutriPlan, sabor y bienestar nicaragüense</h1>
-				<p>
+<div class="home flex direction-col items-center no-overflow">
+	<section
+		id="hero"
+		class="bg-cream flex justify-center gradient-animation"
+		style="background: linear-gradient(135deg, #C0C78C 0%, #A9C46C 50%, #798645 100%);"
+	>
+		<div class="container regrid-cols-2 pad-20">
+			<div class="content pad-20 bg-white hover-lift animate-fade-in-left">
+				<h1 class="h1 mb">
+					Descubre la cocina
+					<span class="p-emphasis">nicaragüense</span>
+				</h1>
+				<p class="lg-p mb-l p-ghost">
 					Tu plataforma para planear comidas nutritivas con el sabor de casa. Recibe recomendaciones
 					personalizadas, recetas auténticas y acompañamiento inteligente en cada etapa.
 				</p>
-				<div class="hero-actions">
-					<a class="btn primary" href="/planes">Generar mi plan nutricional</a>
-					<a class="btn ghost" href="/recetas">Explorar recetas</a>
-				</div>
-				<div class="hero-stats">
-					<div class="stat">
-						<span class="value">500+</span>
-						<span class="label">Recetas locales</span>
-					</div>
-					<div class="stat">
-						<span class="value">12k</span>
-						<span class="label">Usuarios satisfechos</span>
-					</div>
-					<div class="stat">
-						<span class="value">4.9★</span>
-						<span class="label">Promedio en valoraciones</span>
-					</div>
+				<div class="button-group flex gap-24">
+					<a class="btn primary hover-glow animate-scale-in animate-delay-1" href="/planes"
+						>Crear mi plan nutricional</a
+					>
+					<a class="btn ghost hover-scale animate-scale-in animate-delay-2" href="/recetas"
+						>Explorar recetas</a
+					>
 				</div>
 			</div>
-			<div class="hero-visual">
-				<article class="hero-card main">
-					<img src={ImagenVigoron} alt="Vigorón tradicional" />
-					<div class="card-meta">
-						<div class="meta-header">
-							<span class="badge">Top nica</span>
-							<span class="rating">★ 4.8</span>
+
+			<div class="img-container img-fluid round-20 rel-pos animate-fade-in-right animate-delay-1">
+				<img class="hover-scale" src={ImagenVigoron} alt="vigoron" />
+				<div
+					class="card abs-pos pad-10 hover-lift animate-slide-in-up animate-delay-2"
+					style="left: 15px; bottom: 15px; width: calc(100% - 30px)"
+				>
+					<p class="bold">Vigorón Saludable</p>
+					<p>Yuca al vapor, chicharrón al horno y repollo cítrico.</p>
+					<div class="flex justify-between">
+						<div class="info flex sm-p gap-8 p-ghost">
+							<p>420 kcal</p>
+							<p>35 min</p>
 						</div>
-						<h3>Vigorón saludable</h3>
-						<p>Yuca al vapor, chicharrón al horno y repollo cítrico.</p>
-						<div class="meta-info">
-							<span>430 kcal</span>
-							<span>35 min</span>
+						<div class="stars">
+							<i class="las la-star p-emphasis no-ul"></i>
+							4.9
 						</div>
 					</div>
-				</article>
-				<div class="hero-stack">
-					<article class="mini-card">
-						<img src={PlatosTipicos} alt="Platos típicos nicaragüenses" />
-						<div>
-							<h4>Plan semanal activo</h4>
-							<span>Macros adaptados a tu rutina</span>
-						</div>
-					</article>
-					<!-- <article class="mini-card alt">
-						<div>
-							<h4>Recetas compatibles</h4>
-							<span>8 coincidencias con tus ingredientes</span>
-						</div>
-						<p>Agrega más ingredientes para afinar la búsqueda.</p>
-					</article> -->
 				</div>
 			</div>
 		</div>
 	</section>
 
-	<section class="quick-actions">
-		<div class="container">
-			<header class="section-head">
-				<h2>Explora NutriPlan</h2>
-				<p>Accede rápido a lo que necesitas: inspiración, planificación o una solución express.</p>
-			</header>
-			<div class="card-grid">
-				{#each quickActions as action}
-					<article class={`feature-card ${action.accent}`} style="color: white">
-						<img src={action.icon} style="width: 35px; height: 35px" alt={action.title} />
-						<!-- <span class="feature-icon">{action.icon}</span> -->
-						<h3 style="color: white">{action.title}</h3>
-						<p>{action.description}</p>
-						<a href="#">{action.cta} →</a>
-					</article>
-				{/each}
+	<section id="star-recipes" class="bg-soft-gray">
+		<div class="container flex-center direction-col pad-50 gap-16">
+			<div class="flex-center direction-col animate-fade-in-up">
+				<p class="h2 bold">Recetas Destacadas</p>
+				<p class="p-ghost">Las favoritas de nuestra comunidad</p>
 			</div>
-		</div>
-	</section>
-
-	<section class="featured">
-		<div class="container">
-			<header class="section-head" style="margin-bottom: 25px">
-				<h2>Recetas destacadas de la semana</h2>
-				<p>
-					Curadas por nutricionistas nicas y la comunidad. Ajusta filtros para calorías, tiempo o
-					preferencias.
-				</p>
-			</header>
-			<div class="recipe-carousel">
-				{#each featuredRecipes as recipe}
-					<article class="recipe-card">
-						<div class="image-wrap">
-							<img src={recipe.image} alt={recipe.title} />
-							<span class="recipe-rating">★ {recipe.rating}</span>
+			<div
+				class="flex gap-16 ov-auto-x pad-10 limit-width no-shrink animate-fade-in-up animate-delay-1"
+			>
+				{#if !recipe_loading}
+					{#each recipeResults as recipe, index}
+						<div class="animate-fade-in-up" style="animation-delay: {(index + 2) * 0.1}s;">
+							<RecipeCard {recipe} />
 						</div>
-						<div class="recipe-body">
-							<h3>{recipe.title}</h3>
-							<span class="origin">{recipe.origin}</span>
-							<div class="meta">
-								<span>{recipe.kcal}</span>
-								<span>{recipe.time}</span>
-							</div>
-							<div class="tags">
-								{#each recipe.tags as tag}
-									<span>{tag}</span>
-								{/each}
-							</div>
-						</div>
-					</article>
-				{/each}
-			</div>
-		</div>
-	</section>
-
-	<section class="ai-planner">
-		<div class="container ai-inner">
-			<div class="planner-copy">
-				<h2>Generador de planes nutricionales con IA</h2>
-				<p>
-					Responde unas pocas preguntas sobre tu actividad física, metas y condiciones médicas para
-					recibir un plan ajustado a tu día a día.
-				</p>
-				<ul>
-					{#each planBenefits as benefit}
-						<li>
-							<h3>{benefit.title}</h3>
-							<p>{benefit.description}</p>
-						</li>
 					{/each}
-				</ul>
-				<div class="planner-actions">
-					<a class="btn primary" href="#">Comenzar evaluación</a>
-					<span>Gratis y listo en menos de 3 minutos</span>
-				</div>
-			</div>
-			<div class="planner-preview">
-				<div class="preview-card">
-					<h4>Vista previa semanal</h4>
-					<ul>
-						{#each weeklyPreview as day}
-							<li>
-								<span class="day">{day.day}</span>
-								<div class="meals">
-									<p><strong>Desayuno:</strong> {day.breakfast}</p>
-									<p><strong>Almuerzo:</strong> {day.lunch}</p>
-									<p><strong>Cena:</strong> {day.dinner}</p>
-								</div>
-							</li>
-						{/each}
-					</ul>
-					<div class="preview-footer">
-						<span>Macros balanceados • 2,000 kcal promedio</span>
+				{:else}
+					<div class="full-size flex-center">
+						<RotatingNutriplan />
 					</div>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</section>
 
-	<section class="pantry-mode">
-		<div class="container pantry-inner">
-			<div class="pantry-copy">
-				<h2>Receta rápida: cocina con lo que tienes</h2>
-				<p>
-					Selecciona tus ingredientes y recibe recetas ordenadas por porcentaje de coincidencia.
-					Ideal para aprovechar tu despensa sin complicaciones.
+	<section id="why-us" style="background-color: #798645;">
+		<div class="container flex-center">
+			<p class="h1 text-col-white bold pad-20 txt-center animate-fade-in-down">
+				¿Por qué elegir NutriPlan?
+			</p>
+		</div>
+	</section>
+
+	<section id="benefits" class="bg-white">
+		<div class="container flex-center direction-col pad-50">
+			<div class="flex-center direction-col mb-l animate-fade-in-up">
+				<h2 class="h2 bold mb">Beneficios únicos de NutriPlan</h2>
+				<p class="lg-p p-ghost txt-center">
+					Descubre lo que nos hace diferentes en el mundo de la nutrición nicaragüense
 				</p>
-				<div class="ingredient-chips">
-					{#each pantryIngredients as ingredient}
-						<span class="chip">{ingredient}</span>
-					{/each}
+			</div>
+
+			<div class="content flex-center wrap gap-24">
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-1"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-leaf);"
+					>
+						<i class="las la-brain text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Plan semanal inteligente</h3>
+					<p class="md-p p-ghost">
+						La IA equilibra calorías, macros y tradición culinaria nica en un solo vistazo.
+					</p>
+				</div>
+
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-2"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-mint);"
+					>
+						<i class="las la-exchange-alt text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Sustituciones al instante</h3>
+					<p class="md-p p-ghost">
+						Intercambia recetas según ingredientes disponibles y mantén tus metas al día.
+					</p>
+				</div>
+
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-3"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-sunrise);"
+					>
+						<i class="las la-chart-line text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Seguimiento práctico</h3>
+					<p class="md-p p-ghost">
+						Visualiza el aporte nutricional diario y exporta tu plan para compartirlo.
+					</p>
+				</div>
+
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-4"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: linear-gradient(135deg, #C86F56 0%, #ff6b6b 100%);"
+					>
+						<i class="las la-heart text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Recetas auténticas</h3>
+					<p class="md-p p-ghost">
+						Platos tradicionales nicaragüenses adaptados para una alimentación saludable.
+					</p>
+				</div>
+
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-5"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: linear-gradient(135deg, #6C9073 0%, #9EBC8A 100%);"
+					>
+						<i class="las la-users text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Comunidad activa</h3>
+					<p class="md-p p-ghost">
+						Conecta con otros nicaragüenses que comparten tu pasión por comer bien.
+					</p>
+				</div>
+
+				<div
+					class="benefit-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-5"
+					style="width: 300px; min-height: 200px;"
+				>
+					<div
+						class="benefit-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: linear-gradient(135deg, #4cd4aa 0%, #68d3ff 100%);"
+					>
+						<i class="las la-star text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h3 bold mb">Valoraciones confiables</h3>
+					<p class="md-p p-ghost">
+						Calificaciones honestas de la comunidad para ayudarte a elegir lo mejor.
+					</p>
 				</div>
 			</div>
-			<div class="matches">
-				{#each pantryMatches as match}
-					<article class="match-card">
-						<header>
-							<h3>{match.title}</h3>
-							<span>{match.highlight}</span>
-						</header>
-						<div class="progress">
-							<div style={`width: ${match.match}%`}></div>
+		</div>
+	</section>
+
+	<section id="all-in-one">
+		<div class="container flex-center direction-col pad-50">
+			<p class="h3 bold animate-fade-in-up">Todo en un solo lugar</p>
+			<p class="mb-l p-ghost md-p animate-fade-in-up animate-delay-1">
+				Accede rápido a lo que necesitas: inspiración, planificación o una solución express.
+			</p>
+			<div class="content flex-center wrap gap-24">
+				{#each quickActions as action, index}
+					<div
+						class="quick-action pad-20 round-5 hover-lift animate-fade-in-up"
+						style="width: 300px; height: 200px; background-color: {action.background}; animation-delay: {(index +
+							2) *
+							0.1}s;"
+					>
+						<img src={action.icon} alt={action.title} style="width: 50px; height: 50px;" />
+						<p class="lg-p bold text-col-white">{action.title}</p>
+						<p class="md-p text-col-white mb">{action.description}</p>
+
+						<!-- <a href={action.cta_link} class="no-ul text-col-white">{action.cta}</a> -->
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<section id="testimonials" class="bg-soft-gray">
+		<div class="container flex-center direction-col pad-50">
+			<div class="flex-center direction-col mb-l animate-fade-in-up">
+				<h2 class="h2 bold mb">Lo que dicen nuestros usuarios</h2>
+				<p class="lg-p p-ghost txt-center">
+					Testimonios reales de nicaragüenses que transformaron su alimentación
+				</p>
+			</div>
+
+			<div class="content flex-center wrap gap-24">
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-1"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: var(--gradient-leaf);"
+						>
+							<span class="bold">MC</span>
 						</div>
-						<p class="match-percent">Coincidencia del {match.match}%</p>
-						<ul>
-							{#each match.missing as missing}
-								<li>Falta: {missing}</li>
-							{/each}
-						</ul>
-					</article>
-				{/each}
-			</div>
-		</div>
-	</section>
+						<div>
+							<p class="bold">María Carmen</p>
+							<p class="sm-p p-ghost">Managua</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"NutriPlan me ayudó a mantener mis tradiciones culinarias pero de forma más saludable.
+						El vigorón que preparo ahora es igual de delicioso pero con menos calorías."
+					</p>
+				</div>
 
-	<section class="community">
-		<div class="container community-inner">
-			<header class="section-head">
-				<h2>Comunidad y experiencias reales</h2>
-				<p>Comparte tus resultados, recibe retroalimentación y construye hábitos sostenibles.</p>
-			</header>
-			<div class="community-grid">
-				{#each communityHighlights as highlight}
-					<article>
-						<h3>{highlight.title}</h3>
-						<p>{highlight.description}</p>
-					</article>
-				{/each}
-				<div class="testimonial">
-					<blockquote>
-						“NutriPlan me ayudó a adaptar recetas tradicionales a mi plan de pérdida de peso sin
-						sacrificar sabor.”
-					</blockquote>
-					<cite>María José • Managua</cite>
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-2"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: var(--gradient-mint);"
+						>
+							<span class="bold">CR</span>
+						</div>
+						<div>
+							<p class="bold">Carlos Roberto</p>
+							<p class="sm-p p-ghost">Granada</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"La función de receta rápida es increíble. Escribo lo que tengo en la cocina y me
+						sugiere platos nicas que puedo hacer. ¡Genial para estudiantes!"
+					</p>
+				</div>
+
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-3"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: var(--gradient-sunrise);"
+						>
+							<span class="bold">AL</span>
+						</div>
+						<div>
+							<p class="bold">Ana Lucía</p>
+							<p class="sm-p p-ghost">León</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"Mi plan semanal se adapta perfectamente a mi rutina de ejercicio. La IA entiende mis
+						necesidades y me da opciones que realmente puedo seguir."
+					</p>
+				</div>
+
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-4"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: linear-gradient(135deg, #C86F56 0%, #ff6b6b 100%);"
+						>
+							<span class="bold">JM</span>
+						</div>
+						<div>
+							<p class="bold">José Manuel</p>
+							<p class="sm-p p-ghost">Masaya</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"Como chef, aprecio la autenticidad de las recetas. NutriPlan respeta nuestras
+						tradiciones pero las hace más nutritivas. ¡Excelente trabajo!"
+					</p>
+				</div>
+
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-5"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: linear-gradient(135deg, #6C9073 0%, #9EBC8A 100%);"
+						>
+							<span class="bold">SR</span>
+						</div>
+						<div>
+							<p class="bold">Sofía Raquel</p>
+							<p class="sm-p p-ghost">Chontales</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"La comunidad es lo mejor. Comparto mis recetas familiares y aprendo de otros. Es como
+						tener una cocina nicaragüense virtual."
+					</p>
+				</div>
+
+				<div
+					class="testimonial-card pad-20 round-15 bg-white hover-lift animate-fade-in-up animate-delay-5"
+					style="width: 350px; min-height: 200px;"
+				>
+					<div class="flex items-center gap-16 mb">
+						<div
+							class="avatar full-round text-col-white flex-center"
+							style="width: 50px; height: 50px; background: linear-gradient(135deg, #4cd4aa 0%, #68d3ff 100%);"
+						>
+							<span class="bold">DR</span>
+						</div>
+						<div>
+							<p class="bold">Diego Rafael</p>
+							<p class="sm-p p-ghost">Rivas</p>
+						</div>
+						<div class="stars ml-auto">
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+							<i class="las la-star p-emphasis"></i>
+						</div>
+					</div>
+					<p class="md-p">
+						"Perdí 15 libras en 3 meses siguiendo los planes de NutriPlan. Lo mejor es que nunca me
+						aburrí porque siempre hay variedad de platos nicas."
+					</p>
 				</div>
 			</div>
 		</div>
 	</section>
 
-	<section class="cta-final">
-		<div class="container cta-inner">
-			<div>
-				<h2 style="color: white">Listo para comer mejor, con sabor a Nicaragua</h2>
-				<p>Crea tu cuenta gratis y comienza a recibir recomendaciones hechas a tu medida.</p>
+	<!-- <section id="categories" style="background-color: #FAF1E6">
+		<div class="container flex-center direction-col pad-50">
+			<p class="mb-l h3">Explora por categorias</p>
+			<div class="content flex wrap gap-16 justify-center items-center" id="category-roulette">
+				{#each categories as category}
+					<div
+						class="category flex-center direction-col round-10"
+						style="background-color: {category.background_color};"
+					>
+						<div
+							class="icon flex-center round-5 b-shadow"
+							style="background: {category.gradient}; color: white;"
+						>
+							{@html category.icon}
+						</div>
+						<p class="mt-s">{category.title}</p>
+					</div>
+				{/each}
 			</div>
-			<div class="cta-actions">
-				<a class="btn primary" href="#">Crear cuenta gratis</a>
-				<a class="btn ghost" href="#">Hablar con un nutricionista</a>
+		</div>
+	</section> -->
+
+	<section id="metrics" class="bg-white">
+		<div class="container flex-center direction-col pad-50">
+			<div class="flex-center direction-col mb-l animate-fade-in-up">
+				<h2 class="h2 bold mb">NutriPlan en números</h2>
+				<p class="lg-p p-ghost txt-center">Los resultados hablan por sí solos</p>
+			</div>
+
+			<div class="content flex-center wrap gap-32">
+				<div
+					class="metric-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-1"
+					style="width: 200px; min-height: 150px;"
+				>
+					<div
+						class="metric-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-leaf); margin: 0 auto;"
+					>
+						<i class="las la-utensils text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h1 bold txt-center mb" style="color: var(--color-primary-dark);">500+</h3>
+					<p class="md-p p-ghost txt-center">Recetas nicaragüenses</p>
+				</div>
+
+				<div
+					class="metric-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-2"
+					style="width: 200px; min-height: 150px;"
+				>
+					<div
+						class="metric-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-mint); margin: 0 auto;"
+					>
+						<i class="las la-users text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h1 bold txt-center mb" style="color: var(--color-primary-dark);">2,500+</h3>
+					<p class="md-p p-ghost txt-center">Usuarios activos</p>
+				</div>
+
+				<div
+					class="metric-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-3"
+					style="width: 200px; min-height: 150px;"
+				>
+					<div
+						class="metric-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: var(--gradient-sunrise); margin: 0 auto;"
+					>
+						<i class="las la-calendar text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h1 bold txt-center mb" style="color: var(--color-primary-dark);">8,000+</h3>
+					<p class="md-p p-ghost txt-center">Planes creados</p>
+				</div>
+
+				<div
+					class="metric-card pad-20 round-15 bg-soft-gray hover-lift animate-fade-in-up animate-delay-4"
+					style="width: 200px; min-height: 150px;"
+				>
+					<div
+						class="metric-icon flex-center round-10 mb"
+						style="width: 60px; height: 60px; background: linear-gradient(135deg, #C86F56 0%, #ff6b6b 100%); margin: 0 auto;"
+					>
+						<i class="las la-star text-col-white" style="font-size: 24px;"></i>
+					</div>
+					<h3 class="h1 bold txt-center mb" style="color: var(--color-primary-dark);">4.8</h3>
+					<p class="md-p p-ghost txt-center">Rating promedio</p>
+				</div>
 			</div>
 		</div>
 	</section>
-</main>
+
+	<section id="join">
+		<div class="container flex-center direction-col pad-50">
+			<p class="h1 text-col-white bold animate-fade-in-up">Empieza tu viaje culinario hoy</p>
+			<p class="lg-p text-col-white mb-l animate-fade-in-up animate-delay-1">
+				Únete a miles de nicaragüenses que ya transformaron su forma de comer con recetas saludables
+				y deliciosas
+			</p>
+
+			<a href="/signup" class="btn ghost mb-l hover-glow animate-scale-in animate-delay-2"
+				>Registrate!</a
+			>
+			<p class="md-p text-col-white animate-fade-in-up animate-delay-3">
+				Ya tienes una cuenta? <a href="/login" class="bold text-col-white">Inicia Sesión</a>
+			</p>
+		</div>
+	</section>
+
+	<Footer />
+</div>
 
 <style>
-	:global(body) {
-		margin: 0;
-		background: var(--color-cream);
-		color: var(--color-ink);
-		overflow-x: hidden;
-	}
-
-	.home {
-		display: flex;
-		flex-direction: column;
-		gap: 6rem;
-		padding-bottom: 6rem;
-	}
-
-	section {
-		position: relative;
-	}
-
-	.container {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 1.5rem;
-	}
-
-	.section-head h2 {
-		margin: 0 0 0.5rem;
-		font-size: clamp(1.8rem, 2.4vw, 2.6rem);
-	}
-
-	.section-head p {
-		margin: 0;
-		color: var(--color-soft);
-		font-size: 1rem;
-		line-height: 1.6;
-	}
-
-	.hero {
-		padding: 4rem 0 2rem;
-	}
-
-	.hero-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		align-items: center;
-		gap: 3rem;
-		background: linear-gradient(135deg, rgba(246, 253, 247, 1) 0%, rgba(222, 245, 235, 0.75) 100%);
-		border-radius: var(--radius-lg);
-		padding: clamp(2.5rem, 4vw, 4rem);
-		box-shadow: var(--shadow-soft);
-		overflow: hidden;
-	}
-
-	.hero-inner::before,
-	.hero-inner::after {
-		content: '';
-		position: absolute;
-		opacity: 0.35;
-		filter: blur(50px);
-	}
-
-	.hero-inner::before {
-		width: 300px;
-		height: 300px;
-		background: var(--gradient-leaf);
-		top: -100px;
-		right: -80px;
-	}
-
-	.hero-inner::after {
-		width: 220px;
-		height: 220px;
-		background: var(--gradient-mint);
-		bottom: -120px;
-		left: -60px;
-	}
-
-	.hero-copy {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.hero-copy h1 {
-		margin: 0;
-		font-size: clamp(2.2rem, 3vw, 3.2rem);
-		line-height: 1.15;
-	}
-
-	.hero-copy p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: linear-gradient(
-			to right,
-			#8e54e9,
-			#4776e6
-		); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-		color: var(--color-cream);
-		padding: 0.5rem 1.2rem;
-		border-radius: 999px;
-		font-weight: 600;
-		font-size: 0.9rem;
-		width: fit-content;
-	}
-
-	.welcome {
-		font-family: var(--font-accent);
-		font-size: 1.1rem;
-		color: var(--color-forest);
-		margin-top: 0.25rem;
-	}
-
-	.pill img {
-		width: 18px;
-		height: 18px;
-	}
-
-	.hero-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.85rem 1.6rem;
-		border-radius: 999px;
-		border: none;
-		font-weight: 600;
-		font-size: 0.98rem;
-		text-decoration: none;
-		cursor: pointer;
-		transition:
-			transform 0.25s ease,
-			box-shadow 0.25s ease;
-	}
-
-	.btn.primary {
-		background: var(--gradient-leaf);
-		color: white;
-		box-shadow: 0 15px 25px rgba(30, 164, 93, 0.3);
-	}
-
-	.btn.primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 20px 30px rgba(30, 164, 93, 0.35);
-	}
-
-	.btn.ghost {
-		background: rgba(255, 255, 255, 0.65);
-		color: var(--color-forest);
-		border: 1px solid rgba(18, 38, 33, 0.12);
-	}
-
-	.btn.ghost:hover {
-		transform: translateY(-2px);
-	}
-
-	.hero-stats {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1.5rem;
-		margin-top: 0.5rem;
-	}
-
-	.stat {
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-	}
-
-	.stat .value {
-		font-size: 1.6rem;
-		font-weight: 700;
-	}
-
-	.stat .label {
-		color: var(--color-soft);
-		font-size: 0.95rem;
-	}
-
-	.hero-visual {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.hero-card.main {
-		position: relative;
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-		box-shadow: var(--shadow-soft);
-		isolation: isolate;
-		height: 320px;
-	}
-
-	.hero-card.main div {
-		opacity: 95%;
-		/* backdrop-filter: blur(30px); */
-	}
-
-	.hero-card.main h3,
-	p {
-		margin-bottom: 0px;
-		margin-top: 0px;
-	}
-
-	.hero-card img {
+	.home section {
+		/* Vertical padding */
 		width: 100%;
-		height: 320px;
-		object-fit: cover;
-		filter: saturate(1.05);
 	}
 
-	.hero-card.main img {
-		height: 150%;
-		object-fit: cover;
-	}
-
-	.card-meta {
-		position: absolute;
-		bottom: 1.5rem;
-		left: 1.5rem;
-		right: 1.5rem;
-		background: rgba(255, 255, 255, 0.92);
-		backdrop-filter: blur(12px);
-		border-radius: var(--radius-md);
-		padding: 1rem 1.2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.meta-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.badge {
-		background: rgba(30, 164, 93, 0.15);
-		color: var(--color-forest);
-		padding: 0.3rem 0.75rem;
-		border-radius: 999px;
-		font-size: 0.75rem;
-		font-weight: 600;
-	}
-
-	.rating {
-		font-weight: 600;
-		color: var(--color-leaf);
-	}
-
-	.meta-info {
-		display: flex;
-		gap: 1rem;
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.hero-stack {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.mini-card {
-		display: grid;
-		grid-template-columns: 110px 1fr;
-		gap: 1rem;
-		align-items: center;
-		background: var(--color-card);
-		border-radius: var(--radius-md);
-		box-shadow: 0 12px 25px rgba(18, 38, 33, 0.12);
-		padding: 1rem;
-	}
-
-	.mini-card img {
-		width: 100%;
-		height: 90px;
-		object-fit: cover;
-		border-radius: var(--radius-sm);
-	}
-
-	.mini-card h4 {
-		margin: 0;
-		font-size: 1.05rem;
-	}
-
-	.mini-card span {
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.mini-card.alt {
-		grid-template-columns: 1fr;
-		background: rgba(255, 255, 255, 0.6);
-	}
-
-	.mini-card.alt p {
-		margin: 0;
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.card-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1.5rem;
-		margin-top: 2.5rem;
-	}
-
-	.feature-card {
-		border-radius: var(--radius-md);
-		padding: 1.8rem;
-		box-shadow: 0 18px 30px rgba(18, 38, 33, 0.12);
-		color: white;
-		display: flex;
-		flex-direction: column;
-		gap: 1.2rem;
-	}
-
-	.feature-card.leaf {
-		background: var(--gradient-leaf);
-	}
-
-	.feature-card.mint {
-		background: var(--gradient-mint);
-	}
-
-	.feature-card.sunrise {
-		background: var(--gradient-sunrise);
-		color: #4f3206;
-	}
-
-	.feature-card h3 {
-		margin: 0;
-		font-size: 1.4rem;
-	}
-
-	.feature-card p {
-		margin: 0;
-		font-size: 0.95rem;
-		line-height: 1.6;
-	}
-
-	.feature-card a {
-		color: inherit;
-		font-weight: 600;
-		text-decoration: none;
-	}
-
-	.feature-icon {
-		font-size: 1.6rem;
-	}
-
-	.featured .recipe-carousel {
-		display: grid;
-		grid-auto-flow: column;
-		grid-auto-columns: minmax(240px, 1fr);
-		gap: 1.5rem;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		padding-bottom: 2rem;
-	}
-
-	.featured .recipe-carousel::-webkit-scrollbar {
-		height: 6px;
-	}
-
-	.featured .recipe-carousel::-webkit-scrollbar-thumb {
-		background: rgba(18, 38, 33, 0.15);
-		border-radius: 999px;
-	}
-
-	.recipe-card {
-		background: var(--color-card);
-		border-radius: var(--radius-md);
-		box-shadow: 0 15px 30px rgba(18, 38, 33, 0.12);
-		scroll-snap-align: start;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.image-wrap {
-		position: relative;
-		width: 100%;
-		height: 180px;
-		overflow: hidden;
-	}
-
-	.image-wrap img {
+	img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 
-	.recipe-rating {
-		position: absolute;
-		top: 0.75rem;
-		right: 0.75rem;
-		background: rgba(0, 0, 0, 0.6);
-		color: white;
-		padding: 0.35rem 0.7rem;
-		border-radius: 999px;
-		font-size: 0.85rem;
+	/*
+	#category-roulette .category {
+		width: 200px;
+		height: 140px;
 	}
 
-	.recipe-body {
-		padding: 1.5rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
+	#category-roulette .category .icon {
+		width: 65px;
+		height: 65px;
+
+		font-size: 2rem;
 	}
+		*/
 
-	.recipe-body h3 {
-		margin: 0;
-		font-size: 1.2rem;
-	}
-
-	.recipe-body .origin {
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.meta {
-		display: flex;
-		gap: 1rem;
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6rem;
-	}
-
-	.tags span {
-		background: rgba(30, 164, 93, 0.12);
-		color: var(--color-forest);
-		padding: 0.25rem 0.75rem;
-		border-radius: 999px;
-		font-size: 0.8rem;
-		font-weight: 600;
-	}
-
-	.ai-planner {
-		padding: 1rem 0;
-	}
-
-	.ai-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 3rem;
-		align-items: start;
-	}
-
-	.planner-copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.planner-copy p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.planner-copy ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 1.2rem;
-	}
-
-	.planner-copy li {
-		background: var(--color-card);
-		border-radius: var(--radius-md);
-		padding: 1.2rem 1.4rem;
-		box-shadow: 0 12px 25px rgba(18, 38, 33, 0.1);
-	}
-
-	.planner-copy h3 {
-		margin: 0 0 0.4rem;
-		font-size: 1.1rem;
-	}
-
-	.planner-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-	}
-
-	.planner-actions span {
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.planner-preview {
-		display: flex;
-		justify-content: center;
-	}
-
-	.preview-card {
-		width: min(100%, 360px);
-		background: rgba(255, 255, 255, 0.88);
-		backdrop-filter: blur(10px);
-		border-radius: var(--radius-md);
-		padding: 1.8rem 1.6rem;
-		box-shadow: var(--shadow-soft);
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.preview-card h4 {
-		margin: 0;
-		font-size: 1.2rem;
-	}
-
-	.preview-card ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.preview-card li {
-		display: grid;
-		grid-template-columns: 80px 1fr;
-		gap: 0.75rem;
-	}
-
-	.day {
-		font-weight: 700;
-		color: var(--color-forest);
-	}
-
-	.meals p {
-		margin: 0;
-		color: var(--color-soft);
-		font-size: 0.9rem;
-		line-height: 1.5;
-	}
-
-	.preview-footer {
-		text-align: center;
-		font-size: 0.9rem;
-		color: var(--color-forest);
-		background: rgba(30, 164, 93, 0.15);
-		padding: 0.75rem 1rem;
-		border-radius: var(--radius-sm);
-		font-weight: 600;
-	}
-
-	.pantry-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 3rem;
-		align-items: start;
-	}
-
-	.pantry-copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.pantry-copy p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.7;
-	}
-
-	.ingredient-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-
-	.chip {
-		background: rgba(18, 38, 33, 0.08);
-		padding: 0.55rem 1.1rem;
-		border-radius: 999px;
-		font-weight: 600;
-		font-size: 0.9rem;
-	}
-
-	.matches {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.match-card {
-		background: var(--color-card);
-		border-radius: var(--radius-md);
-		padding: 1.5rem;
-		box-shadow: 0 15px 30px rgba(18, 38, 33, 0.12);
-		position: relative;
-	}
-
-	.match-card header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.match-card h3 {
-		margin: 0;
-		font-size: 1.15rem;
-	}
-
-	.match-card header span {
-		color: var(--color-soft);
-		font-size: 0.9rem;
-	}
-
-	.progress {
-		width: 100%;
-		height: 8px;
-		background: rgba(18, 38, 33, 0.08);
-		border-radius: 999px;
-		overflow: hidden;
-		margin-bottom: 0.75rem;
-	}
-
-	.progress div {
-		height: 100%;
-		background: var(--gradient-leaf);
-	}
-
-	.match-percent {
-		margin: 0 0 0.5rem;
-		font-weight: 600;
-		color: var(--color-forest);
-	}
-
-	.match-card ul {
-		margin: 0;
-		padding-left: 1.1rem;
-		color: var(--color-soft);
-		font-size: 0.9rem;
-		line-height: 1.6;
-	}
-
-	.community-inner {
-		display: flex;
-		flex-direction: column;
-		gap: 2.5rem;
-	}
-
-	.community-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-		gap: 1.8rem;
-	}
-
-	.community-grid article,
-	.testimonial {
-		background: var(--color-card);
-		border-radius: var(--radius-md);
-		padding: 1.6rem;
-		box-shadow: 0 15px 30px rgba(18, 38, 33, 0.12);
-	}
-
-	.community-grid h3 {
-		margin: 0 0 0.6rem;
-		font-size: 1.2rem;
-	}
-
-	.community-grid p {
-		margin: 0;
-		color: var(--color-soft);
-		line-height: 1.6;
-	}
-
-	.testimonial blockquote {
-		margin: 0 0 1rem;
-		font-style: italic;
-		line-height: 1.6;
-	}
-
-	.testimonial cite {
-		font-weight: 600;
-		color: var(--color-forest);
-	}
-
-	.cta-final {
-		padding: 0 0 2rem;
-	}
-
-	.cta-inner {
-		background: var(--gradient-leaf);
-		border-radius: var(--radius-lg);
-		padding: clamp(2.5rem, 4vw, 3.5rem);
-		color: white;
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-		align-items: flex-start;
-		box-shadow: var(--shadow-soft);
-	}
-
-	.cta-inner h2 {
-		margin: 0 0 0.5rem;
-		font-size: clamp(2rem, 2.6vw, 2.8rem);
-	}
-
-	.cta-inner p {
-		margin: 0;
-		font-size: 1rem;
-		line-height: 1.6;
-	}
-
-	.cta-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.cta-actions .btn.ghost {
-		background: rgba(255, 255, 255, 0.2);
-		color: white;
-		border-color: rgba(255, 255, 255, 0.4);
-	}
-
-	@media (max-width: 900px) {
-		.hero-inner::before,
-		.hero-inner::after {
-			display: none;
-		}
-
-		.hero-card img {
-			height: 250px;
-		}
-
-		.preview-card li {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.hero-actions,
-		.cta-actions {
-			flex-direction: column;
-		}
-
-		.hero-stats {
-			gap: 1rem;
-		}
-
-		.hero-copy h1 {
-			font-size: 2rem;
-		}
-
-		.card-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.featured .recipe-carousel {
-			grid-auto-columns: 80%;
-		}
+	section#join {
+		background:
+			radial-gradient(
+				circle,
+				transparent 20%,
+				#626f47 20%,
+				#626f47 80%,
+				transparent 80%,
+				transparent
+			),
+			radial-gradient(
+					circle,
+					transparent 20%,
+					#626f47 20%,
+					#626f47 80%,
+					transparent 80%,
+					transparent
+				)
+				50px 50px,
+			linear-gradient(#708051 8px, transparent 8px) 0 -4px,
+			linear-gradient(90deg, #708051 8px, transparent 8px) -4px 0;
+		background-color: #626f47;
+		background-size:
+			100px 100px,
+			100px 100px,
+			50px 50px,
+			50px 50px;
 	}
 </style>
