@@ -10,7 +10,7 @@ from pytest import fixture
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .factories import UserFactory
+from .factories import RecipeFactory, UserFactory
 
 TokenApplier = Callable[[APIClient, str, str], APIClient]
 
@@ -69,6 +69,19 @@ def auth_client(client: APIClient) -> tuple[APIClient, UserFactory]:
 
 @fixture
 def staff_client(client: APIClient) -> tuple[APIClient, UserFactory]:
+    user = UserFactory(is_staff=True, is_superuser=False)
+    user.set_password("secret1234")
+    user.save(update_fields=["password"])
+
+    refresh = RefreshToken.for_user(user)
+    client.cookies[settings.ACCESS_COOKIE_NAME] = str(refresh.access_token)
+    client.cookies[settings.REFRESH_COOKIE_NAME] = str(refresh)
+
+    return client, user
+
+
+@fixture
+def admin_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     user = UserFactory(is_staff=True, is_superuser=True)
     user.set_password("secret1234")
     user.save(update_fields=["password"])
@@ -78,6 +91,13 @@ def staff_client(client: APIClient) -> tuple[APIClient, UserFactory]:
     client.cookies[settings.REFRESH_COOKIE_NAME] = str(refresh)
 
     return client, user
+
+
+@fixture
+def recipes_gallo_vigoron() -> tuple[RecipeFactory, RecipeFactory]:
+    r1 = RecipeFactory(name="Gallo Pinto", description="Clásico nica.")
+    r2 = RecipeFactory(name="Vigorón", description="Yuca con chicharrón.")
+    return r1, r2
 
 
 @fixture

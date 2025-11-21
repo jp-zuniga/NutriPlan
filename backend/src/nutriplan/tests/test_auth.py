@@ -36,6 +36,7 @@ def test_register_and_login(
         "password": "pass12345",
         "password_confirm": "pass12345",
     }
+
     res = client.post(url_register, payload, format="json")
 
     assert res.status_code == HTTP_201_CREATED

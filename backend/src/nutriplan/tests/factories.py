@@ -42,6 +42,15 @@ class UserFactory(DjangoModelFactory):
     is_superuser = False
 
 
+class StaffFactory(UserFactory):
+    is_staff = True
+
+
+class AdminFactory(UserFactory):
+    is_staff = True
+    is_superuser = True
+
+
 class DietaryRestrictionFactory(DjangoModelFactory):
     class Meta:
         model = DietaryRestriction
